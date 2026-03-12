@@ -1,0 +1,541 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using Newtonsoft.Json;
+
+namespace Test
+{
+    public partial class MainForm : Form
+    {
+        // ── State ────────────────────────────────────────────────────────────
+        private List<TaskItem>             _tasks   = new List<TaskItem>();
+        private List<RevisionEntry>        _history = new List<RevisionEntry>();
+        private TaskItem                   _sel;
+        private System.Windows.Forms.Timer _alertTimer;
+        private bool                       _alertActive;
+        private HistoryDialog              _historyWindow;
+        private JiraForm                   _jiraWindow;
+        private System.Windows.Forms.Timer _notesSaveTimer;
+        private bool                       _loadingDetails;
+        private NotifyIcon                 _notifyIcon;
+        private ContextMenuStrip           _trayMenu;
+        private ToolStripMenuItem          _trayMuteItem;
+        private bool                       _mutedNotifications;
+        private bool                       _forceClose;
+        private Icon                       _trayIconNormal;
+        private Icon                       _trayIconMuted;
+
+        // ── File paths ───────────────────────────────────────────────────────
+        private static readonly string BaseDir   = AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string DataFile  = Path.Combine(BaseDir, "tasks.json");
+        private static readonly string HistFile  = Path.Combine(BaseDir, "tasks_history.json");
+        private static readonly string BackupDir = Path.Combine(BaseDir, "backups");
+        private const int MaxBackups = 20;
+
+        // ── Visual maps ──────────────────────────────────────────────────────
+        private static readonly Color[]  PriCol  = { Color.FromArgb(88,196,88), Color.FromArgb(214,188,50), Color.FromArgb(232,116,40), Color.FromArgb(222,52,52) };
+        private static readonly string[] PriName = { "Low", "Medium", "High", "Critical" };
+
+        // ── Constructor ──────────────────────────────────────────────────────
+        public MainForm()
+        {
+            InitializeComponent();
+            WireListView();
+            LoadHistory();
+            LoadTasks();
+            RefreshList();
+
+            _alertTimer = new System.Windows.Forms.Timer { Interval = 60_000 };
+            _alertTimer.Tick += CheckAlerts;
+            _alertTimer.Start();
+
+            // Debounce timer: saves notes 800 ms after the user stops typing
+            _notesSaveTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            _notesSaveTimer.Tick += NotesSaveTimer_Tick;
+
+            Shown += (s, e) => CheckAlerts(null, null);
+            InitTray();
+        }
+
+        // ── System tray ───────────────────────────────────────────────────────
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool DestroyIcon(IntPtr handle);
+
+        private static Icon BuildTrayIcon(bool muted)
+        {
+            using (var bmp = new Bitmap(16, 16))
+            {
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    g.Clear(Color.Transparent);
+
+                    // Base circle: blue when active, grey when muted
+                    Color baseColor = muted ? Color.FromArgb(110, 110, 115) : Color.FromArgb(0, 112, 200);
+                    using (var br = new SolidBrush(baseColor))
+                        g.FillEllipse(br, 1, 1, 13, 13);
+
+                    if (muted)
+                    {
+                        // Red X
+                        using (var pen = new Pen(Color.FromArgb(210, 45, 45), 2.5f) { StartCap = System.Drawing.Drawing2D.LineCap.Round, EndCap = System.Drawing.Drawing2D.LineCap.Round })
+                        {
+                            g.DrawLine(pen, 4, 4, 11, 11);
+                            g.DrawLine(pen, 11, 4, 4, 11);
+                        }
+                    }
+                    else
+                    {
+                        // White checkmark
+                        using (var pen = new Pen(Color.White, 2f) { StartCap = System.Drawing.Drawing2D.LineCap.Round, EndCap = System.Drawing.Drawing2D.LineCap.Round })
+                        {
+                            g.DrawLine(pen, 3, 8, 6, 11);
+                            g.DrawLine(pen, 6, 11, 12, 4);
+                        }
+                    }
+                }
+
+                IntPtr hIcon = bmp.GetHicon();
+                try   { return (Icon)Icon.FromHandle(hIcon).Clone(); }
+                finally { DestroyIcon(hIcon); }
+            }
+        }
+
+        private void InitTray()
+        {
+            _trayIconNormal = BuildTrayIcon(false);
+            _trayIconMuted  = BuildTrayIcon(true);
+
+            _trayMenu = new ContextMenuStrip();
+            var openItem  = new ToolStripMenuItem("Open", null, (s, e) => RestoreFromTray());
+            _trayMuteItem = new ToolStripMenuItem("Mute Notifications", null, TrayMute_Click) { CheckOnClick = true };
+            var closeItem = new ToolStripMenuItem("Close Application", null, (s, e) => { _forceClose = true; Close(); });
+            _trayMenu.Items.AddRange(new ToolStripItem[] { openItem, _trayMuteItem, new ToolStripSeparator(), closeItem });
+
+            _notifyIcon = new NotifyIcon
+            {
+                Icon             = _trayIconNormal,
+                Text             = "Task Manager",
+                ContextMenuStrip = _trayMenu,
+                Visible          = false
+            };
+            _notifyIcon.DoubleClick += (s, e) => RestoreFromTray();
+        }
+
+        private void RestoreFromTray()
+        {
+            Show();
+            WindowState = FormWindowState.Normal;
+            Activate();
+            _notifyIcon.Visible = false;
+        }
+
+        private void TrayMute_Click(object sender, EventArgs e)
+        {
+            _mutedNotifications  = _trayMuteItem.Checked;
+            _notifyIcon.Icon     = _mutedNotifications ? _trayIconMuted  : _trayIconNormal;
+            _notifyIcon.Text     = _mutedNotifications ? "Task Manager (Muted)" : "Task Manager";
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            if (WindowState == FormWindowState.Minimized)
+            {
+                Hide();
+                _notifyIcon.Visible = true;
+            }
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (!_forceClose && e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                Hide();
+                _notifyIcon.Visible = true;
+                return;
+            }
+            _notifyIcon.Visible = false;
+            _notifyIcon.Dispose();
+            _trayIconNormal?.Dispose();
+            _trayIconMuted?.Dispose();
+            base.OnFormClosing(e);
+        }
+
+        private void WireListView()
+        {
+            _lv.DrawColumnHeader     += DrawHeader;
+            _lv.DrawSubItem          += DrawCell;
+            _lv.DrawItem             += (s, e) => { };
+            _lv.SelectedIndexChanged += OnSelection;
+        }
+
+        // ── Details ──────────────────────────────────────────────────────────
+        private void ShowDetails(TaskItem t)
+        {
+            _loadingDetails = true;
+            bool has = t != null;
+            _btnEdit.Enabled = _btnDone.Enabled = _btnDelete.Enabled = has;
+
+            if (!has)
+            {
+                _lblName.Text = _lblPriority.Text = _lblDue.Text = _lblStatus.Text = "";
+                _txtNotes.Text = "";
+                _loadingDetails = false;
+                return;
+            }
+
+            bool overdue = !t.IsDone && t.DueDate < DateTime.Now;
+
+            _lblName.Text = t.Name; _lblName.ForeColor = Color.White;
+            _lblPriority.Text = PriName[(int)t.Priority]; _lblPriority.ForeColor = PriCol[(int)t.Priority];
+            _lblDue.Text = t.DueDate.ToString("f") + "\n" + AlertLeadLabel(t.AlertLeadMinutes);
+            _lblDue.ForeColor = overdue ? Color.FromArgb(255,100,100) : Color.White;
+
+            if      (t.IsDone) { _lblStatus.Text = "✓  Completed"; _lblStatus.ForeColor = Color.FromArgb(88,196,88); }
+            else if (overdue)  { _lblStatus.Text = "⚠  Overdue";   _lblStatus.ForeColor = Color.FromArgb(255,100,100); }
+            else               { _lblStatus.Text = "●  Active";     _lblStatus.ForeColor = Color.FromArgb(90,190,255); }
+
+            _txtNotes.Text     = t.Notes;
+            _btnDone.Text      = t.IsDone ? "Mark Active" : "Mark Done";
+            _btnDone.BackColor = t.IsDone ? Color.FromArgb(100,80,0) : Color.FromArgb(16,124,16);
+            _loadingDetails = false;
+        }
+
+        // ── List ─────────────────────────────────────────────────────────────
+        private void RefreshList()
+        {
+            string selId = _sel?.Id;
+            _lv.BeginUpdate();
+            _lv.Items.Clear();
+            foreach (var t in GetFiltered())
+            {
+                bool overdue = !t.IsDone && t.DueDate < DateTime.Now;
+                var li = new ListViewItem("") { Name = t.Id, Tag = t };
+                li.SubItems.Add(t.Name);
+                li.SubItems.Add(PriName[(int)t.Priority]);
+                li.SubItems.Add(t.DueDate.ToString("g"));
+                li.SubItems.Add(t.IsDone ? "Done" : overdue ? "Overdue" : "Active");
+                if (t.Id == selId) li.Selected = true;
+                _lv.Items.Add(li);
+            }
+            _lv.EndUpdate();
+            ShowDetails(_sel);
+        }
+
+        private IEnumerable<TaskItem> GetFiltered()
+        {
+            var q = _tasks.AsEnumerable();
+            int si = _cmbStatusF.SelectedIndex, pi = _cmbPriorityF.SelectedIndex;
+            if (si == 1) q = q.Where(t => !t.IsDone);
+            else if (si == 2) q = q.Where(t =>  t.IsDone);
+            if (pi > 0)  q = q.Where(t => (int)t.Priority == pi - 1);
+            return q.OrderBy(t => t.IsDone).ThenByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate);
+        }
+
+        private void OnSelection(object sender, EventArgs e)
+        {
+            _sel = _lv.SelectedItems.Count > 0 ? (TaskItem)_lv.SelectedItems[0].Tag : null;
+            ShowDetails(_sel);
+        }
+
+        // ── CRUD ─────────────────────────────────────────────────────────────
+        private void BtnAdd_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new TaskDialog())
+            {
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                _tasks.Add(dlg.Result);
+                _sel = dlg.Result;
+                AddRevision(new RevisionEntry { Action = RevisionAction.TaskAdded, TaskId = dlg.Result.Id, TaskName = dlg.Result.Name, Summary = $"Task \"{dlg.Result.Name}\" added (Priority: {dlg.Result.Priority}, Due: {dlg.Result.DueDate:g})" });
+                SaveAll(); RefreshList();
+            }
+        }
+
+        private void EditTask()
+        {
+            if (_sel == null) return;
+            var before = _sel.Clone();
+            using (var dlg = new TaskDialog(_sel))
+            {
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                var changes = DiffTask(before, _sel);
+                AddRevision(new RevisionEntry { Action = RevisionAction.TaskEdited, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" edited ({changes.Count} field(s) changed)", Changes = changes });
+                SaveAll(); RefreshList();
+            }
+        }
+
+        private void ToggleDone()
+        {
+            if (_sel == null) return;
+            bool was = _sel.IsDone;
+            _sel.IsDone = !was;
+            AddRevision(new RevisionEntry { Action = RevisionAction.StatusChanged, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" marked {(_sel.IsDone ? "Done" : "Active")}", Changes = new List<FieldChange> { new FieldChange { Field = "IsDone", OldValue = was.ToString(), NewValue = _sel.IsDone.ToString() } } });
+            SaveAll(); RefreshList();
+        }
+
+        private void DeleteTask()
+        {
+            if (_sel == null) return;
+            if (MessageBox.Show($"Delete \"{_sel.Name}\"?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+            AddRevision(new RevisionEntry { Action = RevisionAction.TaskDeleted, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" deleted" });
+            _tasks.Remove(_sel); _sel = null;
+            SaveAll(); RefreshList();
+        }
+
+        // ── Button event handlers (wired in Designer) ─────────────────────────
+        private void BtnEdit_Click(object sender,    EventArgs e) => EditTask();
+        private void BtnDone_Click(object sender,    EventArgs e) => ToggleDone();
+        private void BtnDelete_Click(object sender,  EventArgs e) => DeleteTask();
+        private void Filter_Changed(object sender,   EventArgs e) => RefreshList();
+
+        private void BtnExport_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new ExportDialog(_tasks))
+                dlg.ShowDialog(this);
+        }
+
+        private void BtnJira_Click(object sender, EventArgs e)
+        {
+            if (_jiraWindow != null && !_jiraWindow.IsDisposed)
+            {
+                _jiraWindow.BringToFront();
+                return;
+            }
+            _jiraWindow = new JiraForm();
+            _jiraWindow.TasksImported += OnJiraTasksImported;
+            _jiraWindow.FormClosed += (s2, ev) => _jiraWindow = null;
+            _jiraWindow.Show(this);
+        }
+
+        private void OnJiraTasksImported(System.Collections.Generic.List<TaskItem> incoming)
+        {
+            int added = 0;
+            foreach (var t in incoming)
+            {
+                // Skip if a task with the same name already exists
+                if (_tasks.Exists(x => x.Name == t.Name)) continue;
+                _tasks.Add(t);
+                AddRevision(new RevisionEntry
+                {
+                    Action   = RevisionAction.TaskAdded,
+                    TaskId   = t.Id,
+                    TaskName = t.Name,
+                    Summary  = $"Imported from Jira: \"{t.Name}\""
+                });
+                added++;
+            }
+            if (added > 0)
+            {
+                SaveAll();
+                RefreshList();
+                MessageBox.Show($"{added} task(s) imported from Jira.", "Import Complete",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("All selected items already exist in your task list.",
+                    "Nothing Added", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void TxtNotes_TextChanged(object sender, EventArgs e)
+        {
+            // Ignore changes triggered by ShowDetails loading a new selection
+            if (_loadingDetails || _sel == null) return;
+
+            // Reset the debounce timer on every keystroke
+            _notesSaveTimer.Stop();
+            _notesSaveTimer.Start();
+        }
+
+        private void NotesSaveTimer_Tick(object sender, EventArgs e)
+        {
+            _notesSaveTimer.Stop();
+            if (_sel == null) return;
+
+            string newNotes = _txtNotes.Text;
+            if (newNotes == _sel.Notes) return;   // nothing actually changed
+
+            string oldNotes = _sel.Notes;
+            _sel.Notes = newNotes;
+            AddRevision(new RevisionEntry
+            {
+                Action   = RevisionAction.TaskEdited,
+                TaskId   = _sel.Id,
+                TaskName = _sel.Name,
+                Summary  = $"Notes updated for \"{_sel.Name}\"",
+                Changes  = new System.Collections.Generic.List<FieldChange>
+                {
+                    new FieldChange { Field = "Notes", OldValue = oldNotes, NewValue = newNotes }
+                }
+            });
+            SaveAll();
+        }
+        private void BtnHistory_Click(object sender, EventArgs e)
+        {
+            if (_historyWindow != null && !_historyWindow.IsDisposed)
+            {
+                _historyWindow.BringToFront();
+                return;
+            }
+            _historyWindow = new HistoryDialog(_history, BackupDir);
+            _historyWindow.HistoryCleared += () => SaveHistory();
+            _historyWindow.FormClosed += (s2, ev) => _historyWindow = null;
+            _historyWindow.Show(this);
+        }
+
+        // ── Custom drawing ────────────────────────────────────────────────────
+        private void DrawHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+        {
+            using (var bg = new SolidBrush(Color.FromArgb(44,44,46))) e.Graphics.FillRectangle(bg, e.Bounds);
+            using (var pen = new Pen(Color.FromArgb(60,60,65))) e.Graphics.DrawLine(pen, e.Bounds.Left, e.Bounds.Bottom-1, e.Bounds.Right, e.Bounds.Bottom-1);
+            TextRenderer.DrawText(e.Graphics, e.Header.Text, new Font("Segoe UI",8.5f,FontStyle.Bold), new Rectangle(e.Bounds.X+5, e.Bounds.Y, e.Bounds.Width-5, e.Bounds.Height), Color.FromArgb(160,160,170), TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
+        }
+
+        private void DrawCell(object sender, DrawListViewSubItemEventArgs e)
+        {
+            var task = e.Item.Tag as TaskItem;
+            if (task == null) { e.DrawDefault = true; return; }
+
+            bool sel = e.Item.Selected, isDone = task.IsDone, overdue = !isDone && task.DueDate < DateTime.Now;
+            Color bg = sel ? Color.FromArgb(0,84,158) : (e.ItemIndex%2==0 ? Color.FromArgb(28,28,30) : Color.FromArgb(33,33,37));
+            using (var br = new SolidBrush(bg)) e.Graphics.FillRectangle(br, e.Bounds);
+
+            if (e.ColumnIndex == 0)
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                int d=9, px=e.Bounds.X+(e.Bounds.Width-d)/2, py=e.Bounds.Y+(e.Bounds.Height-d)/2;
+                using (var dotBr = new SolidBrush(PriCol[(int)task.Priority])) e.Graphics.FillEllipse(dotBr, px, py, d, d);
+                return;
+            }
+
+            Color fg;
+            if      (sel)                                                     fg = Color.White;
+            else if (isDone)                                                  fg = Color.FromArgb(100,100,108);
+            else if (e.ColumnIndex == 2)                                      fg = PriCol[(int)task.Priority];
+            else if ((e.ColumnIndex==3 || e.ColumnIndex==4) && overdue)      fg = Color.FromArgb(255,108,108);
+            else                                                              fg = Color.FromArgb(218,218,225);
+
+            var sf = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
+            using (var fgBr = new SolidBrush(fg)) e.Graphics.DrawString(e.SubItem.Text, _lv.Font, fgBr, new RectangleF(e.Bounds.X+5, e.Bounds.Y, e.Bounds.Width-7, e.Bounds.Height), sf);
+
+            if (isDone && e.ColumnIndex == 1)
+            {
+                float tw = Math.Min(e.Graphics.MeasureString(e.SubItem.Text, _lv.Font).Width, e.Bounds.Width-10);
+                float mid = e.Bounds.Y + e.Bounds.Height/2f;
+                using (var pen = new Pen(fg)) e.Graphics.DrawLine(pen, e.Bounds.X+5, mid, e.Bounds.X+5+tw, mid);
+            }
+        }
+
+        // ── Alerts ────────────────────────────────────────────────────────────
+        private void CheckAlerts(object sender, EventArgs e)
+        {
+            if (_alertActive || _mutedNotifications) return;
+            var due = _tasks.Where(t => !t.IsDone && !t.AlertIgnored && t.AlertLeadMinutes >= 0 && (!t.HasSnooze || DateTime.Now >= t.SnoozedUntil) && t.DueDate <= DateTime.Now.AddMinutes(t.AlertLeadMinutes))
+                            .OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate).FirstOrDefault();
+            if (due == null) return;
+            _alertActive = true;
+            using (var dlg = new AlertDialog(due))
+            {
+                dlg.ShowDialog(this);
+                switch (dlg.Choice)
+                {
+                    case SnoozeChoice.Dismiss:      due.HasSnooze=true; due.SnoozedUntil=DateTime.Now.AddHours(1);  AddRevision(new RevisionEntry { Action=RevisionAction.AlertSnoozed, TaskId=due.Id, TaskName=due.Name, Summary=$"Alert for \"{due.Name}\" dismissed" }); break;
+                    case SnoozeChoice.IgnoreAlways: due.AlertIgnored=true;                                          AddRevision(new RevisionEntry { Action=RevisionAction.AlertIgnored,  TaskId=due.Id, TaskName=due.Name, Summary=$"Alerts for \"{due.Name}\" disabled" }); break;
+                    case SnoozeChoice.Snooze1Hour:  due.HasSnooze=true; due.SnoozedUntil=DateTime.Now.AddHours(1);  AddRevision(new RevisionEntry { Action=RevisionAction.AlertSnoozed, TaskId=due.Id, TaskName=due.Name, Summary=$"Alert for \"{due.Name}\" snoozed 1 h" }); break;
+                    case SnoozeChoice.Snooze4Hours: due.HasSnooze=true; due.SnoozedUntil=DateTime.Now.AddHours(4);  AddRevision(new RevisionEntry { Action=RevisionAction.AlertSnoozed, TaskId=due.Id, TaskName=due.Name, Summary=$"Alert for \"{due.Name}\" snoozed 4 h" }); break;
+                    case SnoozeChoice.Snooze1Day:   due.HasSnooze=true; due.SnoozedUntil=DateTime.Now.AddDays(1);   AddRevision(new RevisionEntry { Action=RevisionAction.AlertSnoozed, TaskId=due.Id, TaskName=due.Name, Summary=$"Alert for \"{due.Name}\" snoozed 1 day" }); break;
+                }
+                SaveAll();
+            }
+            _alertActive = false;
+        }
+
+        // ── Revision helpers ──────────────────────────────────────────────────
+        private void AddRevision(RevisionEntry rev)
+        {
+            _history.Add(rev);
+            // Push to the history window immediately if it's open
+            if (_historyWindow != null && !_historyWindow.IsDisposed)
+                _historyWindow.Refresh();
+        }
+
+        private static string AlertLeadLabel(int minutes)
+        {
+            foreach (var opt in TaskDialog.AlertOptions)
+                if (opt.Minutes == minutes) return opt.Label;
+            if (minutes < 0) return "Never";
+            if (minutes < 60) return $"{minutes} min before";
+            if (minutes < 1440) return $"{minutes / 60} hr before";
+            return $"{minutes / 1440} day(s) before";
+        }
+
+        private static List<FieldChange> DiffTask(TaskItem before, TaskItem after)
+        {
+            var list = new List<FieldChange>();
+            void Chk(string f, string o, string n) { if (o != n) list.Add(new FieldChange { Field=f, OldValue=o, NewValue=n }); }
+            Chk("Name",     before.Name,                        after.Name);
+            Chk("Priority", before.Priority.ToString(),         after.Priority.ToString());
+            Chk("DueDate",  before.DueDate.ToString("g"),       after.DueDate.ToString("g"));
+            Chk("Notes",    before.Notes,                       after.Notes);
+            Chk("Alert",    AlertLeadLabel(before.AlertLeadMinutes), AlertLeadLabel(after.AlertLeadMinutes));
+            return list;
+        }
+
+        // ── Persistence ───────────────────────────────────────────────────────
+        private void SaveAll()
+        {
+            string name = WriteTasks();
+            if (name != null && _history.Count > 0) _history[_history.Count-1].BackupFile = name;
+            SaveHistory();
+        }
+
+        private string WriteTasks()
+        {
+            try
+            {
+                string json = JsonConvert.SerializeObject(_tasks, Formatting.Indented);
+                File.WriteAllText(DataFile, json);
+                Directory.CreateDirectory(BackupDir);
+                string name = $"tasks_{DateTime.Now:yyyyMMdd_HHmmss_fff}.json";
+                File.WriteAllText(Path.Combine(BackupDir, name), json);
+                PruneBackups();
+                return name;
+            }
+            catch (Exception ex) { MessageBox.Show($"Could not save tasks:\n{ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning); return null; }
+        }
+
+        private void PruneBackups()
+        {
+            try { foreach (var f in Directory.GetFiles(BackupDir,"tasks_*.json").OrderByDescending(f=>f).Skip(MaxBackups)) File.Delete(f); } catch { }
+        }
+
+        private void SaveHistory()
+        {
+            try { File.WriteAllText(HistFile, JsonConvert.SerializeObject(_history, Formatting.Indented)); } catch { }
+        }
+
+        private void LoadTasks()
+        {
+            if (!File.Exists(DataFile)) return;
+            try
+            {
+                _tasks = JsonConvert.DeserializeObject<List<TaskItem>>(File.ReadAllText(DataFile)) ?? new List<TaskItem>();
+                AddRevision(new RevisionEntry { Action=RevisionAction.DataLoaded, TaskName="(startup)", Summary=$"{_tasks.Count} task(s) loaded at {DateTime.Now:g}" });
+            }
+            catch { _tasks = new List<TaskItem>(); }
+        }
+
+        private void LoadHistory()
+        {
+            if (!File.Exists(HistFile)) return;
+            try { _history = JsonConvert.DeserializeObject<List<RevisionEntry>>(File.ReadAllText(HistFile)) ?? new List<RevisionEntry>(); } catch { _history = new List<RevisionEntry>(); }
+        }
+    }
+}

@@ -1,3 +1,9 @@
+.claude/
+.vs/
+*/bin/
+*/obj/
+*.user
+packages/
 # Prerequisites
 *.d
 

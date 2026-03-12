@@ -106,6 +106,12 @@
     <EmbeddedResource Include="AlertDialog.resx">
       <DependentUpon>AlertDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="HistoryDialog.resx">
+      <DependentUpon>HistoryDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="JiraExportDialog.resx">
+      <DependentUpon>JiraExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="JiraForm.resx">
       <DependentUpon>JiraForm.cs</DependentUpon>
     </EmbeddedResource>

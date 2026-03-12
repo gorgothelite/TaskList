@@ -125,16 +125,26 @@ namespace Test
                 _azureKey      = obj["azure_openai_key"]?.ToString()       ?? "";
                 _azureEndpoint = obj["azure_openai_endpoint"]?.ToString()  ?? "";
 
-                // Restore last-used provider
+                // Restore last-used provider — suppress the event so StoreCurrentKey()
+                // doesn't overwrite the keys we just loaded with empty strings.
                 int providerIdx = obj["ai_provider"]?.ToObject<int>() ?? 0;
                 if (providerIdx >= 0 && providerIdx < _cmbProvider.Items.Count)
+                {
+                    _cmbProvider.SelectedIndexChanged -= CmbProvider_Changed;
                     _cmbProvider.SelectedIndex = providerIdx;
+                    _cmbProvider.SelectedIndexChanged += CmbProvider_Changed;
+                }
 
                 // Populate key field for currently selected provider
                 _txtAiKey.Text = GetSelectedProvider() == AiProvider.OpenAI ? _openAiKey
                                : GetSelectedProvider() == AiProvider.Azure   ? _azureKey
                                : _claudeKey;
                 _txtAzureEndpoint.Text = _azureEndpoint;
+
+                // Show/hide Azure endpoint row to match restored provider
+                bool isAzure = GetSelectedProvider() == AiProvider.Azure;
+                _lblAzureEndpoint.Visible = isAzure;
+                _txtAzureEndpoint.Visible = isAzure;
             }
             catch { }
         }
@@ -618,7 +628,6 @@ namespace Test
                 if (_chkSummarize.Checked)
                 {
                     SetStatus($"Generating AI summary ({_cmbProvider.SelectedItem})\u2026", false);
-                    SaveAiSettings();
 
                     string summaryText = await SummarizeWithAI(headers, rows, sourceList.Count);
 
@@ -663,6 +672,11 @@ namespace Test
             _lblStatus.ForeColor = isError
                 ? Color.FromArgb(222, 80, 80)
                 : Color.FromArgb(130, 130, 140);
+        }
+
+        private void _btnSaveSettings_Click(object sender, EventArgs e)
+        {
+            SaveAiSettings();
         }
     }
 }

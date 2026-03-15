@@ -209,6 +209,7 @@ namespace Test
             this._lv.FullRowSelect = true;
             this._lv.GridLines     = false;
             this._lv.HeaderStyle   = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this._lv.HideSelection = false;
             this._lv.Location      = new System.Drawing.Point(0, 0);
             this._lv.MultiSelect   = false;
             this._lv.Name          = "_lv";
@@ -420,7 +421,7 @@ namespace Test
             this.MinimumSize         = new System.Drawing.Size(860, 540);
             this.Name                = "MainForm";
             this.StartPosition       = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text                = "Task Manager";
+            this.Text = "Task List";
 
             this.pnlToolbar.ResumeLayout(false);
             this.pnlToolbar.PerformLayout();

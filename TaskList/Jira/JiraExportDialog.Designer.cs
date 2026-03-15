@@ -254,7 +254,8 @@ namespace Test
             this._cmbProvider.Items.AddRange(new object[] {
             "Claude (Anthropic)",
             "ChatGPT (OpenAI)",
-            "Azure OpenAI (Copilot)"});
+            "Azure OpenAI (Copilot)",
+            "Forge"});
             this._cmbProvider.Location = new System.Drawing.Point(14, 66);
             this._cmbProvider.Name = "_cmbProvider";
             this._cmbProvider.Size = new System.Drawing.Size(200, 25);
@@ -553,7 +554,7 @@ namespace Test
             dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             dataGridViewCellStyle6.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            dataGridViewCellStyle6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            dataGridViewCellStyle6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             dataGridViewCellStyle6.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
             dataGridViewCellStyle6.SelectionForeColor = System.Drawing.Color.White;
             dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
@@ -615,10 +616,10 @@ namespace Test
             this._btnSaveSettings.FlatAppearance.BorderSize = 0;
             this._btnSaveSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnSaveSettings.ForeColor = System.Drawing.Color.White;
-            this._btnSaveSettings.Location = new System.Drawing.Point(562, 23);
+            this._btnSaveSettings.Location = new System.Drawing.Point(564, 15);
             this._btnSaveSettings.Name = "_btnSaveSettings";
             this._btnSaveSettings.Size = new System.Drawing.Size(116, 28);
-            this._btnSaveSettings.TabIndex = 7;
+            this._btnSaveSettings.TabIndex = 9;
             this._btnSaveSettings.Text = "Save Settings";
             this._btnSaveSettings.UseVisualStyleBackColor = false;
             this._btnSaveSettings.Click += new System.EventHandler(this._btnSaveSettings_Click);

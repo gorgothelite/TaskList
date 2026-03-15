@@ -28,6 +28,7 @@ namespace Test
         private string _openAiKey       = "";
         private string _azureKey        = "";
         private string _azureEndpoint   = "";
+        private string _forgeAiKey = "";
 
         private static readonly string ConfigFile =
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jira_config.json");
@@ -63,11 +64,12 @@ namespace Test
         }
 
         // ── Provider combo ────────────────────────────────────────────────────
-        private enum AiProvider { Claude, OpenAI, Azure }
+        private enum AiProvider { Claude, OpenAI, Azure, Forge }
 
         private AiProvider GetSelectedProvider() =>
             _cmbProvider.SelectedIndex == 1 ? AiProvider.OpenAI :
             _cmbProvider.SelectedIndex == 2 ? AiProvider.Azure  :
+            _cmbProvider.SelectedIndex == 3 ? AiProvider.Forge:
                                               AiProvider.Claude;
 
         internal void CmbProvider_Changed(object sender, EventArgs e)
@@ -89,6 +91,10 @@ namespace Test
                     _txtAiKey.Text   = _azureKey;
                     _txtAzureEndpoint.Text = _azureEndpoint;
                     break;
+                case AiProvider.Forge:
+                    _lblAiKey.Text = "FORGE API KEY";
+                    _txtAiKey.Text = _forgeAiKey;
+                    break;
                 default: // Claude
                     _lblAiKey.Text   = "ANTHROPIC API KEY";
                     _txtAiKey.Text   = _claudeKey;
@@ -106,6 +112,7 @@ namespace Test
             switch (GetSelectedProvider())
             {
                 case AiProvider.OpenAI: _openAiKey     = _txtAiKey.Text.Trim(); break;
+                case AiProvider.Forge:  _forgeAiKey    = _txtAiKey.Text.Trim();break;
                 case AiProvider.Azure:  _azureKey      = _txtAiKey.Text.Trim();
                                         _azureEndpoint = _txtAzureEndpoint.Text.Trim(); break;
                 default:                _claudeKey     = _txtAiKey.Text.Trim(); break;
@@ -124,6 +131,7 @@ namespace Test
                 _openAiKey     = obj["openai_key"]?.ToString()             ?? "";
                 _azureKey      = obj["azure_openai_key"]?.ToString()       ?? "";
                 _azureEndpoint = obj["azure_openai_endpoint"]?.ToString()  ?? "";
+                _forgeAiKey    = obj["forge_key"]?.ToString() ?? "";
 
                 // Restore last-used provider — suppress the event so StoreCurrentKey()
                 // doesn't overwrite the keys we just loaded with empty strings.
@@ -138,6 +146,7 @@ namespace Test
                 // Populate key field for currently selected provider
                 _txtAiKey.Text = GetSelectedProvider() == AiProvider.OpenAI ? _openAiKey
                                : GetSelectedProvider() == AiProvider.Azure   ? _azureKey
+                               : GetSelectedProvider() == AiProvider.Forge ? _forgeAiKey
                                : _claudeKey;
                 _txtAzureEndpoint.Text = _azureEndpoint;
 
@@ -163,6 +172,7 @@ namespace Test
                 obj["openai_key"]           = _openAiKey;
                 obj["azure_openai_key"]     = _azureKey;
                 obj["azure_openai_endpoint"]= _azureEndpoint;
+                obj["forge_key"]            = _forgeAiKey;
 
                 File.WriteAllText(ConfigFile, obj.ToString());
             }
@@ -240,7 +250,7 @@ namespace Test
                     try
                     {
                         var resp = await JiraForm.Http.GetAsync(
-                            _baseUrl + $"/rest/api/3/issue/{issue.Key}/worklog");
+                            _baseUrl + $"/rest/api/2/issue/{issue.Key}/worklog");
                         if (resp.IsSuccessStatusCode)
                         {
                             var data     = JObject.Parse(await resp.Content.ReadAsStringAsync());
@@ -272,7 +282,7 @@ namespace Test
                     try
                     {
                         var resp = await JiraForm.Http.GetAsync(
-                            _baseUrl + $"/rest/api/3/issue/{issue.Key}/comment");
+                            _baseUrl + $"/rest/api/2/issue/{issue.Key}/comment");
                         if (resp.IsSuccessStatusCode)
                         {
                             var data     = JObject.Parse(await resp.Content.ReadAsStringAsync());
@@ -378,6 +388,7 @@ namespace Test
             {
                 case AiProvider.OpenAI: return await CallOpenAI(prompt);
                 case AiProvider.Azure:  return await CallAzureOpenAI(prompt);
+                case AiProvider.Forge:  return await CallForgeAI(prompt);
                 default:                return await CallClaude(prompt);
             }
         }
@@ -451,6 +462,44 @@ namespace Test
                 if (!response.IsSuccessStatusCode)
                     throw new Exception(
                         $"OpenAI API error {(int)response.StatusCode}: " +
+                        responseText.Substring(0, Math.Min(300, responseText.Length)));
+
+                var json = JObject.Parse(responseText);
+                return json["choices"]?[0]?["message"]?["content"]?.ToString() ?? "(no response returned)";
+            }
+        }
+
+        private async Task<string> CallForgeAI(string prompt)
+        {
+            if (string.IsNullOrEmpty(_forgeAiKey))
+                throw new Exception("Enter an Forge API key to use Forge summarization.");
+
+            using (var http = new HttpClient())
+            {
+                http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", _forgeAiKey);
+                http.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var body = new JObject
+                {
+                    ["model"] = "gpt-oss-20b-Q6_K.gguf",
+                    ["max_tokens"] = 2048,
+                    ["messages"] = new JArray(new JObject
+                    {
+                        ["role"] = "user",
+                        ["content"] = prompt
+                    })
+                };
+
+                var response = await http.PostAsync(
+                    "https://forge-dev.vdl.cluster.caemilusa.us/api/chat/completions",
+                    new StringContent(body.ToString(), Encoding.UTF8, "application/json"));
+
+                var responseText = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception(
+                        $"Forge API error {(int)response.StatusCode}: " +
                         responseText.Substring(0, Math.Min(300, responseText.Length)));
 
                 var json = JObject.Parse(responseText);
@@ -600,6 +649,8 @@ namespace Test
                 { SetStatus("Enter an Azure OpenAI API key to use Copilot summarization.", true); return; }
                 if (provider == AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureEndpoint))
                 { SetStatus("Enter the Azure OpenAI endpoint URL.", true); return; }
+                if (provider == AiProvider.Forge && string.IsNullOrWhiteSpace(_forgeAiKey))
+                { SetStatus("Enter an Forge OpenAI API key to use Forge summarization.", true); return; }
             }
 
             string savePath;
@@ -628,6 +679,7 @@ namespace Test
                 if (_chkSummarize.Checked)
                 {
                     SetStatus($"Generating AI summary ({_cmbProvider.SelectedItem})\u2026", false);
+                    SaveAiSettings();
 
                     string summaryText = await SummarizeWithAI(headers, rows, sourceList.Count);
 

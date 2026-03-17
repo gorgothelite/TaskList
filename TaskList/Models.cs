@@ -42,4 +42,11 @@ namespace Test
         public List<FieldChange> Changes    { get; set; } = new List<FieldChange>();
         public string            BackupFile { get; set; }
     }
+
+    public class EmailRecipient
+    {
+        public string Name     { get; set; } = "";
+        public string Email    { get; set; } = "";
+        public string Position { get; set; } = "";
+    }
 }

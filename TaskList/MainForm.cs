@@ -180,7 +180,7 @@ namespace Test
         {
             _loadingDetails = true;
             bool has = t != null;
-            _btnEdit.Enabled = _btnDone.Enabled = _btnDelete.Enabled = has;
+            _btnEdit.Enabled = _btnDone.Enabled = _btnDelete.Enabled = _btnHold.Enabled = has;
 
             if (!has)
             {
@@ -197,13 +197,16 @@ namespace Test
             _lblDue.Text = t.DueDate.ToString("f") + "\n" + AlertLeadLabel(t.AlertLeadMinutes);
             _lblDue.ForeColor = overdue ? Color.FromArgb(255,100,100) : Color.White;
 
-            if      (t.IsDone) { _lblStatus.Text = "✓  Completed"; _lblStatus.ForeColor = Color.FromArgb(88,196,88); }
-            else if (overdue)  { _lblStatus.Text = "⚠  Overdue";   _lblStatus.ForeColor = Color.FromArgb(255,100,100); }
-            else               { _lblStatus.Text = "●  Active";     _lblStatus.ForeColor = Color.FromArgb(90,190,255); }
+            if      (t.IsDone)    { _lblStatus.Text = "✓  Completed"; _lblStatus.ForeColor = Color.FromArgb(88,196,88); }
+            else if (t.IsOnHold)  { _lblStatus.Text = "⏸  On Hold";   _lblStatus.ForeColor = Color.FromArgb(220,160,0); }
+            else if (overdue)     { _lblStatus.Text = "⚠  Overdue";   _lblStatus.ForeColor = Color.FromArgb(255,100,100); }
+            else                  { _lblStatus.Text = "●  Active";     _lblStatus.ForeColor = Color.FromArgb(90,190,255); }
 
             _txtNotes.Text     = t.Notes;
             _btnDone.Text      = t.IsDone ? "Mark Active" : "Mark Done";
             _btnDone.BackColor = t.IsDone ? Color.FromArgb(100,80,0) : Color.FromArgb(16,124,16);
+            _btnHold.Text      = t.IsOnHold ? "Remove Hold" : "Put On Hold";
+            _btnHold.BackColor = t.IsOnHold ? Color.FromArgb(50,80,40) : Color.FromArgb(120,80,0);
             _loadingDetails = false;
         }
 
@@ -220,7 +223,7 @@ namespace Test
                 li.SubItems.Add(t.Name);
                 li.SubItems.Add(PriName[(int)t.Priority]);
                 li.SubItems.Add(t.DueDate.ToString("g"));
-                li.SubItems.Add(t.IsDone ? "Done" : overdue ? "Overdue" : "Active");
+                li.SubItems.Add(t.IsDone ? "Done" : t.IsOnHold ? "On Hold" : overdue ? "Overdue" : "Active");
                 if (t.Id == selId) li.Selected = true;
                 _lv.Items.Add(li);
             }
@@ -288,10 +291,20 @@ namespace Test
             SaveAll(); RefreshList();
         }
 
+        private void ToggleHold()
+        {
+            if (_sel == null) return;
+            bool wasOnHold = _sel.IsOnHold;
+            _sel.IsOnHold = !wasOnHold;
+            AddRevision(new RevisionEntry { Action = RevisionAction.StatusChanged, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" {(_sel.IsOnHold ? "put on hold" : "removed from hold")}", Changes = new List<FieldChange> { new FieldChange { Field = "IsOnHold", OldValue = wasOnHold.ToString(), NewValue = _sel.IsOnHold.ToString() } } });
+            SaveAll(); RefreshList();
+        }
+
         // ── Button event handlers (wired in Designer) ─────────────────────────
         private void BtnEdit_Click(object sender,    EventArgs e) => EditTask();
         private void BtnDone_Click(object sender,    EventArgs e) => ToggleDone();
         private void BtnDelete_Click(object sender,  EventArgs e) => DeleteTask();
+        private void BtnHold_Click(object sender,    EventArgs e) => ToggleHold();
         private void Filter_Changed(object sender,   EventArgs e) => RefreshList();
 
         private void BtnExport_Click(object sender, EventArgs e)
@@ -419,6 +432,7 @@ namespace Test
             if      (sel)                                                     fg = Color.White;
             else if (isDone)                                                  fg = Color.FromArgb(100,100,108);
             else if (e.ColumnIndex == 2)                                      fg = PriCol[(int)task.Priority];
+            else if (e.ColumnIndex==4 && task.IsOnHold)                       fg = Color.FromArgb(220,160,0);
             else if ((e.ColumnIndex==3 || e.ColumnIndex==4) && overdue)      fg = Color.FromArgb(255,108,108);
             else                                                              fg = Color.FromArgb(218,218,225);
 
@@ -437,7 +451,7 @@ namespace Test
         private void CheckAlerts(object sender, EventArgs e)
         {
             if (_alertActive || _mutedNotifications) return;
-            var due = _tasks.Where(t => !t.IsDone && !t.AlertIgnored && t.AlertLeadMinutes >= 0 && (!t.HasSnooze || DateTime.Now >= t.SnoozedUntil) && t.DueDate <= DateTime.Now.AddMinutes(t.AlertLeadMinutes))
+            var due = _tasks.Where(t => !t.IsDone && !t.IsOnHold && !t.AlertIgnored && t.AlertLeadMinutes >= 0 && (!t.HasSnooze || DateTime.Now >= t.SnoozedUntil) && t.DueDate <= DateTime.Now.AddMinutes(t.AlertLeadMinutes))
                             .OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate).FirstOrDefault();
             if (due == null) return;
             _alertActive = true;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BB6769F3-D1A8-479E-A0EC-12AF1E5CD449}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Test</RootNamespace>
-    <AssemblyName>Test</AssemblyName>
+    <RootNamespace>TaskList</RootNamespace>
+    <AssemblyName>TaskList</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -52,6 +52,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\DpapiCrypto.cs" />
+    <Compile Include="AiTemplateDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AiTemplateDialog.Designer.cs">
+      <DependentUpon>AiTemplateDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EmailRecipientsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EmailRecipientsDialog.Designer.cs">
+      <DependentUpon>EmailRecipientsDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="ExportDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -104,11 +116,17 @@
       <DependentUpon>TaskDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="AiTemplateDialog.resx">
+      <DependentUpon>AiTemplateDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EmailRecipientsDialog.resx">
+      <DependentUpon>EmailRecipientsDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AlertDialog.resx">
       <DependentUpon>AlertDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Jira\JiraExportDialog.resx">
-      <DependentUpon>JiraExportDialog.cs</DependentUpon>
+    <EmbeddedResource Include="ExportDialog.resx">
+      <DependentUpon>ExportDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Jira\JiraForm.resx">
       <DependentUpon>JiraForm.cs</DependentUpon>
@@ -124,6 +142,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

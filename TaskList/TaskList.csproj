@@ -131,6 +131,9 @@
     <EmbeddedResource Include="HistoryDialog.resx">
       <DependentUpon>HistoryDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Jira\JiraExportDialog.resx">
+      <DependentUpon>JiraExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Jira\JiraForm.resx">
       <DependentUpon>JiraForm.cs</DependentUpon>
     </EmbeddedResource>

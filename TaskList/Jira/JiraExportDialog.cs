@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -461,23 +462,36 @@ namespace Test
             }
         }
 
-        private async void BtnSendOutlook_Click(object sender, EventArgs e)
+        private void BtnSendOutlookCustom_Click(object sender, EventArgs e)
+        {
+            EmailRecipients(false);
+        }
+
+        private void BtnSendOutlookDefault_Click(object sender, EventArgs e)
+        {
+            EmailRecipients(true);
+        }
+
+        private async void EmailRecipients(bool iIsDefault)
         {
             var sourceList = _radResults.Checked ? _searchIssues : _masterIssues;
 
-            if (sourceList.Count == 0)
-            { SetStatus("No issues in selected source.", true); return; }
+            //if (sourceList.Count == 0)
+            //{ SetStatus("No issues in selected source.", true); return; }
 
-            if (!_chkWorklogs.Checked && !_chkComments.Checked)
-            { SetStatus("Select at least one of: Worklogs, Comments.", true); return; }
+            //if (!_chkWorklogs.Checked && !_chkComments.Checked)
+            //{ SetStatus("Select at least one of: Worklogs, Comments.", true); return; }
 
-            if (_recipients.Count == 0)
-            {
-                MessageBox.Show(
-                    "No recipients configured. Use \"Edit Recipients\u2026\" to add recipients first.",
-                    "No Recipients", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+            //if (_recipients.Count == 0)
+            //{
+            //    MessageBox.Show(
+            //        "No recipients configured. Use \"Edit Recipients\u2026\" to add recipients first.",
+            //        "No Recipients", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //    return;
+            //}
+
+            var selectedRecipients = PickRecipients(iIsDefault);
+            if (selectedRecipients == null || selectedRecipients.Count == 0) return;
 
             if (_chkSummarize.Checked)
             {
@@ -496,7 +510,7 @@ namespace Test
             string tempPath = Path.Combine(Path.GetTempPath(),
                 $"jira_export_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
 
-            _btnSendOutlook.Enabled = false;
+            _btnSendOutlookDefault.Enabled = false;
             _btnExport.Enabled      = false;
             SetStatus("Fetching data\u2026", false);
 
@@ -543,7 +557,7 @@ namespace Test
 
                     mail.Subject = $"Jira Export \u2014 {DateTime.Now:yyyy-MM-dd}";
 
-                    foreach (var r in _recipients)
+                    foreach (var r in selectedRecipients)
                     {
                         dynamic recip = mail.Recipients.Add(r.Email);
                         recip.Type = 1; // 1 = olTo
@@ -576,9 +590,96 @@ namespace Test
             }
             finally
             {
-                _btnSendOutlook.Enabled = true;
+                _btnSendOutlookDefault.Enabled = true;
                 _btnExport.Enabled      = true;
             }
+        }
+
+        // ── Recipient picker ──────────────────────────────────────────────────
+        private List<EmailRecipient> PickRecipients(bool iIsDefault)
+        {
+            if (!iIsDefault)
+            { 
+            using (var dlg = new Form())
+            {
+                dlg.Text = "Select Recipients";
+                dlg.BackColor = Color.FromArgb(37, 37, 38);
+                dlg.ForeColor = Color.White;
+                dlg.Font = new System.Drawing.Font("Segoe UI", 9.5f);
+                dlg.ClientSize = new System.Drawing.Size(420, 310);
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false;
+                dlg.MinimizeBox = false;
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+
+                var lbl = new Label
+                {
+                    Text = "Select recipients for this email:",
+                    AutoSize = true,
+                    Location = new System.Drawing.Point(12, 12),
+                    ForeColor = Color.FromArgb(175, 175, 185)
+                };
+
+                var clb = new CheckedListBox
+                {
+                    BackColor = Color.FromArgb(28, 28, 30),
+                    ForeColor = Color.White,
+                    BorderStyle = BorderStyle.None,
+                    Location = new System.Drawing.Point(12, 36),
+                    Size = new System.Drawing.Size(396, 220),
+                    CheckOnClick = true
+                };
+                foreach (var r in _recipients)
+                    clb.Items.Add(r, r.IsDefault);
+
+                var btnSend = new Button
+                {
+                    Text = "Send",
+                    DialogResult = DialogResult.OK,
+                    BackColor = Color.FromArgb(0, 100, 180),
+                    FlatStyle = FlatStyle.Flat,
+                    ForeColor = Color.White,
+                    Location = new System.Drawing.Point(258, 270),
+                    Size = new System.Drawing.Size(70, 28)
+                };
+                btnSend.FlatAppearance.BorderSize = 0;
+
+                var btnCancel = new Button
+                {
+                    Text = "Cancel",
+                    DialogResult = DialogResult.Cancel,
+                    BackColor = Color.FromArgb(70, 70, 78),
+                    FlatStyle = FlatStyle.Flat,
+                    ForeColor = Color.White,
+                    Location = new System.Drawing.Point(338, 270),
+                    Size = new System.Drawing.Size(70, 28)
+                };
+                btnCancel.FlatAppearance.BorderSize = 0;
+
+                dlg.Controls.AddRange(new Control[] { lbl, clb, btnSend, btnCancel });
+                dlg.AcceptButton = btnSend;
+                dlg.CancelButton = btnCancel;
+
+                if (dlg.ShowDialog(this) != DialogResult.OK) return null;
+
+                var selected = new List<EmailRecipient>();
+                foreach (var item in clb.CheckedItems)
+                    selected.Add((EmailRecipient)item);
+                return selected;
+            }
+        }
+        else
+        {
+            var selected = new List<EmailRecipient>();
+            foreach (var r in _recipients)
+            {
+                if (r.IsDefault)
+                {
+                    selected.Add(r);
+                }
+            }
+                return selected;
+}
         }
 
         // ── AI Summary ────────────────────────────────────────────────────────

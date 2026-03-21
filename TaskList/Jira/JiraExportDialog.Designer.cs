@@ -56,7 +56,7 @@ namespace Test
         // ── Status & buttons ──────────────────────────────────────────────────
         private System.Windows.Forms.Label  _lblStatus;
         private System.Windows.Forms.Button _btnEditRecipients;
-        private System.Windows.Forms.Button _btnSendOutlook;
+        private System.Windows.Forms.Button _btnSendOutlookDefault;
         private System.Windows.Forms.Button _btnExport;
         private System.Windows.Forms.Button _btnCancel;
 
@@ -80,16 +80,17 @@ namespace Test
             this._chkWorklogs = new System.Windows.Forms.CheckBox();
             this._chkComments = new System.Windows.Forms.CheckBox();
             this.grpAiSummary = new System.Windows.Forms.GroupBox();
+            this._btnSaveSettings = new System.Windows.Forms.Button();
             this._chkSummarize = new System.Windows.Forms.CheckBox();
+            this._lblTemplate = new System.Windows.Forms.Label();
+            this._cmbTemplate = new System.Windows.Forms.ComboBox();
+            this._btnEditTemplates = new System.Windows.Forms.Button();
             this._lblProvider = new System.Windows.Forms.Label();
             this._cmbProvider = new System.Windows.Forms.ComboBox();
             this._lblAiKey = new System.Windows.Forms.Label();
             this._txtAiKey = new System.Windows.Forms.TextBox();
-            this._lblAzureEndpoint  = new System.Windows.Forms.Label();
-            this._txtAzureEndpoint  = new System.Windows.Forms.TextBox();
-            this._lblTemplate       = new System.Windows.Forms.Label();
-            this._cmbTemplate       = new System.Windows.Forms.ComboBox();
-            this._btnEditTemplates  = new System.Windows.Forms.Button();
+            this._lblAzureEndpoint = new System.Windows.Forms.Label();
+            this._txtAzureEndpoint = new System.Windows.Forms.TextBox();
             this.grpColumns = new System.Windows.Forms.GroupBox();
             this._chkColKey = new System.Windows.Forms.CheckBox();
             this._chkColSummary = new System.Windows.Forms.CheckBox();
@@ -108,12 +109,12 @@ namespace Test
             this._btnLoadPreview = new System.Windows.Forms.Button();
             this._lblPreviewInfo = new System.Windows.Forms.Label();
             this._dgvPreview = new System.Windows.Forms.DataGridView();
-            this._lblStatus          = new System.Windows.Forms.Label();
-            this._btnEditRecipients  = new System.Windows.Forms.Button();
-            this._btnSendOutlook     = new System.Windows.Forms.Button();
-            this._btnExport          = new System.Windows.Forms.Button();
-            this._btnCancel          = new System.Windows.Forms.Button();
-            this._btnSaveSettings    = new System.Windows.Forms.Button();
+            this._lblStatus = new System.Windows.Forms.Label();
+            this._btnEditRecipients = new System.Windows.Forms.Button();
+            this._btnSendOutlookDefault = new System.Windows.Forms.Button();
+            this._btnExport = new System.Windows.Forms.Button();
+            this._btnCancel = new System.Windows.Forms.Button();
+            this._btnSendOutlookCustom = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             this.grpSource.SuspendLayout();
             this.grpInclude.SuspendLayout();
@@ -237,6 +238,20 @@ namespace Test
             this.grpAiSummary.TabStop = false;
             this.grpAiSummary.Text = "AI Summary";
             // 
+            // _btnSaveSettings
+            // 
+            this._btnSaveSettings.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
+            this._btnSaveSettings.FlatAppearance.BorderSize = 0;
+            this._btnSaveSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnSaveSettings.ForeColor = System.Drawing.Color.White;
+            this._btnSaveSettings.Location = new System.Drawing.Point(564, 15);
+            this._btnSaveSettings.Name = "_btnSaveSettings";
+            this._btnSaveSettings.Size = new System.Drawing.Size(116, 28);
+            this._btnSaveSettings.TabIndex = 9;
+            this._btnSaveSettings.Text = "Save Settings";
+            this._btnSaveSettings.UseVisualStyleBackColor = false;
+            this._btnSaveSettings.Click += new System.EventHandler(this._btnSaveSettings_Click);
+            // 
             // _chkSummarize
             // 
             this._chkSummarize.AutoSize = true;
@@ -246,45 +261,46 @@ namespace Test
             this._chkSummarize.Size = new System.Drawing.Size(206, 21);
             this._chkSummarize.TabIndex = 0;
             this._chkSummarize.Text = "Summarize with AI after export";
-            //
+            // 
             // _lblTemplate
-            //
-            this._lblTemplate.AutoSize  = true;
-            this._lblTemplate.Font      = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            // 
+            this._lblTemplate.AutoSize = true;
+            this._lblTemplate.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
             this._lblTemplate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblTemplate.Location  = new System.Drawing.Point(14, 52);
-            this._lblTemplate.Name      = "_lblTemplate";
-            this._lblTemplate.TabIndex  = 8;
-            this._lblTemplate.Text      = "PROMPT TEMPLATE";
-            //
+            this._lblTemplate.Location = new System.Drawing.Point(14, 52);
+            this._lblTemplate.Name = "_lblTemplate";
+            this._lblTemplate.Size = new System.Drawing.Size(100, 12);
+            this._lblTemplate.TabIndex = 8;
+            this._lblTemplate.Text = "PROMPT TEMPLATE";
+            // 
             // _cmbTemplate
-            //
-            this._cmbTemplate.BackColor     = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            // 
+            this._cmbTemplate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._cmbTemplate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this._cmbTemplate.FlatStyle     = System.Windows.Forms.FlatStyle.Flat;
-            this._cmbTemplate.ForeColor     = System.Drawing.Color.White;
-            this._cmbTemplate.Location      = new System.Drawing.Point(14, 66);
-            this._cmbTemplate.Name          = "_cmbTemplate";
-            this._cmbTemplate.Size          = new System.Drawing.Size(326, 25);
-            this._cmbTemplate.TabIndex      = 9;
+            this._cmbTemplate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._cmbTemplate.ForeColor = System.Drawing.Color.White;
+            this._cmbTemplate.Location = new System.Drawing.Point(14, 66);
+            this._cmbTemplate.Name = "_cmbTemplate";
+            this._cmbTemplate.Size = new System.Drawing.Size(326, 25);
+            this._cmbTemplate.TabIndex = 9;
             this._cmbTemplate.SelectedIndexChanged += new System.EventHandler(this.CmbTemplate_Changed);
-            //
+            // 
             // _btnEditTemplates
-            //
+            // 
             this._btnEditTemplates.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
             this._btnEditTemplates.FlatAppearance.BorderSize = 0;
             this._btnEditTemplates.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnEditTemplates.ForeColor = System.Drawing.Color.White;
-            this._btnEditTemplates.Location  = new System.Drawing.Point(348, 65);
-            this._btnEditTemplates.Name      = "_btnEditTemplates";
-            this._btnEditTemplates.Size      = new System.Drawing.Size(118, 27);
-            this._btnEditTemplates.TabIndex  = 10;
-            this._btnEditTemplates.Text      = "Edit Templates\u2026";
+            this._btnEditTemplates.Location = new System.Drawing.Point(348, 65);
+            this._btnEditTemplates.Name = "_btnEditTemplates";
+            this._btnEditTemplates.Size = new System.Drawing.Size(118, 27);
+            this._btnEditTemplates.TabIndex = 10;
+            this._btnEditTemplates.Text = "Edit Templates…";
             this._btnEditTemplates.UseVisualStyleBackColor = false;
-            this._btnEditTemplates.Click    += new System.EventHandler(this.BtnEditTemplates_Click);
-            //
+            this._btnEditTemplates.Click += new System.EventHandler(this.BtnEditTemplates_Click);
+            // 
             // _lblProvider
-            //
+            // 
             this._lblProvider.AutoSize = true;
             this._lblProvider.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
             this._lblProvider.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
@@ -628,9 +644,9 @@ namespace Test
             this._lblStatus.Size = new System.Drawing.Size(47, 17);
             this._lblStatus.TabIndex = 6;
             this._lblStatus.Text = "Ready.";
-            //
+            // 
             // _btnEditRecipients
-            //
+            // 
             this._btnEditRecipients.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._btnEditRecipients.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
             this._btnEditRecipients.FlatAppearance.BorderSize = 0;
@@ -640,27 +656,27 @@ namespace Test
             this._btnEditRecipients.Name = "_btnEditRecipients";
             this._btnEditRecipients.Size = new System.Drawing.Size(120, 28);
             this._btnEditRecipients.TabIndex = 7;
-            this._btnEditRecipients.Text = "Edit Recipients\u2026";
+            this._btnEditRecipients.Text = "Edit Recipients…";
             this._btnEditRecipients.UseVisualStyleBackColor = false;
             this._btnEditRecipients.Click += new System.EventHandler(this.BtnEditRecipients_Click);
-            //
-            // _btnSendOutlook
-            //
-            this._btnSendOutlook.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._btnSendOutlook.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
-            this._btnSendOutlook.FlatAppearance.BorderSize = 0;
-            this._btnSendOutlook.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this._btnSendOutlook.ForeColor = System.Drawing.Color.White;
-            this._btnSendOutlook.Location = new System.Drawing.Point(328, 752);
-            this._btnSendOutlook.Name = "_btnSendOutlook";
-            this._btnSendOutlook.Size = new System.Drawing.Size(152, 28);
-            this._btnSendOutlook.TabIndex = 8;
-            this._btnSendOutlook.Text = "Send via Outlook\u2026";
-            this._btnSendOutlook.UseVisualStyleBackColor = false;
-            this._btnSendOutlook.Click += new System.EventHandler(this.BtnSendOutlook_Click);
-            //
+            // 
+            // _btnSendOutlookDefault
+            // 
+            this._btnSendOutlookDefault.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this._btnSendOutlookDefault.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            this._btnSendOutlookDefault.FlatAppearance.BorderSize = 0;
+            this._btnSendOutlookDefault.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnSendOutlookDefault.ForeColor = System.Drawing.Color.White;
+            this._btnSendOutlookDefault.Location = new System.Drawing.Point(328, 752);
+            this._btnSendOutlookDefault.Name = "_btnSendOutlookDefault";
+            this._btnSendOutlookDefault.Size = new System.Drawing.Size(152, 28);
+            this._btnSendOutlookDefault.TabIndex = 8;
+            this._btnSendOutlookDefault.Text = "Send via Outlook…";
+            this._btnSendOutlookDefault.UseVisualStyleBackColor = false;
+            this._btnSendOutlookDefault.Click += new System.EventHandler(this.BtnSendOutlookDefault_Click);
+            // 
             // _btnExport
-            //
+            // 
             this._btnExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._btnExport.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(120)))), ((int)(((byte)(215)))));
             this._btnExport.FlatAppearance.BorderSize = 0;
@@ -670,7 +686,7 @@ namespace Test
             this._btnExport.Name = "_btnExport";
             this._btnExport.Size = new System.Drawing.Size(152, 28);
             this._btnExport.TabIndex = 9;
-            this._btnExport.Text = "Export to Excel\u2026";
+            this._btnExport.Text = "Export to Excel…";
             this._btnExport.UseVisualStyleBackColor = false;
             this._btnExport.Click += new System.EventHandler(this.BtnExport_Click);
             // 
@@ -689,19 +705,20 @@ namespace Test
             this._btnCancel.Text = "Cancel";
             this._btnCancel.UseVisualStyleBackColor = false;
             // 
-            // _btnSaveSettings
+            // _btnSendOutlookCustom
             // 
-            this._btnSaveSettings.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
-            this._btnSaveSettings.FlatAppearance.BorderSize = 0;
-            this._btnSaveSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this._btnSaveSettings.ForeColor = System.Drawing.Color.White;
-            this._btnSaveSettings.Location = new System.Drawing.Point(564, 15);
-            this._btnSaveSettings.Name = "_btnSaveSettings";
-            this._btnSaveSettings.Size = new System.Drawing.Size(116, 28);
-            this._btnSaveSettings.TabIndex = 9;
-            this._btnSaveSettings.Text = "Save Settings";
-            this._btnSaveSettings.UseVisualStyleBackColor = false;
-            this._btnSaveSettings.Click += new System.EventHandler(this._btnSaveSettings_Click);
+            this._btnSendOutlookCustom.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this._btnSendOutlookCustom.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            this._btnSendOutlookCustom.FlatAppearance.BorderSize = 0;
+            this._btnSendOutlookCustom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnSendOutlookCustom.ForeColor = System.Drawing.Color.White;
+            this._btnSendOutlookCustom.Location = new System.Drawing.Point(82, 752);
+            this._btnSendOutlookCustom.Name = "_btnSendOutlookCustom";
+            this._btnSendOutlookCustom.Size = new System.Drawing.Size(152, 28);
+            this._btnSendOutlookCustom.TabIndex = 10;
+            this._btnSendOutlookCustom.Text = "Send via Outlook…";
+            this._btnSendOutlookCustom.UseVisualStyleBackColor = false;
+            this._btnSendOutlookCustom.Click += new System.EventHandler(this.BtnSendOutlookCustom_Click);
             // 
             // JiraExportDialog
             // 
@@ -710,6 +727,7 @@ namespace Test
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.CancelButton = this._btnCancel;
             this.ClientSize = new System.Drawing.Size(720, 792);
+            this.Controls.Add(this._btnSendOutlookCustom);
             this.Controls.Add(this.grpSource);
             this.Controls.Add(this.grpInclude);
             this.Controls.Add(this.grpAiSummary);
@@ -717,7 +735,7 @@ namespace Test
             this.Controls.Add(this.grpPreview);
             this.Controls.Add(this._lblStatus);
             this.Controls.Add(this._btnEditRecipients);
-            this.Controls.Add(this._btnSendOutlook);
+            this.Controls.Add(this._btnSendOutlookDefault);
             this.Controls.Add(this._btnExport);
             this.Controls.Add(this._btnCancel);
             this.Controls.Add(this.pnlHeader);
@@ -747,5 +765,6 @@ namespace Test
         }
 
         private System.Windows.Forms.Button _btnSaveSettings;
+        private System.Windows.Forms.Button _btnSendOutlookCustom;
     }
 }

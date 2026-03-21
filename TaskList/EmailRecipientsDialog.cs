@@ -18,9 +18,10 @@ namespace Test
             _original = recipients;
             _working  = recipients.Select(r => new EmailRecipient
             {
-                Name     = r.Name,
-                Email    = r.Email,
-                Position = r.Position
+                Name      = r.Name,
+                Email     = r.Email,
+                Position  = r.Position,
+                IsDefault = r.IsDefault
             }).ToList();
 
             InitializeComponent();
@@ -52,6 +53,14 @@ namespace Test
                 ((EmailRecipient)item.Tag).Position = _txtPosition.Text;
             };
 
+            _chkDefault.CheckedChanged += (s, e) =>
+            {
+                if (_suppress || _lvRecipients.SelectedItems.Count == 0) return;
+                var item = _lvRecipients.SelectedItems[0];
+                ((EmailRecipient)item.Tag).IsDefault = _chkDefault.Checked;
+                item.SubItems[3].Text = _chkDefault.Checked ? "\u2605" : "";
+            };
+
             RefreshList(-1);
             if (_lvRecipients.Items.Count > 0)
                 _lvRecipients.Items[0].Selected = true;
@@ -68,6 +77,7 @@ namespace Test
                 var item = new ListViewItem(r.Name) { Tag = r };
                 item.SubItems.Add(r.Email);
                 item.SubItems.Add(r.Position ?? "");
+                item.SubItems.Add(r.IsDefault ? "\u2605" : "");
                 _lvRecipients.Items.Add(item);
             }
             _lvRecipients.EndUpdate();
@@ -87,11 +97,12 @@ namespace Test
             if (_suppress) return;
             if (_lvRecipients.SelectedItems.Count == 0) { ClearEdit(); return; }
             var r = (EmailRecipient)_lvRecipients.SelectedItems[0].Tag;
-            _suppress         = true;
-            _txtName.Text     = r.Name;
-            _txtEmail.Text    = r.Email;
-            _txtPosition.Text = r.Position ?? "";
-            _suppress         = false;
+            _suppress            = true;
+            _txtName.Text        = r.Name;
+            _txtEmail.Text       = r.Email;
+            _txtPosition.Text    = r.Position ?? "";
+            _chkDefault.Checked  = r.IsDefault;
+            _suppress            = false;
             UpdateButtonStates();
         }
 
@@ -139,9 +150,10 @@ namespace Test
             if (_lvRecipients.SelectedItems.Count > 0)
             {
                 int idx = _lvRecipients.SelectedIndices[0];
-                _working[idx].Name     = _txtName.Text.Trim();
-                _working[idx].Email    = _txtEmail.Text.Trim();
-                _working[idx].Position = _txtPosition.Text.Trim();
+                _working[idx].Name      = _txtName.Text.Trim();
+                _working[idx].Email     = _txtEmail.Text.Trim();
+                _working[idx].Position  = _txtPosition.Text.Trim();
+                _working[idx].IsDefault = _chkDefault.Checked;
             }
 
             // Validate all rows: Name and Email are mandatory
@@ -164,9 +176,10 @@ namespace Test
         // ── Helpers ───────────────────────────────────────────────────────────
         private void ClearEdit()
         {
-            _txtName.Text     = "";
-            _txtEmail.Text    = "";
-            _txtPosition.Text = "";
+            _txtName.Text       = "";
+            _txtEmail.Text      = "";
+            _txtPosition.Text   = "";
+            _chkDefault.Checked = false;
             UpdateButtonStates();
         }
 

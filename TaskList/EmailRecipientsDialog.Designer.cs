@@ -17,13 +17,14 @@ namespace Test
         private System.Windows.Forms.Button   _btnDown;
 
         // ── Right panel (editor) ──────────────────────────────────────────────
-        private System.Windows.Forms.Panel   pnlRight;
-        private System.Windows.Forms.Label   _lblNameCaption;
-        private System.Windows.Forms.TextBox _txtName;
-        private System.Windows.Forms.Label   _lblEmailCaption;
-        private System.Windows.Forms.TextBox _txtEmail;
-        private System.Windows.Forms.Label   _lblPositionCaption;
-        private System.Windows.Forms.TextBox _txtPosition;
+        private System.Windows.Forms.Panel    pnlRight;
+        private System.Windows.Forms.Label    _lblNameCaption;
+        private System.Windows.Forms.TextBox  _txtName;
+        private System.Windows.Forms.Label    _lblEmailCaption;
+        private System.Windows.Forms.TextBox  _txtEmail;
+        private System.Windows.Forms.Label    _lblPositionCaption;
+        private System.Windows.Forms.TextBox  _txtPosition;
+        private System.Windows.Forms.CheckBox _chkDefault;
 
         // ── Bottom strip ──────────────────────────────────────────────────────
         private System.Windows.Forms.Panel  pnlBottom;
@@ -53,6 +54,7 @@ namespace Test
             this._txtEmail = new System.Windows.Forms.TextBox();
             this._lblPositionCaption = new System.Windows.Forms.Label();
             this._txtPosition = new System.Windows.Forms.TextBox();
+            this._chkDefault = new System.Windows.Forms.CheckBox();
             this.pnlBottom = new System.Windows.Forms.Panel();
             this._btnOk = new System.Windows.Forms.Button();
             this._btnCancel = new System.Windows.Forms.Button();
@@ -118,8 +120,9 @@ namespace Test
             this._lvRecipients.UseCompatibleStateImageBehavior = false;
             this._lvRecipients.View = System.Windows.Forms.View.Details;
             this._lvRecipients.Columns.Add("Name",     150);
-            this._lvRecipients.Columns.Add("Email",    196);
-            this._lvRecipients.Columns.Add("Position", 112);
+            this._lvRecipients.Columns.Add("Email",    168);
+            this._lvRecipients.Columns.Add("Position",  90);
+            this._lvRecipients.Columns.Add("Default",   50);
             this._lvRecipients.SelectedIndexChanged += new System.EventHandler(this.LvRecipients_SelectedIndexChanged);
             // 
             // _btnNew
@@ -190,6 +193,7 @@ namespace Test
             this.pnlRight.Controls.Add(this._txtEmail);
             this.pnlRight.Controls.Add(this._lblPositionCaption);
             this.pnlRight.Controls.Add(this._txtPosition);
+            this.pnlRight.Controls.Add(this._chkDefault);
             this.pnlRight.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlRight.Location = new System.Drawing.Point(480, 42);
             this.pnlRight.Name = "pnlRight";
@@ -265,9 +269,20 @@ namespace Test
             this._txtPosition.Name = "_txtPosition";
             this._txtPosition.Size = new System.Drawing.Size(356, 24);
             this._txtPosition.TabIndex = 5;
-            // 
+            //
+            // _chkDefault
+            //
+            this._chkDefault.AutoSize  = true;
+            this._chkDefault.ForeColor = System.Drawing.Color.White;
+            this._chkDefault.Location  = new System.Drawing.Point(14, 158);
+            this._chkDefault.Name      = "_chkDefault";
+            this._chkDefault.Size      = new System.Drawing.Size(160, 21);
+            this._chkDefault.TabIndex  = 6;
+            this._chkDefault.Text      = "Default recipient (pre-selected)";
+            this._chkDefault.UseVisualStyleBackColor = false;
+            //
             // pnlBottom
-            // 
+            //
             this.pnlBottom.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(36)))), ((int)(((byte)(40)))));
             this.pnlBottom.Controls.Add(this._btnOk);
             this.pnlBottom.Controls.Add(this._btnCancel);

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Test
@@ -8,9 +9,19 @@ namespace Test
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            using (var mutex = new Mutex(true, "TaskList_SingleInstance", out bool createdNew))
+            {
+                if (!createdNew)
+                {
+                    MessageBox.Show("TaskList is already running.", "Already Running",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new MainForm());
+            }
         }
     }
 }

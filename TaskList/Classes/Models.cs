@@ -45,8 +45,14 @@ namespace Test
 
     public class EmailRecipient
     {
-        public string Name     { get; set; } = "";
-        public string Email    { get; set; } = "";
-        public string Position { get; set; } = "";
+        public string Name      { get; set; } = "";
+        public string Email     { get; set; } = "";
+        public string Position  { get; set; } = "";
+        public bool   IsDefault { get; set; } = false;
+
+        public override string ToString() =>
+            string.IsNullOrWhiteSpace(Position)
+                ? $"{Name} <{Email}>"
+                : $"{Name} ({Position}) <{Email}>";
     }
 }

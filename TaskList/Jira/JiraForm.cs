@@ -55,26 +55,6 @@ namespace Test
         }
 
         // ── Config ────────────────────────────────────────────────────────────
-        private static string EncryptPassword(string plainText)
-        {
-            if (string.IsNullOrEmpty(plainText)) return "";
-            byte[] encrypted = ProtectedData.Protect(
-                Encoding.UTF8.GetBytes(plainText), null, DataProtectionScope.CurrentUser);
-            return Convert.ToBase64String(encrypted);
-        }
-
-        private static string DecryptPassword(string cipherText)
-        {
-            if (string.IsNullOrEmpty(cipherText)) return "";
-            try
-            {
-                byte[] decrypted = ProtectedData.Unprotect(
-                    Convert.FromBase64String(cipherText), null, DataProtectionScope.CurrentUser);
-                return Encoding.UTF8.GetString(decrypted);
-            }
-            catch { return ""; }
-        }
-
         private void LoadConfig()
         {
             if (!File.Exists(ConfigFile)) return;
@@ -82,8 +62,8 @@ namespace Test
             {
                 var obj = JObject.Parse(File.ReadAllText(ConfigFile));
                 _txtJiraUrl.Text  = obj["url"]?.ToString()   ?? "";
-                _txtEmail.Text    = obj["email"]?.ToString() ?? "";
-                _txtApiToken.Text = DecryptPassword(obj["token"]?.ToString() ?? "");
+                _txtUserName.Text    = obj["username"]?.ToString() ?? "";
+                _txtPassword.Text = DpapiCrypto.UnprotectFromBase64(obj["password"]?.ToString() ?? "", DataProtectionScope.CurrentUser);
             }
             catch { }
         }
@@ -95,8 +75,8 @@ namespace Test
                 File.WriteAllText(ConfigFile, new JObject
                 {
                     ["url"]   = _txtJiraUrl.Text.Trim(),
-                    ["email"] = _txtEmail.Text.Trim(),
-                    ["token"] = EncryptPassword(_txtApiToken.Text.Trim())
+                    ["username"] = _txtUserName.Text.Trim(),
+                    ["password"] = DpapiCrypto.ProtectToBase64(_txtPassword.Text.Trim(), DataProtectionScope.CurrentUser)
                 }.ToString());
             }
             catch { }
@@ -181,7 +161,7 @@ namespace Test
             try
             {
                 if (BuildClient() == null) { SetStatus("Fill in all connection fields first.", true); return; }
-                var resp = await Http.GetAsync(BuildUrl("/rest/api/3/myself"));
+                var resp = await Http.GetAsync(BuildUrl("/rest/api/2/myself"));
                 if (resp.IsSuccessStatusCode)
                 {
                     var json = JObject.Parse(await resp.Content.ReadAsStringAsync());
@@ -218,7 +198,7 @@ namespace Test
                 };
 
                 var resp = await Http.PostAsync(
-                    BuildUrl("/rest/api/3/search/jql"),
+                    BuildUrl("/rest/api/2/search"),
                     new StringContent(payload.ToString(), Encoding.UTF8, "application/json"));
 
                 var body = await resp.Content.ReadAsStringAsync();
@@ -314,7 +294,7 @@ namespace Test
                 {
                     // Fetch the issue detail to get parent or epic link
                     var resp = await Http.GetAsync(
-                        BuildUrl($"/rest/api/3/issue/{issue.Key}?fields=parent,customfield_10014,summary,status,priority,issuetype,assignee,project,duedate"));
+                        BuildUrl($"/rest/api/2/issue/{issue.Key}?fields=parent,customfield_10014,summary,status,priority,issuetype,assignee,project,duedate"));
 
                     if (!resp.IsSuccessStatusCode) { errors++; continue; }
 
@@ -344,7 +324,7 @@ namespace Test
                     if (!string.IsNullOrEmpty(epicKey))
                     {
                         var epicResp = await Http.GetAsync(
-                            BuildUrl($"/rest/api/3/issue/{epicKey}?fields=summary,status,priority,issuetype,assignee,project,duedate"));
+                            BuildUrl($"/rest/api/2/issue/{epicKey}?fields=summary,status,priority,issuetype,assignee,project,duedate"));
                         if (epicResp.IsSuccessStatusCode)
                         {
                             var epicData = JObject.Parse(await epicResp.Content.ReadAsStringAsync());
@@ -467,8 +447,8 @@ namespace Test
         private HttpClient BuildClient()
         {
             string url   = _txtJiraUrl.Text.Trim();
-            string email = _txtEmail.Text.Trim();
-            string token = _txtApiToken.Text.Trim();
+            string email = _txtUserName.Text.Trim();
+            string token = _txtPassword.Text.Trim();
             if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token)) return null;
 
             string cred = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{email}:{token}"));

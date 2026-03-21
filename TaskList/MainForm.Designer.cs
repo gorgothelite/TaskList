@@ -38,6 +38,7 @@ namespace Test
         private System.Windows.Forms.Button  _btnEdit;
         private System.Windows.Forms.Button  _btnDone;
         private System.Windows.Forms.Button  _btnDelete;
+        private System.Windows.Forms.Button  _btnHold;
 
         protected override void Dispose(bool disposing)
         {
@@ -76,6 +77,7 @@ namespace Test
             this._btnEdit           = new System.Windows.Forms.Button();
             this._btnDone           = new System.Windows.Forms.Button();
             this._btnDelete         = new System.Windows.Forms.Button();
+            this._btnHold           = new System.Windows.Forms.Button();
 
             this.pnlToolbar.SuspendLayout();
             this.pnlLeft.SuspendLayout();
@@ -209,6 +211,7 @@ namespace Test
             this._lv.FullRowSelect = true;
             this._lv.GridLines     = false;
             this._lv.HeaderStyle   = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this._lv.HideSelection = false;
             this._lv.Location      = new System.Drawing.Point(0, 0);
             this._lv.MultiSelect   = false;
             this._lv.Name          = "_lv";
@@ -239,6 +242,7 @@ namespace Test
             this.pnlDetail.Controls.Add(this._btnEdit);
             this.pnlDetail.Controls.Add(this._btnDone);
             this.pnlDetail.Controls.Add(this._btnDelete);
+            this.pnlDetail.Controls.Add(this._btnHold);
             this.pnlDetail.Dock     = System.Windows.Forms.DockStyle.Right;
             this.pnlDetail.Location = new System.Drawing.Point(760, 50);
             this.pnlDetail.Name     = "pnlDetail";
@@ -408,6 +412,19 @@ namespace Test
             this._btnDelete.Text      = "Delete";
             this._btnDelete.Click    += new System.EventHandler(this.BtnDelete_Click);
 
+            // _btnHold
+            this._btnHold.BackColor = System.Drawing.Color.FromArgb(120, 80, 0);
+            this._btnHold.Enabled   = false;
+            this._btnHold.FlatAppearance.BorderSize = 0;
+            this._btnHold.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnHold.ForeColor = System.Drawing.Color.White;
+            this._btnHold.Location  = new System.Drawing.Point(18, 430);
+            this._btnHold.Name      = "_btnHold";
+            this._btnHold.Size      = new System.Drawing.Size(275, 28);
+            this._btnHold.TabIndex  = 15;
+            this._btnHold.Text      = "Put On Hold";
+            this._btnHold.Click    += new System.EventHandler(this.BtnHold_Click);
+
             // ── MainForm ─────────────────────────────────────────────────────
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode       = System.Windows.Forms.AutoScaleMode.Font;
@@ -420,7 +437,7 @@ namespace Test
             this.MinimumSize         = new System.Drawing.Size(860, 540);
             this.Name                = "MainForm";
             this.StartPosition       = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text                = "Task Manager";
+            this.Text = "Task List";
 
             this.pnlToolbar.ResumeLayout(false);
             this.pnlToolbar.PerformLayout();

@@ -2,14 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Test
 {
     public partial class ExportDialog : Form
     {
-        private readonly List<TaskItem> _tasks;
+        private readonly List<TaskItem>        _tasks;
+        private readonly List<EmailRecipient>  _recipients = new List<EmailRecipient>();
+
+        private static readonly string RecipientsFile =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "email_recipients.json");
 
         public ExportDialog() : this(new List<TaskItem>()) { }
 
@@ -21,7 +28,31 @@ namespace Test
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;
 
+            LoadRecipients();
             UpdatePreview();
+        }
+
+        // ── Recipients persistence ────────────────────────────────────────────
+        private void LoadRecipients()
+        {
+            try
+            {
+                if (!File.Exists(RecipientsFile)) return;
+                var list = JsonConvert.DeserializeObject<List<EmailRecipient>>(
+                               File.ReadAllText(RecipientsFile));
+                if (list != null) _recipients.AddRange(list);
+            }
+            catch { /* ignore corrupt file */ }
+        }
+
+        private void SaveRecipients()
+        {
+            try
+            {
+                File.WriteAllText(RecipientsFile,
+                    JsonConvert.SerializeObject(_recipients, Formatting.Indented));
+            }
+            catch { /* ignore */ }
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
@@ -44,30 +75,39 @@ namespace Test
             return q.OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate);
         }
 
-        private string BuildCsv()
+        private List<string> BuildHeaders()
         {
-            var sb = new StringBuilder();
-
-            // Header row – only include selected columns
             var cols = new List<string>();
             if (_chkColName.Checked)     cols.Add("Name");
             if (_chkColPriority.Checked) cols.Add("Priority");
             if (_chkColDue.Checked)      cols.Add("Due Date");
             if (_chkColStatus.Checked)   cols.Add("Status");
             if (_chkColNotes.Checked)    cols.Add("Notes");
-            sb.AppendLine(string.Join(",", cols));
+            return cols;
+        }
 
+        private List<List<string>> BuildRows()
+        {
+            var result = new List<List<string>>();
             foreach (var t in GetFiltered())
             {
                 var row = new List<string>();
-                if (_chkColName.Checked)     row.Add(CsvEscape(t.Name));
+                if (_chkColName.Checked)     row.Add(t.Name);
                 if (_chkColPriority.Checked) row.Add(t.Priority.ToString());
                 if (_chkColDue.Checked)      row.Add(t.DueDate.ToString("yyyy-MM-dd HH:mm"));
                 if (_chkColStatus.Checked)   row.Add(t.IsDone ? "Done" : (t.DueDate < DateTime.Now ? "Overdue" : "Active"));
-                if (_chkColNotes.Checked)    row.Add(CsvEscape(t.Notes));
-                sb.AppendLine(string.Join(",", row));
+                if (_chkColNotes.Checked)    row.Add(t.Notes);
+                result.Add(row);
             }
+            return result;
+        }
 
+        private string BuildCsv()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(string.Join(",", BuildHeaders().Select(CsvEscape)));
+            foreach (var row in BuildRows())
+                sb.AppendLine(string.Join(",", row.Select(CsvEscape)));
             return sb.ToString();
         }
 
@@ -99,10 +139,10 @@ namespace Test
 
             using (var sfd = new SaveFileDialog
             {
-                Title            = "Export Tasks as CSV",
-                Filter           = "CSV File (*.csv)|*.csv",
-                FileName         = $"tasks_{DateTime.Now:yyyyMMdd_HHmm}.csv",
-                DefaultExt       = "csv"
+                Title      = "Export Tasks as CSV",
+                Filter     = "CSV File (*.csv)|*.csv",
+                FileName   = $"tasks_{DateTime.Now:yyyyMMdd_HHmm}.csv",
+                DefaultExt = "csv"
             })
             {
                 if (sfd.ShowDialog() != DialogResult.OK) return;
@@ -118,6 +158,86 @@ namespace Test
                     MessageBox.Show($"Export failed:\n{ex.Message}", "Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        private void BtnEditRecipients_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new EmailRecipientsDialog(_recipients))
+            {
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                    SaveRecipients();
+            }
+        }
+
+        private void BtnSendOutlook_Click(object sender, EventArgs e)
+        {
+            if (!GetFiltered().Any())
+            {
+                MessageBox.Show("No tasks match the current filters.", "Nothing to Export",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (_recipients.Count == 0)
+            {
+                MessageBox.Show("No recipients configured. Use \"Edit Recipients…\" to add recipients first.",
+                    "No Recipients", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Write xlsx to a temp file
+            string tempPath = Path.Combine(Path.GetTempPath(),
+                $"tasks_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+            try
+            {
+                XlsxWriter.Write(tempPath, "Tasks", BuildHeaders(), BuildRows());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to build Excel file:\n{ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Launch Outlook draft via late binding (no interop reference needed)
+            dynamic outlook = null;
+            dynamic mail    = null;
+            try
+            {
+                var outlookType = Type.GetTypeFromProgID("Outlook.Application");
+                if (outlookType == null)
+                {
+                    MessageBox.Show("Microsoft Outlook does not appear to be installed.",
+                        "Outlook Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                outlook = Activator.CreateInstance(outlookType);
+                mail    = outlook.CreateItem(0); // 0 = olMailItem
+
+                mail.Subject = $"Task List — {DateTime.Now:yyyy-MM-dd}";
+
+                foreach (var r in _recipients)
+                {
+                    dynamic recip = mail.Recipients.Add(r.Email);
+                    recip.Type = 1; // 1 = olTo
+                }
+
+                // olByValue = 1, position = 1
+                mail.Attachments.Add(tempPath, 1, 1, Path.GetFileName(tempPath));
+
+                mail.Display(false); // show draft; user manually sends
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to create Outlook email:\n{ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (mail    != null) { try { Marshal.ReleaseComObject(mail);    } catch { } }
+                if (outlook != null) { try { Marshal.ReleaseComObject(outlook); } catch { } }
             }
         }
     }

@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BB6769F3-D1A8-479E-A0EC-12AF1E5CD449}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Test</RootNamespace>
-    <AssemblyName>Test</AssemblyName>
+    <RootNamespace>TaskList</RootNamespace>
+    <AssemblyName>TaskList</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -38,6 +38,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,36 +47,48 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Security" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\DpapiCrypto.cs" />
+    <Compile Include="AiTemplateDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AiTemplateDialog.Designer.cs">
+      <DependentUpon>AiTemplateDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EmailRecipientsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EmailRecipientsDialog.Designer.cs">
+      <DependentUpon>EmailRecipientsDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="ExportDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ExportDialog.Designer.cs">
       <DependentUpon>ExportDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="JiraForm.cs">
+    <Compile Include="Jira\JiraForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="JiraForm.Designer.cs">
+    <Compile Include="Jira\JiraForm.Designer.cs">
       <DependentUpon>JiraForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="JiraPresetsDialog.cs">
+    <Compile Include="Jira\JiraPresetsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="JiraPresetsDialog.Designer.cs">
+    <Compile Include="Jira\JiraPresetsDialog.Designer.cs">
       <DependentUpon>JiraPresetsDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="JiraExportDialog.cs">
+    <Compile Include="Jira\JiraExportDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="JiraExportDialog.Designer.cs">
+    <Compile Include="Jira\JiraExportDialog.Designer.cs">
       <DependentUpon>JiraExportDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="XlsxWriter.cs" />
+    <Compile Include="Classes\XlsxWriter.cs" />
     <Compile Include="AlertDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -94,7 +107,7 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Models.cs" />
+    <Compile Include="Classes\Models.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TaskDialog.cs">
       <SubType>Form</SubType>
@@ -103,17 +116,26 @@
       <DependentUpon>TaskDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="AiTemplateDialog.resx">
+      <DependentUpon>AiTemplateDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EmailRecipientsDialog.resx">
+      <DependentUpon>EmailRecipientsDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AlertDialog.resx">
       <DependentUpon>AlertDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExportDialog.resx">
+      <DependentUpon>ExportDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="HistoryDialog.resx">
       <DependentUpon>HistoryDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="JiraExportDialog.resx">
-      <DependentUpon>JiraExportDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="JiraForm.resx">
+    <EmbeddedResource Include="Jira\JiraForm.resx">
       <DependentUpon>JiraForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -123,6 +145,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

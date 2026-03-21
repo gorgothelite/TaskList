@@ -13,10 +13,10 @@ namespace Test
         private System.Windows.Forms.GroupBox   grpConnection;
         private System.Windows.Forms.Label      _lblUrlCaption;
         private System.Windows.Forms.TextBox    _txtJiraUrl;
-        private System.Windows.Forms.Label      _lblEmailCaption;
-        private System.Windows.Forms.TextBox    _txtEmail;
-        private System.Windows.Forms.Label      _lblTokenCaption;
-        private System.Windows.Forms.TextBox    _txtApiToken;
+        private System.Windows.Forms.Label      _lblUserNameCaption;
+        private System.Windows.Forms.TextBox    _txtUserName;
+        private System.Windows.Forms.Label      _lblPasswordCaption;
+        private System.Windows.Forms.TextBox    _txtPassword;
         private System.Windows.Forms.Button     _btnSaveSettings;
         private System.Windows.Forms.Button     _btnTestConnection;
         private System.Windows.Forms.GroupBox   grpQuery;
@@ -66,10 +66,10 @@ namespace Test
             this.grpConnection = new System.Windows.Forms.GroupBox();
             this._lblUrlCaption = new System.Windows.Forms.Label();
             this._txtJiraUrl = new System.Windows.Forms.TextBox();
-            this._lblEmailCaption = new System.Windows.Forms.Label();
-            this._txtEmail = new System.Windows.Forms.TextBox();
-            this._lblTokenCaption = new System.Windows.Forms.Label();
-            this._txtApiToken = new System.Windows.Forms.TextBox();
+            this._lblUserNameCaption = new System.Windows.Forms.Label();
+            this._txtUserName = new System.Windows.Forms.TextBox();
+            this._lblPasswordCaption = new System.Windows.Forms.Label();
+            this._txtPassword = new System.Windows.Forms.TextBox();
             this._btnSaveSettings = new System.Windows.Forms.Button();
             this._btnTestConnection = new System.Windows.Forms.Button();
             this.grpQuery = new System.Windows.Forms.GroupBox();
@@ -141,10 +141,10 @@ namespace Test
             // 
             this.grpConnection.Controls.Add(this._lblUrlCaption);
             this.grpConnection.Controls.Add(this._txtJiraUrl);
-            this.grpConnection.Controls.Add(this._lblEmailCaption);
-            this.grpConnection.Controls.Add(this._txtEmail);
-            this.grpConnection.Controls.Add(this._lblTokenCaption);
-            this.grpConnection.Controls.Add(this._txtApiToken);
+            this.grpConnection.Controls.Add(this._lblUserNameCaption);
+            this.grpConnection.Controls.Add(this._txtUserName);
+            this.grpConnection.Controls.Add(this._lblPasswordCaption);
+            this.grpConnection.Controls.Add(this._txtPassword);
             this.grpConnection.Controls.Add(this._btnSaveSettings);
             this.grpConnection.Controls.Add(this._btnTestConnection);
             this.grpConnection.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
@@ -175,51 +175,52 @@ namespace Test
             this._txtJiraUrl.Name = "_txtJiraUrl";
             this._txtJiraUrl.Size = new System.Drawing.Size(245, 24);
             this._txtJiraUrl.TabIndex = 1;
-            this._txtJiraUrl.Text = "https://yoursite.atlassian.net";
+            this._txtJiraUrl.Text = "https://jira.caemilusa.com/";
             // 
-            // _lblEmailCaption
+            // _lblUserNameCaption
             // 
-            this._lblEmailCaption.AutoSize = true;
-            this._lblEmailCaption.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
-            this._lblEmailCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblEmailCaption.Location = new System.Drawing.Point(10, 72);
-            this._lblEmailCaption.Name = "_lblEmailCaption";
-            this._lblEmailCaption.Size = new System.Drawing.Size(35, 12);
-            this._lblEmailCaption.TabIndex = 2;
-            this._lblEmailCaption.Text = "EMAIL";
+            this._lblUserNameCaption.AutoSize = true;
+            this._lblUserNameCaption.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this._lblUserNameCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
+            this._lblUserNameCaption.Location = new System.Drawing.Point(10, 72);
+            this._lblUserNameCaption.Name = "_lblUserNameCaption";
+            this._lblUserNameCaption.Size = new System.Drawing.Size(55, 12);
+            this._lblUserNameCaption.TabIndex = 2;
+            this._lblUserNameCaption.Text = "User Name";
             // 
-            // _txtEmail
+            // _txtUserName
             // 
-            this._txtEmail.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
-            this._txtEmail.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this._txtEmail.ForeColor = System.Drawing.Color.White;
-            this._txtEmail.Location = new System.Drawing.Point(10, 88);
-            this._txtEmail.Name = "_txtEmail";
-            this._txtEmail.Size = new System.Drawing.Size(245, 24);
-            this._txtEmail.TabIndex = 3;
-            this._txtEmail.Text = "you@company.com";
+            this._txtUserName.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            this._txtUserName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this._txtUserName.ForeColor = System.Drawing.Color.White;
+            this._txtUserName.Location = new System.Drawing.Point(10, 88);
+            this._txtUserName.Name = "_txtUserName";
+            this._txtUserName.Size = new System.Drawing.Size(245, 24);
+            this._txtUserName.TabIndex = 3;
+            this._txtUserName.Text = "you";
             // 
-            // _lblTokenCaption
+            // _lblPasswordCaption
             // 
-            this._lblTokenCaption.AutoSize = true;
-            this._lblTokenCaption.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
-            this._lblTokenCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblTokenCaption.Location = new System.Drawing.Point(10, 120);
-            this._lblTokenCaption.Name = "_lblTokenCaption";
-            this._lblTokenCaption.Size = new System.Drawing.Size(61, 12);
-            this._lblTokenCaption.TabIndex = 4;
-            this._lblTokenCaption.Text = "PASSWORD";
+            this._lblPasswordCaption.AutoSize = true;
+            this._lblPasswordCaption.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this._lblPasswordCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
+            this._lblPasswordCaption.Location = new System.Drawing.Point(10, 120);
+            this._lblPasswordCaption.Name = "_lblPasswordCaption";
+            this._lblPasswordCaption.Size = new System.Drawing.Size(48, 12);
+            this._lblPasswordCaption.TabIndex = 4;
+            this._lblPasswordCaption.Text = "Password";
             // 
-            // _txtApiToken
+            // _txtPassword
             // 
-            this._txtApiToken.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
-            this._txtApiToken.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this._txtApiToken.ForeColor = System.Drawing.Color.White;
-            this._txtApiToken.Location = new System.Drawing.Point(10, 136);
-            this._txtApiToken.Name = "_txtApiToken";
-            this._txtApiToken.PasswordChar = '●';
-            this._txtApiToken.Size = new System.Drawing.Size(245, 24);
-            this._txtApiToken.TabIndex = 5;
+            this._txtPassword.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            this._txtPassword.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this._txtPassword.ForeColor = System.Drawing.Color.White;
+            this._txtPassword.Location = new System.Drawing.Point(10, 136);
+            this._txtPassword.Name = "_txtPassword";
+            this._txtPassword.PasswordChar = '●';
+            this._txtPassword.Size = new System.Drawing.Size(245, 24);
+            this._txtPassword.TabIndex = 5;
+            this._txtPassword.Text = "Jira Password";
             // 
             // _btnSaveSettings
             // 

@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Test
@@ -28,9 +31,30 @@ namespace Test
         private string _openAiKey       = "";
         private string _azureKey        = "";
         private string _azureEndpoint   = "";
+        private string _forgeAiKey = "";
+
+        // Prompt templates
+        private readonly List<SummaryTemplate>  _templates  = new List<SummaryTemplate>();
+        private string _savedTemplateName = "";
+
+        // Email recipients (shared with ExportDialog via email_recipients.json)
+        private readonly List<EmailRecipient> _recipients = new List<EmailRecipient>();
 
         private static readonly string ConfigFile =
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jira_config.json");
+        private static readonly string TemplatesFile =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ai_prompt_templates.json");
+        private static readonly string RecipientsFile =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "email_recipients.json");
+
+        private const string DefaultTemplateText =
+            "You are reviewing Jira work logs and comments for a team status summary.\n\n" +
+            "{DATA}\n\n" +
+            "Please provide a concise professional summary covering:\n" +
+            "1. Key work accomplished\n" +
+            "2. Any blockers or issues raised\n" +
+            "3. Notable time investments\n\n" +
+            "Keep it suitable for a status report.";
 
         // ── Constructors ──────────────────────────────────────────────────────
         public JiraExportDialog()
@@ -50,6 +74,8 @@ namespace Test
             _radMaster.Text  = $"Master List  ({_masterIssues.Count})";
 
             LoadAiSettings();
+            LoadTemplates();
+            LoadRecipients();
             UpdateStatusLabel();
         }
 
@@ -63,11 +89,12 @@ namespace Test
         }
 
         // ── Provider combo ────────────────────────────────────────────────────
-        private enum AiProvider { Claude, OpenAI, Azure }
+        private enum AiProvider { Claude, OpenAI, Azure, Forge }
 
         private AiProvider GetSelectedProvider() =>
             _cmbProvider.SelectedIndex == 1 ? AiProvider.OpenAI :
             _cmbProvider.SelectedIndex == 2 ? AiProvider.Azure  :
+            _cmbProvider.SelectedIndex == 3 ? AiProvider.Forge:
                                               AiProvider.Claude;
 
         internal void CmbProvider_Changed(object sender, EventArgs e)
@@ -89,6 +116,10 @@ namespace Test
                     _txtAiKey.Text   = _azureKey;
                     _txtAzureEndpoint.Text = _azureEndpoint;
                     break;
+                case AiProvider.Forge:
+                    _lblAiKey.Text = "FORGE API KEY";
+                    _txtAiKey.Text = _forgeAiKey;
+                    break;
                 default: // Claude
                     _lblAiKey.Text   = "ANTHROPIC API KEY";
                     _txtAiKey.Text   = _claudeKey;
@@ -106,6 +137,7 @@ namespace Test
             switch (GetSelectedProvider())
             {
                 case AiProvider.OpenAI: _openAiKey     = _txtAiKey.Text.Trim(); break;
+                case AiProvider.Forge:  _forgeAiKey    = _txtAiKey.Text.Trim();break;
                 case AiProvider.Azure:  _azureKey      = _txtAiKey.Text.Trim();
                                         _azureEndpoint = _txtAzureEndpoint.Text.Trim(); break;
                 default:                _claudeKey     = _txtAiKey.Text.Trim(); break;
@@ -120,10 +152,13 @@ namespace Test
                 if (!File.Exists(ConfigFile)) return;
                 var obj = JObject.Parse(File.ReadAllText(ConfigFile));
 
-                _claudeKey     = obj["anthropic_key"]?.ToString()         ?? "";
-                _openAiKey     = obj["openai_key"]?.ToString()             ?? "";
-                _azureKey      = obj["azure_openai_key"]?.ToString()       ?? "";
-                _azureEndpoint = obj["azure_openai_endpoint"]?.ToString()  ?? "";
+                _claudeKey        = obj["anthropic_key"]?.ToString()         ?? "";
+                _openAiKey        = obj["openai_key"]?.ToString()             ?? "";
+                _azureKey         = obj["azure_openai_key"]?.ToString()       ?? "";
+                _azureEndpoint    = obj["azure_openai_endpoint"]?.ToString()  ?? "";
+
+                _forgeAiKey    = obj["forge_key"]?.ToString() ?? "";
+                _savedTemplateName = obj["selected_ai_template"]?.ToString() ?? "";
 
                 // Restore last-used provider — suppress the event so StoreCurrentKey()
                 // doesn't overwrite the keys we just loaded with empty strings.
@@ -138,6 +173,7 @@ namespace Test
                 // Populate key field for currently selected provider
                 _txtAiKey.Text = GetSelectedProvider() == AiProvider.OpenAI ? _openAiKey
                                : GetSelectedProvider() == AiProvider.Azure   ? _azureKey
+                               : GetSelectedProvider() == AiProvider.Forge ? _forgeAiKey
                                : _claudeKey;
                 _txtAzureEndpoint.Text = _azureEndpoint;
 
@@ -163,6 +199,8 @@ namespace Test
                 obj["openai_key"]           = _openAiKey;
                 obj["azure_openai_key"]     = _azureKey;
                 obj["azure_openai_endpoint"]= _azureEndpoint;
+                obj["forge_key"]            = _forgeAiKey;
+                obj["selected_ai_template"]  = GetSelectedTemplate()?.Name ?? "";
 
                 File.WriteAllText(ConfigFile, obj.ToString());
             }
@@ -240,7 +278,7 @@ namespace Test
                     try
                     {
                         var resp = await JiraForm.Http.GetAsync(
-                            _baseUrl + $"/rest/api/3/issue/{issue.Key}/worklog");
+                            _baseUrl + $"/rest/api/2/issue/{issue.Key}/worklog");
                         if (resp.IsSuccessStatusCode)
                         {
                             var data     = JObject.Parse(await resp.Content.ReadAsStringAsync());
@@ -272,7 +310,7 @@ namespace Test
                     try
                     {
                         var resp = await JiraForm.Http.GetAsync(
-                            _baseUrl + $"/rest/api/3/issue/{issue.Key}/comment");
+                            _baseUrl + $"/rest/api/2/issue/{issue.Key}/comment");
                         if (resp.IsSuccessStatusCode)
                         {
                             var data     = JObject.Parse(await resp.Content.ReadAsStringAsync());
@@ -319,33 +357,261 @@ namespace Test
             return row;
         }
 
+        // ── Prompt templates ──────────────────────────────────────────────────
+        private void LoadTemplates()
+        {
+            if (File.Exists(TemplatesFile))
+            {
+                try
+                {
+                    var arr = JArray.Parse(File.ReadAllText(TemplatesFile));
+                    _templates.Clear();
+                    foreach (var item in arr)
+                        _templates.Add(new SummaryTemplate
+                        {
+                            Name     = item["name"]?.ToString()     ?? "",
+                            Template = item["template"]?.ToString() ?? ""
+                        });
+                }
+                catch { }
+            }
+
+            if (_templates.Count == 0)
+                _templates.Add(new SummaryTemplate { Name = "Default", Template = DefaultTemplateText });
+
+            PopulateTemplatesCombo(_savedTemplateName);
+        }
+
+        internal void SaveTemplates()
+        {
+            try
+            {
+                var arr = new JArray(_templates.Select(t => new JObject
+                {
+                    ["name"]     = t.Name,
+                    ["template"] = t.Template
+                }));
+                File.WriteAllText(TemplatesFile, arr.ToString());
+            }
+            catch { }
+        }
+
+        private void PopulateTemplatesCombo(string selectName = null)
+        {
+            _cmbTemplate.Items.Clear();
+            foreach (var t in _templates) _cmbTemplate.Items.Add(t.Name);
+            if (_templates.Count == 0) return;
+            int idx = selectName != null ? _templates.FindIndex(t => t.Name == selectName) : -1;
+            _cmbTemplate.SelectedIndex = idx >= 0 ? idx : 0;
+        }
+
+        private SummaryTemplate GetSelectedTemplate()
+        {
+            int idx = _cmbTemplate.SelectedIndex;
+            return idx >= 0 && idx < _templates.Count ? _templates[idx] : null;
+        }
+
+        private void CmbTemplate_Changed(object sender, EventArgs e)
+        {
+            SaveAiSettings();
+        }
+
+        private void BtnEditTemplates_Click(object sender, EventArgs e)
+        {
+            string prevName = GetSelectedTemplate()?.Name;
+            using (var dlg = new AiTemplateDialog(_templates))
+            {
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                    SaveTemplates();
+            }
+            // Restore selection by name; fall back to first if removed
+            int idx = prevName != null ? _templates.FindIndex(t => t.Name == prevName) : -1;
+            PopulateTemplatesCombo(idx >= 0 ? prevName : null);
+        }
+
+        // ── Email recipients ──────────────────────────────────────────────────
+        private void LoadRecipients()
+        {
+            try
+            {
+                if (!File.Exists(RecipientsFile)) return;
+                var list = JsonConvert.DeserializeObject<List<EmailRecipient>>(
+                               File.ReadAllText(RecipientsFile));
+                if (list != null) _recipients.AddRange(list);
+            }
+            catch { }
+        }
+
+        private void SaveRecipients()
+        {
+            try
+            {
+                File.WriteAllText(RecipientsFile,
+                    JsonConvert.SerializeObject(_recipients, Formatting.Indented));
+            }
+            catch { }
+        }
+
+        private void BtnEditRecipients_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new EmailRecipientsDialog(_recipients))
+            {
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                    SaveRecipients();
+            }
+        }
+
+        private async void BtnSendOutlook_Click(object sender, EventArgs e)
+        {
+            var sourceList = _radResults.Checked ? _searchIssues : _masterIssues;
+
+            if (sourceList.Count == 0)
+            { SetStatus("No issues in selected source.", true); return; }
+
+            if (!_chkWorklogs.Checked && !_chkComments.Checked)
+            { SetStatus("Select at least one of: Worklogs, Comments.", true); return; }
+
+            if (_recipients.Count == 0)
+            {
+                MessageBox.Show(
+                    "No recipients configured. Use \"Edit Recipients\u2026\" to add recipients first.",
+                    "No Recipients", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (_chkSummarize.Checked)
+            {
+                StoreCurrentKey();
+                var provider = GetSelectedProvider();
+                if (provider == AiProvider.Claude && string.IsNullOrWhiteSpace(_claudeKey))
+                { SetStatus("Enter an Anthropic API key to use Claude summarization.", true); return; }
+                if (provider == AiProvider.OpenAI && string.IsNullOrWhiteSpace(_openAiKey))
+                { SetStatus("Enter an OpenAI API key to use ChatGPT summarization.", true); return; }
+                if (provider == AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureKey))
+                { SetStatus("Enter an Azure OpenAI API key to use Copilot summarization.", true); return; }
+                if (provider == AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureEndpoint))
+                { SetStatus("Enter the Azure OpenAI endpoint URL.", true); return; }
+            }
+
+            string tempPath = Path.Combine(Path.GetTempPath(),
+                $"jira_export_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+
+            _btnSendOutlook.Enabled = false;
+            _btnExport.Enabled      = false;
+            SetStatus("Fetching data\u2026", false);
+
+            try
+            {
+                var result  = await FetchAndBuildRows(sourceList);
+                var headers = result.headers;
+                var rows    = result.rows;
+
+                if (_chkSummarize.Checked)
+                {
+                    SetStatus($"Generating AI summary ({_cmbProvider.SelectedItem})\u2026", false);
+                    string summaryText = await SummarizeWithAI(headers, rows, sourceList.Count);
+                    SetStatus("Writing file\u2026", false);
+                    XlsxWriter.Write(tempPath, new List<XlsxWriter.SheetSpec>
+                    {
+                        new XlsxWriter.SheetSpec { Name = "Data",    Headers = headers, Rows = rows },
+                        new XlsxWriter.SheetSpec { Name = "Summary", Headers = new List<string>(),
+                                                   Rows = BuildSummarySheetRows(sourceList.Count, summaryText) }
+                    });
+                }
+                else
+                {
+                    SetStatus("Writing file\u2026", false);
+                    XlsxWriter.Write(tempPath, "Jira Export", headers, rows);
+                }
+
+                SetStatus("Opening Outlook\u2026", false);
+
+                dynamic outlook = null;
+                dynamic mail    = null;
+                try
+                {
+                    var outlookType = Type.GetTypeFromProgID("Outlook.Application");
+                    if (outlookType == null)
+                    {
+                        MessageBox.Show("Microsoft Outlook does not appear to be installed.",
+                            "Outlook Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    outlook = Activator.CreateInstance(outlookType);
+                    mail    = outlook.CreateItem(0); // 0 = olMailItem
+
+                    mail.Subject = $"Jira Export \u2014 {DateTime.Now:yyyy-MM-dd}";
+
+                    foreach (var r in _recipients)
+                    {
+                        dynamic recip = mail.Recipients.Add(r.Email);
+                        recip.Type = 1; // 1 = olTo
+                    }
+
+                    // olByValue = 1, position = 1
+                    mail.Attachments.Add(tempPath, 1, 1, Path.GetFileName(tempPath));
+                    mail.Display(false);
+
+                    SetStatus($"Done \u2014 Outlook draft opened with {rows.Count} row(s).", false);
+                    _lblStatus.ForeColor = Color.FromArgb(88, 196, 88);
+                }
+                catch (Exception ex)
+                {
+                    SetStatus($"Outlook error: {ex.Message}", true);
+                    MessageBox.Show($"Failed to create Outlook email:\n{ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    if (mail    != null) { try { Marshal.ReleaseComObject(mail);    } catch { } }
+                    if (outlook != null) { try { Marshal.ReleaseComObject(outlook); } catch { } }
+                }
+            }
+            catch (Exception ex)
+            {
+                SetStatus($"Export failed: {ex.Message}", true);
+                MessageBox.Show($"Export failed:\n{ex.Message}", "Export Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _btnSendOutlook.Enabled = true;
+                _btnExport.Enabled      = true;
+            }
+        }
+
         // ── AI Summary ────────────────────────────────────────────────────────
         private string BuildSummaryPrompt(List<string> headers, List<List<string>> rows, int issueCount)
         {
-            int iKey    = headers.IndexOf("Key");
-            int iDate   = headers.IndexOf("Date");
-            int iAuthor = headers.IndexOf("Author");
-            int iRec    = headers.IndexOf("Record Type");
-            int iHours  = headers.IndexOf("Hours");
-            int iText   = headers.IndexOf("Text");
+            int iKey     = headers.IndexOf("Key");
+            int iProject = headers.IndexOf("Project");
+            int iDate    = headers.IndexOf("Date");
+            int iDueDate = headers.IndexOf("DueDate");
+            int iAuthor  = headers.IndexOf("Author");
+            int iRec     = headers.IndexOf("Record Type");
+            int iHours   = headers.IndexOf("Hours");
+            int iText    = headers.IndexOf("Text");
 
             var body      = new StringBuilder();
             int charBudget = 80_000;
 
             foreach (var row in rows)
             {
-                string rec    = iRec    >= 0 && iRec    < row.Count ? row[iRec]    : "";
-                string key    = iKey    >= 0 && iKey    < row.Count ? row[iKey]    : "";
-                string date   = iDate   >= 0 && iDate   < row.Count ? row[iDate]   : "";
-                string author = iAuthor >= 0 && iAuthor < row.Count ? row[iAuthor] : "";
-                string hours  = iHours  >= 0 && iHours  < row.Count ? row[iHours]  : "";
-                string text   = iText   >= 0 && iText   < row.Count ? row[iText]   : "";
+                string rec     = iRec     >= 0 && iRec    < row.Count ? row[iRec]     : "";
+                string project = iProject >= 0 && iRec    < row.Count ? row[iProject] : "";
+                string key     = iKey     >= 0 && iKey    < row.Count ? row[iKey]     : "";
+                string date    = iDate    >= 0 && iDate   < row.Count ? row[iDate]    : "";
+                string duedate = iDueDate >= 0 && iDueDate< row.Count ? row[iDate] : "";
+                string author  = iAuthor  >= 0 && iAuthor < row.Count ? row[iAuthor]  : "";
+                string hours   = iHours   >= 0 && iHours  < row.Count ? row[iHours]   : "";
+                string text    = iText    >= 0 && iText   < row.Count ? row[iText]    : "";
 
                 if (string.IsNullOrWhiteSpace(text)) continue;
 
                 string line = rec == "Worklog"
-                    ? $"[Worklog] {key} | {date} | {author} | {hours}h | {text}\n"
-                    : $"[Comment] {key} | {date} | {author} | {text}\n";
+                    ? $"[Worklog] Key: {key} | Project: {project} | Date: {date} | Author: {author} | Hours: {hours}h | Summary: {text}\n"
+                    : $"[Comment] Key: {key} | Project: {project} | Date: {date} | Author: {author} | Summary:{text}\n";
 
                 if (body.Length + line.Length > charBudget)
                 {
@@ -355,18 +621,20 @@ namespace Test
                 body.Append(line);
             }
 
-            return
-                $"You are reviewing Jira work logs and comments for a team status summary.\n\n" +
+            string data =
                 $"Statistics:\n" +
                 $"  Issues processed: {issueCount}\n" +
                 $"  Worklogs: {_statWorklogCount} ({_statTotalHours:N2} hours total)\n" +
                 $"  Comments: {_statCommentCount}\n\n" +
-                $"Entries:\n{body}\n" +
-                $"Please provide a concise professional summary covering:\n" +
-                $"1. Key work accomplished\n" +
-                $"2. Any blockers or issues raised\n" +
-                $"3. Notable time investments\n\n" +
-                $"Keep it suitable for a status report.";
+                $"Entries:\n{body}";
+
+            string templateText = GetSelectedTemplate()?.Template;
+            if (string.IsNullOrWhiteSpace(templateText))
+                templateText = DefaultTemplateText;
+
+            return templateText.Contains("{DATA}")
+                ? templateText.Replace("{DATA}", data)
+                : templateText + "\n\n" + data;
         }
 
         private async Task<string> SummarizeWithAI(List<string> headers,
@@ -378,6 +646,7 @@ namespace Test
             {
                 case AiProvider.OpenAI: return await CallOpenAI(prompt);
                 case AiProvider.Azure:  return await CallAzureOpenAI(prompt);
+                case AiProvider.Forge:  return await CallForgeAI(prompt);
                 default:                return await CallClaude(prompt);
             }
         }
@@ -458,6 +727,44 @@ namespace Test
             }
         }
 
+        private async Task<string> CallForgeAI(string prompt)
+        {
+            if (string.IsNullOrEmpty(_forgeAiKey))
+                throw new Exception("Enter an Forge API key to use Forge summarization.");
+
+            using (var http = new HttpClient())
+            {
+                http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", _forgeAiKey);
+                http.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var body = new JObject
+                {
+                    ["model"] = "gpt-oss-20b-Q6_K.gguf",
+                    ["max_tokens"] = 2048,
+                    ["messages"] = new JArray(new JObject
+                    {
+                        ["role"] = "user",
+                        ["content"] = prompt
+                    })
+                };
+
+                var response = await http.PostAsync(
+                    "https://forge-dev.vdl.cluster.caemilusa.us/api/chat/completions",
+                    new StringContent(body.ToString(), Encoding.UTF8, "application/json"));
+
+                var responseText = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception(
+                        $"Forge API error {(int)response.StatusCode}: " +
+                        responseText.Substring(0, Math.Min(300, responseText.Length)));
+
+                var json = JObject.Parse(responseText);
+                return json["choices"]?[0]?["message"]?["content"]?.ToString() ?? "(no response returned)";
+            }
+        }
+
         private async Task<string> CallAzureOpenAI(string prompt)
         {
             if (string.IsNullOrEmpty(_azureKey))
@@ -499,15 +806,15 @@ namespace Test
         private List<List<string>> BuildSummarySheetRows(int issueCount, string summaryText)
         {
             var rows = new List<List<string>>();
-            rows.Add(new List<string> { "STATISTICS" });
-            rows.Add(new List<string> { $"Issues processed: {issueCount}" });
-            rows.Add(new List<string> { $"Worklogs found: {_statWorklogCount}" });
-            rows.Add(new List<string> { $"Comments found: {_statCommentCount}" });
-            rows.Add(new List<string> { $"Total hours logged: {_statTotalHours:N2}" });
-            rows.Add(new List<string> { $"Provider: {_cmbProvider.SelectedItem}" });
-            rows.Add(new List<string> { "" });
-            rows.Add(new List<string> { "AI SUMMARY" });
-            rows.Add(new List<string> { "" });
+            //rows.Add(new List<string> { "STATISTICS" });
+            //rows.Add(new List<string> { $"Issues processed: {issueCount}" });
+            //rows.Add(new List<string> { $"Worklogs found: {_statWorklogCount}" });
+            //rows.Add(new List<string> { $"Comments found: {_statCommentCount}" });
+            //rows.Add(new List<string> { $"Total hours logged: {_statTotalHours:N2}" });
+            //rows.Add(new List<string> { $"Provider: {_cmbProvider.SelectedItem}" });
+            //rows.Add(new List<string> { "" });
+            //rows.Add(new List<string> { "AI SUMMARY" });
+            //rows.Add(new List<string> { "" });
 
             foreach (var line in summaryText.Replace("\r\n", "\n").Split('\n'))
                 rows.Add(new List<string> { line.TrimEnd() });
@@ -600,6 +907,8 @@ namespace Test
                 { SetStatus("Enter an Azure OpenAI API key to use Copilot summarization.", true); return; }
                 if (provider == AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureEndpoint))
                 { SetStatus("Enter the Azure OpenAI endpoint URL.", true); return; }
+                if (provider == AiProvider.Forge && string.IsNullOrWhiteSpace(_forgeAiKey))
+                { SetStatus("Enter an Forge OpenAI API key to use Forge summarization.", true); return; }
             }
 
             string savePath;
@@ -628,6 +937,7 @@ namespace Test
                 if (_chkSummarize.Checked)
                 {
                     SetStatus($"Generating AI summary ({_cmbProvider.SelectedItem})\u2026", false);
+                    SaveAiSettings();
 
                     string summaryText = await SummarizeWithAI(headers, rows, sourceList.Count);
 
@@ -678,5 +988,12 @@ namespace Test
         {
             SaveAiSettings();
         }
+    }
+
+    // ── AI prompt template ────────────────────────────────────────────────────
+    internal class SummaryTemplate
+    {
+        public string Name     { get; set; } = "";
+        public string Template { get; set; } = "";
     }
 }

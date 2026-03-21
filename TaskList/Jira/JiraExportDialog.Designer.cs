@@ -21,6 +21,9 @@ namespace Test
         // ── AI Summary group ──────────────────────────────────────────────────
         private System.Windows.Forms.GroupBox grpAiSummary;
         private System.Windows.Forms.CheckBox _chkSummarize;
+        private System.Windows.Forms.Label    _lblTemplate;
+        private System.Windows.Forms.ComboBox _cmbTemplate;
+        private System.Windows.Forms.Button   _btnEditTemplates;
         private System.Windows.Forms.Label    _lblProvider;
         private System.Windows.Forms.ComboBox _cmbProvider;
         private System.Windows.Forms.Label    _lblAiKey;
@@ -52,6 +55,8 @@ namespace Test
 
         // ── Status & buttons ──────────────────────────────────────────────────
         private System.Windows.Forms.Label  _lblStatus;
+        private System.Windows.Forms.Button _btnEditRecipients;
+        private System.Windows.Forms.Button _btnSendOutlook;
         private System.Windows.Forms.Button _btnExport;
         private System.Windows.Forms.Button _btnCancel;
 
@@ -80,8 +85,11 @@ namespace Test
             this._cmbProvider = new System.Windows.Forms.ComboBox();
             this._lblAiKey = new System.Windows.Forms.Label();
             this._txtAiKey = new System.Windows.Forms.TextBox();
-            this._lblAzureEndpoint = new System.Windows.Forms.Label();
-            this._txtAzureEndpoint = new System.Windows.Forms.TextBox();
+            this._lblAzureEndpoint  = new System.Windows.Forms.Label();
+            this._txtAzureEndpoint  = new System.Windows.Forms.TextBox();
+            this._lblTemplate       = new System.Windows.Forms.Label();
+            this._cmbTemplate       = new System.Windows.Forms.ComboBox();
+            this._btnEditTemplates  = new System.Windows.Forms.Button();
             this.grpColumns = new System.Windows.Forms.GroupBox();
             this._chkColKey = new System.Windows.Forms.CheckBox();
             this._chkColSummary = new System.Windows.Forms.CheckBox();
@@ -100,10 +108,12 @@ namespace Test
             this._btnLoadPreview = new System.Windows.Forms.Button();
             this._lblPreviewInfo = new System.Windows.Forms.Label();
             this._dgvPreview = new System.Windows.Forms.DataGridView();
-            this._lblStatus = new System.Windows.Forms.Label();
-            this._btnExport = new System.Windows.Forms.Button();
-            this._btnCancel = new System.Windows.Forms.Button();
-            this._btnSaveSettings = new System.Windows.Forms.Button();
+            this._lblStatus          = new System.Windows.Forms.Label();
+            this._btnEditRecipients  = new System.Windows.Forms.Button();
+            this._btnSendOutlook     = new System.Windows.Forms.Button();
+            this._btnExport          = new System.Windows.Forms.Button();
+            this._btnCancel          = new System.Windows.Forms.Button();
+            this._btnSaveSettings    = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             this.grpSource.SuspendLayout();
             this.grpInclude.SuspendLayout();
@@ -210,6 +220,9 @@ namespace Test
             // 
             this.grpAiSummary.Controls.Add(this._btnSaveSettings);
             this.grpAiSummary.Controls.Add(this._chkSummarize);
+            this.grpAiSummary.Controls.Add(this._lblTemplate);
+            this.grpAiSummary.Controls.Add(this._cmbTemplate);
+            this.grpAiSummary.Controls.Add(this._btnEditTemplates);
             this.grpAiSummary.Controls.Add(this._lblProvider);
             this.grpAiSummary.Controls.Add(this._cmbProvider);
             this.grpAiSummary.Controls.Add(this._lblAiKey);
@@ -219,7 +232,7 @@ namespace Test
             this.grpAiSummary.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             this.grpAiSummary.Location = new System.Drawing.Point(14, 144);
             this.grpAiSummary.Name = "grpAiSummary";
-            this.grpAiSummary.Size = new System.Drawing.Size(692, 148);
+            this.grpAiSummary.Size = new System.Drawing.Size(692, 192);
             this.grpAiSummary.TabIndex = 3;
             this.grpAiSummary.TabStop = false;
             this.grpAiSummary.Text = "AI Summary";
@@ -233,13 +246,49 @@ namespace Test
             this._chkSummarize.Size = new System.Drawing.Size(206, 21);
             this._chkSummarize.TabIndex = 0;
             this._chkSummarize.Text = "Summarize with AI after export";
-            // 
+            //
+            // _lblTemplate
+            //
+            this._lblTemplate.AutoSize  = true;
+            this._lblTemplate.Font      = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this._lblTemplate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
+            this._lblTemplate.Location  = new System.Drawing.Point(14, 52);
+            this._lblTemplate.Name      = "_lblTemplate";
+            this._lblTemplate.TabIndex  = 8;
+            this._lblTemplate.Text      = "PROMPT TEMPLATE";
+            //
+            // _cmbTemplate
+            //
+            this._cmbTemplate.BackColor     = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            this._cmbTemplate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this._cmbTemplate.FlatStyle     = System.Windows.Forms.FlatStyle.Flat;
+            this._cmbTemplate.ForeColor     = System.Drawing.Color.White;
+            this._cmbTemplate.Location      = new System.Drawing.Point(14, 66);
+            this._cmbTemplate.Name          = "_cmbTemplate";
+            this._cmbTemplate.Size          = new System.Drawing.Size(326, 25);
+            this._cmbTemplate.TabIndex      = 9;
+            this._cmbTemplate.SelectedIndexChanged += new System.EventHandler(this.CmbTemplate_Changed);
+            //
+            // _btnEditTemplates
+            //
+            this._btnEditTemplates.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
+            this._btnEditTemplates.FlatAppearance.BorderSize = 0;
+            this._btnEditTemplates.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnEditTemplates.ForeColor = System.Drawing.Color.White;
+            this._btnEditTemplates.Location  = new System.Drawing.Point(348, 65);
+            this._btnEditTemplates.Name      = "_btnEditTemplates";
+            this._btnEditTemplates.Size      = new System.Drawing.Size(118, 27);
+            this._btnEditTemplates.TabIndex  = 10;
+            this._btnEditTemplates.Text      = "Edit Templates\u2026";
+            this._btnEditTemplates.UseVisualStyleBackColor = false;
+            this._btnEditTemplates.Click    += new System.EventHandler(this.BtnEditTemplates_Click);
+            //
             // _lblProvider
-            // 
+            //
             this._lblProvider.AutoSize = true;
             this._lblProvider.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
             this._lblProvider.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblProvider.Location = new System.Drawing.Point(14, 52);
+            this._lblProvider.Location = new System.Drawing.Point(14, 96);
             this._lblProvider.Name = "_lblProvider";
             this._lblProvider.Size = new System.Drawing.Size(55, 12);
             this._lblProvider.TabIndex = 1;
@@ -254,8 +303,9 @@ namespace Test
             this._cmbProvider.Items.AddRange(new object[] {
             "Claude (Anthropic)",
             "ChatGPT (OpenAI)",
-            "Azure OpenAI (Copilot)"});
-            this._cmbProvider.Location = new System.Drawing.Point(14, 66);
+            "Azure OpenAI (Copilot)",
+            "Forge"});
+            this._cmbProvider.Location = new System.Drawing.Point(14, 110);
             this._cmbProvider.Name = "_cmbProvider";
             this._cmbProvider.Size = new System.Drawing.Size(200, 25);
             this._cmbProvider.TabIndex = 2;
@@ -266,7 +316,7 @@ namespace Test
             this._lblAiKey.AutoSize = true;
             this._lblAiKey.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
             this._lblAiKey.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblAiKey.Location = new System.Drawing.Point(228, 52);
+            this._lblAiKey.Location = new System.Drawing.Point(228, 96);
             this._lblAiKey.Name = "_lblAiKey";
             this._lblAiKey.Size = new System.Drawing.Size(103, 12);
             this._lblAiKey.TabIndex = 3;
@@ -277,7 +327,7 @@ namespace Test
             this._txtAiKey.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._txtAiKey.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this._txtAiKey.ForeColor = System.Drawing.Color.White;
-            this._txtAiKey.Location = new System.Drawing.Point(228, 66);
+            this._txtAiKey.Location = new System.Drawing.Point(228, 110);
             this._txtAiKey.Name = "_txtAiKey";
             this._txtAiKey.PasswordChar = '●';
             this._txtAiKey.Size = new System.Drawing.Size(452, 24);
@@ -288,7 +338,7 @@ namespace Test
             this._lblAzureEndpoint.AutoSize = true;
             this._lblAzureEndpoint.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
             this._lblAzureEndpoint.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblAzureEndpoint.Location = new System.Drawing.Point(14, 104);
+            this._lblAzureEndpoint.Location = new System.Drawing.Point(14, 148);
             this._lblAzureEndpoint.Name = "_lblAzureEndpoint";
             this._lblAzureEndpoint.Size = new System.Drawing.Size(303, 12);
             this._lblAzureEndpoint.TabIndex = 5;
@@ -300,7 +350,7 @@ namespace Test
             this._txtAzureEndpoint.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._txtAzureEndpoint.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this._txtAzureEndpoint.ForeColor = System.Drawing.Color.White;
-            this._txtAzureEndpoint.Location = new System.Drawing.Point(14, 118);
+            this._txtAzureEndpoint.Location = new System.Drawing.Point(14, 162);
             this._txtAzureEndpoint.Name = "_txtAzureEndpoint";
             this._txtAzureEndpoint.Size = new System.Drawing.Size(666, 24);
             this._txtAzureEndpoint.TabIndex = 6;
@@ -324,7 +374,7 @@ namespace Test
             this.grpColumns.Controls.Add(this._chkColHours);
             this.grpColumns.Controls.Add(this._chkColText);
             this.grpColumns.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            this.grpColumns.Location = new System.Drawing.Point(14, 306);
+            this.grpColumns.Location = new System.Drawing.Point(14, 350);
             this.grpColumns.Name = "grpColumns";
             this.grpColumns.Size = new System.Drawing.Size(692, 130);
             this.grpColumns.TabIndex = 4;
@@ -496,7 +546,7 @@ namespace Test
             this.grpPreview.Controls.Add(this._lblPreviewInfo);
             this.grpPreview.Controls.Add(this._dgvPreview);
             this.grpPreview.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            this.grpPreview.Location = new System.Drawing.Point(14, 450);
+            this.grpPreview.Location = new System.Drawing.Point(14, 494);
             this.grpPreview.Name = "grpPreview";
             this.grpPreview.Size = new System.Drawing.Size(692, 248);
             this.grpPreview.TabIndex = 5;
@@ -553,7 +603,7 @@ namespace Test
             dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             dataGridViewCellStyle6.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            dataGridViewCellStyle6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            dataGridViewCellStyle6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             dataGridViewCellStyle6.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
             dataGridViewCellStyle6.SelectionForeColor = System.Drawing.Color.White;
             dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
@@ -573,24 +623,54 @@ namespace Test
             this._lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._lblStatus.AutoSize = true;
             this._lblStatus.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblStatus.Location = new System.Drawing.Point(14, 714);
+            this._lblStatus.Location = new System.Drawing.Point(14, 758);
             this._lblStatus.Name = "_lblStatus";
             this._lblStatus.Size = new System.Drawing.Size(47, 17);
             this._lblStatus.TabIndex = 6;
             this._lblStatus.Text = "Ready.";
-            // 
+            //
+            // _btnEditRecipients
+            //
+            this._btnEditRecipients.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this._btnEditRecipients.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
+            this._btnEditRecipients.FlatAppearance.BorderSize = 0;
+            this._btnEditRecipients.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnEditRecipients.ForeColor = System.Drawing.Color.White;
+            this._btnEditRecipients.Location = new System.Drawing.Point(198, 752);
+            this._btnEditRecipients.Name = "_btnEditRecipients";
+            this._btnEditRecipients.Size = new System.Drawing.Size(120, 28);
+            this._btnEditRecipients.TabIndex = 7;
+            this._btnEditRecipients.Text = "Edit Recipients\u2026";
+            this._btnEditRecipients.UseVisualStyleBackColor = false;
+            this._btnEditRecipients.Click += new System.EventHandler(this.BtnEditRecipients_Click);
+            //
+            // _btnSendOutlook
+            //
+            this._btnSendOutlook.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this._btnSendOutlook.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            this._btnSendOutlook.FlatAppearance.BorderSize = 0;
+            this._btnSendOutlook.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnSendOutlook.ForeColor = System.Drawing.Color.White;
+            this._btnSendOutlook.Location = new System.Drawing.Point(328, 752);
+            this._btnSendOutlook.Name = "_btnSendOutlook";
+            this._btnSendOutlook.Size = new System.Drawing.Size(152, 28);
+            this._btnSendOutlook.TabIndex = 8;
+            this._btnSendOutlook.Text = "Send via Outlook\u2026";
+            this._btnSendOutlook.UseVisualStyleBackColor = false;
+            this._btnSendOutlook.Click += new System.EventHandler(this.BtnSendOutlook_Click);
+            //
             // _btnExport
-            // 
+            //
             this._btnExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._btnExport.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(120)))), ((int)(((byte)(215)))));
             this._btnExport.FlatAppearance.BorderSize = 0;
             this._btnExport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnExport.ForeColor = System.Drawing.Color.White;
-            this._btnExport.Location = new System.Drawing.Point(490, 708);
+            this._btnExport.Location = new System.Drawing.Point(490, 752);
             this._btnExport.Name = "_btnExport";
             this._btnExport.Size = new System.Drawing.Size(152, 28);
-            this._btnExport.TabIndex = 7;
-            this._btnExport.Text = "Export to Excel…";
+            this._btnExport.TabIndex = 9;
+            this._btnExport.Text = "Export to Excel\u2026";
             this._btnExport.UseVisualStyleBackColor = false;
             this._btnExport.Click += new System.EventHandler(this.BtnExport_Click);
             // 
@@ -602,7 +682,7 @@ namespace Test
             this._btnCancel.FlatAppearance.BorderSize = 0;
             this._btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnCancel.ForeColor = System.Drawing.Color.White;
-            this._btnCancel.Location = new System.Drawing.Point(652, 708);
+            this._btnCancel.Location = new System.Drawing.Point(652, 752);
             this._btnCancel.Name = "_btnCancel";
             this._btnCancel.Size = new System.Drawing.Size(54, 28);
             this._btnCancel.TabIndex = 8;
@@ -615,10 +695,10 @@ namespace Test
             this._btnSaveSettings.FlatAppearance.BorderSize = 0;
             this._btnSaveSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnSaveSettings.ForeColor = System.Drawing.Color.White;
-            this._btnSaveSettings.Location = new System.Drawing.Point(562, 23);
+            this._btnSaveSettings.Location = new System.Drawing.Point(564, 15);
             this._btnSaveSettings.Name = "_btnSaveSettings";
             this._btnSaveSettings.Size = new System.Drawing.Size(116, 28);
-            this._btnSaveSettings.TabIndex = 7;
+            this._btnSaveSettings.TabIndex = 9;
             this._btnSaveSettings.Text = "Save Settings";
             this._btnSaveSettings.UseVisualStyleBackColor = false;
             this._btnSaveSettings.Click += new System.EventHandler(this._btnSaveSettings_Click);
@@ -629,20 +709,22 @@ namespace Test
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.CancelButton = this._btnCancel;
-            this.ClientSize = new System.Drawing.Size(720, 748);
+            this.ClientSize = new System.Drawing.Size(720, 792);
             this.Controls.Add(this.grpSource);
             this.Controls.Add(this.grpInclude);
             this.Controls.Add(this.grpAiSummary);
             this.Controls.Add(this.grpColumns);
             this.Controls.Add(this.grpPreview);
             this.Controls.Add(this._lblStatus);
+            this.Controls.Add(this._btnEditRecipients);
+            this.Controls.Add(this._btnSendOutlook);
             this.Controls.Add(this._btnExport);
             this.Controls.Add(this._btnCancel);
             this.Controls.Add(this.pnlHeader);
             this.Font = new System.Drawing.Font("Segoe UI", 9.5F);
             this.ForeColor = System.Drawing.Color.White;
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(720, 650);
+            this.MinimumSize = new System.Drawing.Size(720, 694);
             this.Name = "JiraExportDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Export Jira Data to Excel";

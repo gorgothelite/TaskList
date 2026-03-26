@@ -28,6 +28,8 @@ namespace Test
         private bool                       _forceClose;
         private Icon                       _trayIconNormal;
         private Icon                       _trayIconMuted;
+        private readonly HashSet<string>   _collapsed = new HashSet<string>();
+        private HashSet<string>            _parentIds = new HashSet<string>();
 
         // ── File paths ───────────────────────────────────────────────────────
         private static readonly string BaseDir   = AppDomain.CurrentDomain.BaseDirectory;
@@ -173,6 +175,7 @@ namespace Test
             _lv.DrawSubItem          += DrawCell;
             _lv.DrawItem             += (s, e) => { };
             _lv.SelectedIndexChanged += OnSelection;
+            _lv.MouseClick           += Lv_MouseClick;
         }
 
         // ── Details ──────────────────────────────────────────────────────────
@@ -186,6 +189,7 @@ namespace Test
             {
                 _lblName.Text = _lblPriority.Text = _lblDue.Text = _lblStatus.Text = "";
                 _txtNotes.Text = "";
+                pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = _btnAddSubtask.Visible = false;
                 _loadingDetails = false;
                 return;
             }
@@ -207,20 +211,49 @@ namespace Test
             _btnDone.BackColor = t.IsDone ? Color.FromArgb(100,80,0) : Color.FromArgb(16,124,16);
             _btnHold.Text      = t.IsOnHold ? "Remove Hold" : "Put On Hold";
             _btnHold.BackColor = t.IsOnHold ? Color.FromArgb(50,80,40) : Color.FromArgb(120,80,0);
+
+            // Subtask section
+            pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = true;
+            bool isSubtask = t.ParentId != null;
+            if (isSubtask)
+            {
+                lblSubCaption.Text = "PARENT TASK";
+                var parent = _tasks.FirstOrDefault(x => x.Id == t.ParentId);
+                _lblSubInfo.Text = parent != null ? parent.Name : "(deleted)";
+                _btnAddSubtask.Visible = false;
+            }
+            else
+            {
+                lblSubCaption.Text = "SUBTASKS";
+                int total = _tasks.Count(x => x.ParentId == t.Id);
+                int done  = _tasks.Count(x => x.ParentId == t.Id && x.IsDone);
+                _lblSubInfo.Text = total == 0 ? "None" : $"{done}/{total} done";
+                _btnAddSubtask.Visible  = true;
+                _btnAddSubtask.Enabled  = true;
+            }
+
             _loadingDetails = false;
         }
 
         // ── List ─────────────────────────────────────────────────────────────
         private void RefreshList()
         {
+            _parentIds = new HashSet<string>(_tasks
+                .Where(t => t.ParentId != null)
+                .Select(t => t.ParentId));
+
+            var filtered = GetFiltered().ToList();
+            if (_sel != null && !filtered.Any(t => t.Id == _sel.Id))
+                _sel = null;
+
             string selId = _sel?.Id;
             _lv.BeginUpdate();
             _lv.Items.Clear();
-            foreach (var t in GetFiltered())
+            foreach (var t in filtered)
             {
                 bool overdue = !t.IsDone && t.DueDate < DateTime.Now;
                 var li = new ListViewItem("") { Name = t.Id, Tag = t };
-                li.SubItems.Add(t.Name);
+                li.SubItems.Add(t.ParentId != null ? "  ↳ " + t.Name : t.Name);
                 li.SubItems.Add(PriName[(int)t.Priority]);
                 li.SubItems.Add(t.DueDate.ToString("g"));
                 li.SubItems.Add(t.IsDone ? "Done" : t.IsOnHold ? "On Hold" : overdue ? "Overdue" : "Active");
@@ -238,13 +271,53 @@ namespace Test
             if (si == 1) q = q.Where(t => !t.IsDone);
             else if (si == 2) q = q.Where(t =>  t.IsDone);
             if (pi > 0)  q = q.Where(t => (int)t.Priority == pi - 1);
-            return q.OrderBy(t => t.IsDone).ThenByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate);
+
+            var filtered  = q.ToList();
+            var topLevel  = filtered.Where(t => t.ParentId == null)
+                                    .OrderBy(t => t.IsDone).ThenByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate)
+                                    .ToList();
+            var subtasks  = filtered.Where(t => t.ParentId != null)
+                                    .OrderBy(t => t.IsDone).ThenByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate)
+                                    .ToList();
+
+            var result   = new List<TaskItem>();
+            var addedIds = new HashSet<string>();
+            foreach (var parent in topLevel)
+            {
+                result.Add(parent);
+                addedIds.Add(parent.Id);
+                var children = subtasks.Where(s => s.ParentId == parent.Id).ToList();
+                if (!_collapsed.Contains(parent.Id))
+                    foreach (var child in children) { result.Add(child); addedIds.Add(child.Id); }
+                else
+                    foreach (var child in children) addedIds.Add(child.Id); // hidden but accounted for
+            }
+            // Include any subtasks whose parent was filtered out
+            foreach (var child in subtasks.Where(s => !addedIds.Contains(s.Id)))
+                result.Add(child);
+            return result;
         }
 
         private void OnSelection(object sender, EventArgs e)
         {
             _sel = _lv.SelectedItems.Count > 0 ? (TaskItem)_lv.SelectedItems[0].Tag : null;
             ShowDetails(_sel);
+        }
+
+        private void Lv_MouseClick(object sender, MouseEventArgs e)
+        {
+            var hit = _lv.HitTest(e.X, e.Y);
+            if (hit.Item == null) return;
+            var task = hit.Item.Tag as TaskItem;
+            if (task == null || !_parentIds.Contains(task.Id)) return;
+
+            // Only toggle if click lands in the triangle zone (first 20px of the name column)
+            int col0End = _lv.Columns[0].Width;
+            if (e.X < col0End || e.X > col0End + 20) return;
+
+            if (_collapsed.Contains(task.Id)) _collapsed.Remove(task.Id);
+            else                              _collapsed.Add(task.Id);
+            RefreshList();
         }
 
         // ── CRUD ─────────────────────────────────────────────────────────────
@@ -285,10 +358,33 @@ namespace Test
         private void DeleteTask()
         {
             if (_sel == null) return;
-            if (MessageBox.Show($"Delete \"{_sel.Name}\"?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+            var children = _tasks.Where(t => t.ParentId == _sel.Id).ToList();
+            string msg = children.Count > 0
+                ? $"Delete \"{_sel.Name}\" and its {children.Count} subtask(s)?"
+                : $"Delete \"{_sel.Name}\"?";
+            if (MessageBox.Show(msg, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
             AddRevision(new RevisionEntry { Action = RevisionAction.TaskDeleted, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" deleted" });
+            foreach (var child in children)
+            {
+                AddRevision(new RevisionEntry { Action = RevisionAction.TaskDeleted, TaskId = child.Id, TaskName = child.Name, Summary = $"Subtask \"{child.Name}\" deleted (parent deleted)" });
+                _tasks.Remove(child);
+            }
             _tasks.Remove(_sel); _sel = null;
             SaveAll(); RefreshList();
+        }
+
+        private void BtnAddSubtask_Click(object sender, EventArgs e)
+        {
+            if (_sel == null || _sel.ParentId != null) return;
+            var parentTask = _sel;
+            using (var dlg = new TaskDialog())
+            {
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                dlg.Result.ParentId = parentTask.Id;
+                _tasks.Add(dlg.Result);
+                AddRevision(new RevisionEntry { Action = RevisionAction.TaskAdded, TaskId = dlg.Result.Id, TaskName = dlg.Result.Name, Summary = $"Subtask \"{dlg.Result.Name}\" added to \"{parentTask.Name}\" (Priority: {dlg.Result.Priority}, Due: {dlg.Result.DueDate:g})" });
+                SaveAll(); RefreshList();
+            }
         }
 
         private void ToggleHold()
@@ -301,10 +397,10 @@ namespace Test
         }
 
         // ── Button event handlers (wired in Designer) ─────────────────────────
-        private void BtnEdit_Click(object sender,    EventArgs e) => EditTask();
-        private void BtnDone_Click(object sender,    EventArgs e) => ToggleDone();
-        private void BtnDelete_Click(object sender,  EventArgs e) => DeleteTask();
-        private void BtnHold_Click(object sender,    EventArgs e) => ToggleHold();
+        private void BtnEdit_Click(object sender,       EventArgs e) => EditTask();
+        private void BtnDone_Click(object sender,       EventArgs e) => ToggleDone();
+        private void BtnDelete_Click(object sender,     EventArgs e) => DeleteTask();
+        private void BtnHold_Click(object sender,       EventArgs e) => ToggleHold();
         private void Filter_Changed(object sender,   EventArgs e) => RefreshList();
 
         private void BtnExport_Click(object sender, EventArgs e)
@@ -436,14 +532,31 @@ namespace Test
             else if ((e.ColumnIndex==3 || e.ColumnIndex==4) && overdue)      fg = Color.FromArgb(255,108,108);
             else                                                              fg = Color.FromArgb(218,218,225);
 
+            // Collapse/expand triangle for parent tasks in column 1
+            bool isParent = e.ColumnIndex == 1 && _parentIds.Contains(task.Id);
+            if (isParent)
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                bool collapsed = _collapsed.Contains(task.Id);
+                Color arrowColor = sel ? Color.White : Color.FromArgb(150, 150, 165);
+                int cx = e.Bounds.X + 7, cy = e.Bounds.Y + e.Bounds.Height / 2;
+                Point[] tri = collapsed
+                    ? new[] { new Point(cx, cy-5), new Point(cx+8, cy), new Point(cx, cy+5) }           // ▶
+                    : new[] { new Point(cx, cy-3), new Point(cx+8, cy-3), new Point(cx+4, cy+5) };      // ▼
+                using (var arrowBr = new SolidBrush(arrowColor))
+                    e.Graphics.FillPolygon(arrowBr, tri);
+            }
+
+            float textLeft  = isParent ? e.Bounds.X + 20 : e.Bounds.X + 5;
+            float textWidth = e.Bounds.Width - (isParent ? 22 : 7);
             var sf = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
-            using (var fgBr = new SolidBrush(fg)) e.Graphics.DrawString(e.SubItem.Text, _lv.Font, fgBr, new RectangleF(e.Bounds.X+5, e.Bounds.Y, e.Bounds.Width-7, e.Bounds.Height), sf);
+            using (var fgBr = new SolidBrush(fg)) e.Graphics.DrawString(e.SubItem.Text, _lv.Font, fgBr, new RectangleF(textLeft, e.Bounds.Y, textWidth, e.Bounds.Height), sf);
 
             if (isDone && e.ColumnIndex == 1)
             {
-                float tw = Math.Min(e.Graphics.MeasureString(e.SubItem.Text, _lv.Font).Width, e.Bounds.Width-10);
+                float tw = Math.Min(e.Graphics.MeasureString(e.SubItem.Text, _lv.Font).Width, textWidth);
                 float mid = e.Bounds.Y + e.Bounds.Height/2f;
-                using (var pen = new Pen(fg)) e.Graphics.DrawLine(pen, e.Bounds.X+5, mid, e.Bounds.X+5+tw, mid);
+                using (var pen = new Pen(fg)) e.Graphics.DrawLine(pen, textLeft, mid, textLeft + tw, mid);
             }
         }
 

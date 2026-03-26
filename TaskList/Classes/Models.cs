@@ -20,6 +20,7 @@ namespace Test
         public bool         HasSnooze       { get; set; } = false;
         public DateTime     SnoozedUntil    { get; set; } = DateTime.MinValue;
         public int          AlertLeadMinutes { get; set; } = 1440;
+        public string       ParentId         { get; set; } = null;
 
         public TaskItem Clone() => (TaskItem)MemberwiseClone();
     }

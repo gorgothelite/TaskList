@@ -39,6 +39,10 @@ namespace Test
         private System.Windows.Forms.Button  _btnDone;
         private System.Windows.Forms.Button  _btnDelete;
         private System.Windows.Forms.Button  _btnHold;
+        private System.Windows.Forms.Panel   pnlDivider2;
+        private System.Windows.Forms.Label   lblSubCaption;
+        private System.Windows.Forms.Label   _lblSubInfo;
+        private System.Windows.Forms.Button  _btnAddSubtask;
 
         protected override void Dispose(bool disposing)
         {
@@ -78,6 +82,10 @@ namespace Test
             this._btnDone           = new System.Windows.Forms.Button();
             this._btnDelete         = new System.Windows.Forms.Button();
             this._btnHold           = new System.Windows.Forms.Button();
+            this.pnlDivider2        = new System.Windows.Forms.Panel();
+            this.lblSubCaption      = new System.Windows.Forms.Label();
+            this._lblSubInfo        = new System.Windows.Forms.Label();
+            this._btnAddSubtask     = new System.Windows.Forms.Button();
 
             this.pnlToolbar.SuspendLayout();
             this.pnlLeft.SuspendLayout();
@@ -243,6 +251,10 @@ namespace Test
             this.pnlDetail.Controls.Add(this._btnDone);
             this.pnlDetail.Controls.Add(this._btnDelete);
             this.pnlDetail.Controls.Add(this._btnHold);
+            this.pnlDetail.Controls.Add(this.pnlDivider2);
+            this.pnlDetail.Controls.Add(this.lblSubCaption);
+            this.pnlDetail.Controls.Add(this._lblSubInfo);
+            this.pnlDetail.Controls.Add(this._btnAddSubtask);
             this.pnlDetail.Dock     = System.Windows.Forms.DockStyle.Right;
             this.pnlDetail.Location = new System.Drawing.Point(760, 50);
             this.pnlDetail.Name     = "pnlDetail";
@@ -424,6 +436,51 @@ namespace Test
             this._btnHold.TabIndex  = 15;
             this._btnHold.Text      = "Put On Hold";
             this._btnHold.Click    += new System.EventHandler(this.BtnHold_Click);
+
+            // pnlDivider2
+            this.pnlDivider2.BackColor = System.Drawing.Color.FromArgb(60, 60, 68);
+            this.pnlDivider2.Location  = new System.Drawing.Point(18, 468);
+            this.pnlDivider2.Name      = "pnlDivider2";
+            this.pnlDivider2.Size      = new System.Drawing.Size(275, 1);
+            this.pnlDivider2.TabIndex  = 16;
+            this.pnlDivider2.Visible   = false;
+
+            // lblSubCaption
+            this.lblSubCaption.AutoSize  = true;
+            this.lblSubCaption.BackColor = System.Drawing.Color.Transparent;
+            this.lblSubCaption.Font      = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.lblSubCaption.ForeColor = System.Drawing.Color.FromArgb(130, 130, 140);
+            this.lblSubCaption.Location  = new System.Drawing.Point(18, 480);
+            this.lblSubCaption.Name      = "lblSubCaption";
+            this.lblSubCaption.TabIndex  = 17;
+            this.lblSubCaption.Text      = "SUBTASKS";
+            this.lblSubCaption.Visible   = false;
+
+            // _lblSubInfo
+            this._lblSubInfo.AutoSize  = false;
+            this._lblSubInfo.BackColor = System.Drawing.Color.Transparent;
+            this._lblSubInfo.Font      = new System.Drawing.Font("Segoe UI", 9.5F);
+            this._lblSubInfo.ForeColor = System.Drawing.Color.FromArgb(180, 180, 190);
+            this._lblSubInfo.Location  = new System.Drawing.Point(18, 496);
+            this._lblSubInfo.Name      = "_lblSubInfo";
+            this._lblSubInfo.Size      = new System.Drawing.Size(275, 20);
+            this._lblSubInfo.TabIndex  = 18;
+            this._lblSubInfo.Text      = "";
+            this._lblSubInfo.Visible   = false;
+
+            // _btnAddSubtask
+            this._btnAddSubtask.BackColor = System.Drawing.Color.FromArgb(0, 90, 160);
+            this._btnAddSubtask.Enabled   = false;
+            this._btnAddSubtask.FlatAppearance.BorderSize = 0;
+            this._btnAddSubtask.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnAddSubtask.ForeColor = System.Drawing.Color.White;
+            this._btnAddSubtask.Location  = new System.Drawing.Point(18, 524);
+            this._btnAddSubtask.Name      = "_btnAddSubtask";
+            this._btnAddSubtask.Size      = new System.Drawing.Size(275, 28);
+            this._btnAddSubtask.TabIndex  = 19;
+            this._btnAddSubtask.Text      = "+ Add Subtask";
+            this._btnAddSubtask.Visible   = false;
+            this._btnAddSubtask.Click    += new System.EventHandler(this.BtnAddSubtask_Click);
 
             // ── MainForm ─────────────────────────────────────────────────────
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);

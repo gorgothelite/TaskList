@@ -72,7 +72,30 @@ namespace Test
             if (_chkCritical.Checked) allowed.Add(TaskPriority.Critical);
             q = q.Where(t => allowed.Contains(t.Priority));
 
-            return q.OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate);
+            var filtered = q.ToList();
+            var topLevel = filtered.Where(t => t.ParentId == null)
+                                   .OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate)
+                                   .ToList();
+            var subtasks = filtered.Where(t => t.ParentId != null)
+                                   .OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate)
+                                   .ToList();
+
+            var result   = new List<TaskItem>();
+            var addedIds = new HashSet<string>();
+            foreach (var parent in topLevel)
+            {
+                result.Add(parent);
+                addedIds.Add(parent.Id);
+                foreach (var child in subtasks.Where(s => s.ParentId == parent.Id))
+                {
+                    result.Add(child);
+                    addedIds.Add(child.Id);
+                }
+            }
+            // Subtasks whose parent was filtered out
+            foreach (var child in subtasks.Where(s => !addedIds.Contains(s.Id)))
+                result.Add(child);
+            return result;
         }
 
         private List<string> BuildHeaders()
@@ -92,7 +115,7 @@ namespace Test
             foreach (var t in GetFiltered())
             {
                 var row = new List<string>();
-                if (_chkColName.Checked)     row.Add(t.Name);
+                if (_chkColName.Checked)     row.Add(t.ParentId != null ? "  ↳ " + t.Name : t.Name);
                 if (_chkColPriority.Checked) row.Add(t.Priority.ToString());
                 if (_chkColDue.Checked)      row.Add(t.DueDate.ToString("yyyy-MM-dd HH:mm"));
                 if (_chkColStatus.Checked)   row.Add(t.IsDone ? "Done" : (t.DueDate < DateTime.Now ? "Overdue" : "Active"));

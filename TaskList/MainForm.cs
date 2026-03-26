@@ -21,6 +21,7 @@ namespace Test
         private JiraForm                   _jiraWindow;
         private System.Windows.Forms.Timer _notesSaveTimer;
         private bool                       _loadingDetails;
+        private bool                       _refreshingList;
         private NotifyIcon                 _notifyIcon;
         private ContextMenuStrip           _trayMenu;
         private ToolStripMenuItem          _trayMuteItem;
@@ -66,6 +67,10 @@ namespace Test
         // ── System tray ───────────────────────────────────────────────────────
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool DestroyIcon(IntPtr handle);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern int SendMessage(IntPtr hWnd, int msg, bool wParam, int lParam);
+        private const int WM_SETREDRAW = 11;
 
         private static Icon BuildTrayIcon(bool muted)
         {
@@ -181,6 +186,17 @@ namespace Test
         // ── Details ──────────────────────────────────────────────────────────
         private void ShowDetails(TaskItem t)
         {
+            SendMessage(pnlDetail.Handle, WM_SETREDRAW, false, 0);
+            try { ShowDetailsCore(t); }
+            finally
+            {
+                SendMessage(pnlDetail.Handle, WM_SETREDRAW, true, 0);
+                pnlDetail.Invalidate(true);
+            }
+        }
+
+        private void ShowDetailsCore(TaskItem t)
+        {
             _loadingDetails = true;
             bool has = t != null;
             _btnEdit.Enabled = _btnDone.Enabled = _btnDelete.Enabled = _btnHold.Enabled = has;
@@ -236,7 +252,7 @@ namespace Test
         }
 
         // ── List ─────────────────────────────────────────────────────────────
-        private void RefreshList()
+        private void RefreshList(bool updateDetails = true)
         {
             _parentIds = new HashSet<string>(_tasks
                 .Where(t => t.ParentId != null)
@@ -247,6 +263,7 @@ namespace Test
                 _sel = null;
 
             string selId = _sel?.Id;
+            _refreshingList = true;
             _lv.BeginUpdate();
             _lv.Items.Clear();
             foreach (var t in filtered)
@@ -261,7 +278,8 @@ namespace Test
                 _lv.Items.Add(li);
             }
             _lv.EndUpdate();
-            ShowDetails(_sel);
+            _refreshingList = false;
+            if (updateDetails) ShowDetails(_sel);
         }
 
         private IEnumerable<TaskItem> GetFiltered()
@@ -300,6 +318,7 @@ namespace Test
 
         private void OnSelection(object sender, EventArgs e)
         {
+            if (_refreshingList) return;
             _sel = _lv.SelectedItems.Count > 0 ? (TaskItem)_lv.SelectedItems[0].Tag : null;
             ShowDetails(_sel);
         }
@@ -315,9 +334,13 @@ namespace Test
             int col0End = _lv.Columns[0].Width;
             if (e.X < col0End || e.X > col0End + 20) return;
 
+            var prevSel = _sel;
             if (_collapsed.Contains(task.Id)) _collapsed.Remove(task.Id);
             else                              _collapsed.Add(task.Id);
-            RefreshList();
+
+            // Skip the detail panel repaint unless the selected item was hidden by collapsing
+            RefreshList(updateDetails: false);
+            if (_sel != prevSel) ShowDetails(_sel);
         }
 
         // ── CRUD ─────────────────────────────────────────────────────────────

@@ -197,6 +197,9 @@ namespace Test
             this._lvChanges.TabIndex = 3;
             this._lvChanges.UseCompatibleStateImageBehavior = false;
             this._lvChanges.View = System.Windows.Forms.View.Details;
+            this._lvChanges.Columns.Add("Field",     100);
+            this._lvChanges.Columns.Add("Old Value", 100);
+            this._lvChanges.Columns.Add("New Value", 100);
             // 
             // pnlLeft
             // 
@@ -225,6 +228,10 @@ namespace Test
             this._lvHistory.TabIndex = 0;
             this._lvHistory.UseCompatibleStateImageBehavior = false;
             this._lvHistory.View = System.Windows.Forms.View.Details;
+            this._lvHistory.Columns.Add("Timestamp", 160);
+            this._lvHistory.Columns.Add("Action",    80);
+            this._lvHistory.Columns.Add("Task",      320);
+            this._lvHistory.Columns.Add("Backup",    60);
             this._lvHistory.SelectedIndexChanged += new System.EventHandler(this.OnHistorySelect);
             // 
             // HistoryDialog

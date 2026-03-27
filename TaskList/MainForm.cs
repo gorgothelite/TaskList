@@ -32,11 +32,16 @@ namespace Test
         private readonly HashSet<string>   _collapsed = new HashSet<string>();
         private HashSet<string>            _parentIds = new HashSet<string>();
 
+        // ── Sort state ───────────────────────────────────────────────────────
+        private int  _sortColumn    = -1;   // -1 = default (priority desc, due asc)
+        private bool _sortAscending = true;
+
         // ── File paths ───────────────────────────────────────────────────────
-        private static readonly string BaseDir   = AppDomain.CurrentDomain.BaseDirectory;
-        private static readonly string DataFile  = Path.Combine(BaseDir, "tasks.json");
-        private static readonly string HistFile  = Path.Combine(BaseDir, "tasks_history.json");
-        private static readonly string BackupDir = Path.Combine(BaseDir, "backups");
+        private static readonly string BaseDir      = AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string DataFile     = Path.Combine(BaseDir, "tasks.json");
+        private static readonly string HistFile     = Path.Combine(BaseDir, "tasks_history.json");
+        private static readonly string SettingsFile = Path.Combine(BaseDir, "tasks_settings.json");
+        private static readonly string BackupDir    = Path.Combine(BaseDir, "backups");
         private const int MaxBackups = 20;
 
         // ── Visual maps ──────────────────────────────────────────────────────
@@ -47,6 +52,7 @@ namespace Test
         public MainForm()
         {
             InitializeComponent();
+            LoadSettings();
             WireListView();
             LoadHistory();
             LoadTasks();
@@ -181,6 +187,21 @@ namespace Test
             _lv.DrawItem             += (s, e) => { };
             _lv.SelectedIndexChanged += OnSelection;
             _lv.MouseClick           += Lv_MouseClick;
+            _lv.ColumnClick          += Lv_ColumnClick;
+        }
+
+        private void Lv_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            if (e.Column == _sortColumn)
+                _sortAscending = !_sortAscending;
+            else
+            {
+                _sortColumn    = e.Column;
+                _sortAscending = e.Column != 2 && e.Column != 0; // priority cols default desc
+            }
+            SaveSettings();
+            RefreshList(updateDetails: false);
+            _lv.Invalidate(); // repaint headers to show arrow
         }
 
         // ── Details ──────────────────────────────────────────────────────────
@@ -291,12 +312,8 @@ namespace Test
             if (pi > 0)  q = q.Where(t => (int)t.Priority == pi - 1);
 
             var filtered  = q.ToList();
-            var topLevel  = filtered.Where(t => t.ParentId == null)
-                                    .OrderBy(t => t.IsDone).ThenByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate)
-                                    .ToList();
-            var subtasks  = filtered.Where(t => t.ParentId != null)
-                                    .OrderBy(t => t.IsDone).ThenByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate)
-                                    .ToList();
+            var topLevel  = ApplySort(filtered.Where(t => t.ParentId == null)).ToList();
+            var subtasks  = ApplySort(filtered.Where(t => t.ParentId != null)).ToList();
 
             var result   = new List<TaskItem>();
             var addedIds = new HashSet<string>();
@@ -314,6 +331,50 @@ namespace Test
             foreach (var child in subtasks.Where(s => !addedIds.Contains(s.Id)))
                 result.Add(child);
             return result;
+        }
+
+        private IEnumerable<TaskItem> ApplySort(IEnumerable<TaskItem> src)
+        {
+            // Status sort order: Active=0, Overdue=1, On Hold=2, Done=3
+            int StatusRank(TaskItem t)
+            {
+                if (t.IsDone)    return 3;
+                if (t.IsOnHold)  return 2;
+                if (t.DueDate < DateTime.Now) return 1;
+                return 0;
+            }
+
+            IOrderedEnumerable<TaskItem> ordered;
+            switch (_sortColumn)
+            {
+                case 0: // priority dot
+                case 2: // priority text
+                    ordered = _sortAscending
+                        ? src.OrderBy(t => (int)t.Priority).ThenBy(t => t.DueDate)
+                        : src.OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate);
+                    break;
+                case 1: // name
+                    ordered = _sortAscending
+                        ? src.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
+                        : src.OrderByDescending(t => t.Name, StringComparer.OrdinalIgnoreCase);
+                    break;
+                case 3: // due date
+                    ordered = _sortAscending
+                        ? src.OrderBy(t => t.DueDate)
+                        : src.OrderByDescending(t => t.DueDate);
+                    break;
+                case 4: // status
+                    ordered = _sortAscending
+                        ? src.OrderBy(StatusRank).ThenBy(t => t.DueDate)
+                        : src.OrderByDescending(StatusRank).ThenBy(t => t.DueDate);
+                    break;
+                default: // default: active first, priority desc, due asc
+                    ordered = src.OrderBy(t => t.IsDone)
+                                 .ThenByDescending(t => (int)t.Priority)
+                                 .ThenBy(t => t.DueDate);
+                    break;
+            }
+            return ordered;
         }
 
         private void OnSelection(object sender, EventArgs e)
@@ -527,7 +588,11 @@ namespace Test
         {
             using (var bg = new SolidBrush(Color.FromArgb(44,44,46))) e.Graphics.FillRectangle(bg, e.Bounds);
             using (var pen = new Pen(Color.FromArgb(60,60,65))) e.Graphics.DrawLine(pen, e.Bounds.Left, e.Bounds.Bottom-1, e.Bounds.Right, e.Bounds.Bottom-1);
-            TextRenderer.DrawText(e.Graphics, e.Header.Text, new Font("Segoe UI",8.5f,FontStyle.Bold), new Rectangle(e.Bounds.X+5, e.Bounds.Y, e.Bounds.Width-5, e.Bounds.Height), Color.FromArgb(160,160,170), TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
+
+            bool isSorted = e.ColumnIndex == _sortColumn;
+            string arrow  = isSorted ? (_sortAscending ? " ▲" : " ▼") : "";
+            Color  fg     = isSorted ? Color.FromArgb(220, 220, 230) : Color.FromArgb(160, 160, 170);
+            TextRenderer.DrawText(e.Graphics, e.Header.Text + arrow, new Font("Segoe UI",8.5f,FontStyle.Bold), new Rectangle(e.Bounds.X+5, e.Bounds.Y, e.Bounds.Width-5, e.Bounds.Height), fg, TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
         }
 
         private void DrawCell(object sender, DrawListViewSubItemEventArgs e)
@@ -686,6 +751,29 @@ namespace Test
         {
             if (!File.Exists(HistFile)) return;
             try { _history = JsonConvert.DeserializeObject<List<RevisionEntry>>(File.ReadAllText(HistFile)) ?? new List<RevisionEntry>(); } catch { _history = new List<RevisionEntry>(); }
+        }
+
+        private void LoadSettings()
+        {
+            if (!File.Exists(SettingsFile)) return;
+            try
+            {
+                var obj = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(SettingsFile));
+                _sortColumn    = obj.Value<int?>("SortColumn")    ?? -1;
+                _sortAscending = obj.Value<bool?>("SortAscending") ?? true;
+            }
+            catch { }
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(
+                    new { SortColumn = _sortColumn, SortAscending = _sortAscending },
+                    Formatting.Indented));
+            }
+            catch { }
         }
     }
 }

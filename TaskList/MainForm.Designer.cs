@@ -218,7 +218,7 @@ namespace Test
             this._lv.ForeColor     = System.Drawing.Color.White;
             this._lv.FullRowSelect = true;
             this._lv.GridLines     = false;
-            this._lv.HeaderStyle   = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this._lv.HeaderStyle   = System.Windows.Forms.ColumnHeaderStyle.Clickable;
             this._lv.HideSelection = false;
             this._lv.Location      = new System.Drawing.Point(0, 0);
             this._lv.MultiSelect   = false;

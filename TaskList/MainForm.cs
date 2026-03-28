@@ -42,7 +42,10 @@ namespace Test
         private static readonly string HistFile     = Path.Combine(BaseDir, "tasks_history.json");
         private static readonly string SettingsFile = Path.Combine(BaseDir, "tasks_settings.json");
         private static readonly string BackupDir    = Path.Combine(BaseDir, "backups");
+        private static readonly string ImagesDir    = Path.Combine(BaseDir, "task_images");
         private const int MaxBackups = 20;
+
+        private static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp" };
 
         // ── Visual maps ──────────────────────────────────────────────────────
         private static readonly Color[]  PriCol  = { Color.FromArgb(88,196,88), Color.FromArgb(214,188,50), Color.FromArgb(232,116,40), Color.FromArgb(222,52,52) };
@@ -220,13 +223,14 @@ namespace Test
         {
             _loadingDetails = true;
             bool has = t != null;
-            _btnEdit.Enabled = _btnDone.Enabled = _btnDelete.Enabled = _btnHold.Enabled = has;
+            _btnEdit.Enabled = _btnDone.Enabled = _btnDelete.Enabled = _btnHold.Enabled = _btnAddImage.Enabled = has;
 
             if (!has)
             {
                 _lblName.Text = _lblPriority.Text = _lblDue.Text = _lblStatus.Text = "";
                 _txtNotes.Text = "";
                 pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = _btnAddSubtask.Visible = false;
+                RefreshImageThumbs(null);
                 _loadingDetails = false;
                 return;
             }
@@ -269,6 +273,7 @@ namespace Test
                 _btnAddSubtask.Enabled  = true;
             }
 
+            RefreshImageThumbs(t);
             _loadingDetails = false;
         }
 
@@ -307,8 +312,9 @@ namespace Test
         {
             var q = _tasks.AsEnumerable();
             int si = _cmbStatusF.SelectedIndex, pi = _cmbPriorityF.SelectedIndex;
-            if (si == 1) q = q.Where(t => !t.IsDone);
+            if (si == 1) q = q.Where(t => !t.IsDone && !t.IsOnHold);
             else if (si == 2) q = q.Where(t =>  t.IsDone);
+            else if (si == 3) q = q.Where(t =>  t.IsOnHold);
             if (pi > 0)  q = q.Where(t => (int)t.Priority == pi - 1);
 
             var filtered  = q.ToList();
@@ -701,6 +707,182 @@ namespace Test
             Chk("Notes",    before.Notes,                       after.Notes);
             Chk("Alert",    AlertLeadLabel(before.AlertLeadMinutes), AlertLeadLabel(after.AlertLeadMinutes));
             return list;
+        }
+
+        // ── Images ────────────────────────────────────────────────────────────
+        private static string GetTaskImageDir(TaskItem t) =>
+            Path.Combine(ImagesDir, t.Id);
+
+        private void RefreshImageThumbs(TaskItem t)
+        {
+            foreach (Control c in _pnlImagesThumbs.Controls)
+                if (c is PictureBox pb && pb.Image != null) { pb.Image.Dispose(); pb.Image = null; }
+            _pnlImagesThumbs.Controls.Clear();
+
+            if (t == null || t.ImagePaths.Count == 0)
+            {
+                lblImagesCaption.Text = "IMAGES";
+                return;
+            }
+
+            lblImagesCaption.Text = $"IMAGES ({t.ImagePaths.Count})";
+            string taskDir = GetTaskImageDir(t);
+            int x = 4;
+            foreach (string filename in t.ImagePaths.ToList())
+            {
+                string fullPath = Path.Combine(taskDir, filename);
+                Image img = null;
+                if (File.Exists(fullPath))
+                {
+                    try
+                    {
+                        using (var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            img = new Bitmap(fs);
+                    }
+                    catch { }
+                }
+
+                var pb = new PictureBox
+                {
+                    Size      = new Size(48, 48),
+                    Location  = new Point(x, 2),
+                    SizeMode  = PictureBoxSizeMode.Zoom,
+                    BackColor = img != null ? Color.FromArgb(40, 40, 44) : Color.FromArgb(60, 35, 35),
+                    Cursor    = Cursors.Hand,
+                    Image     = img,
+                    Tag       = filename
+                };
+
+                string capturedPath     = fullPath;
+                string capturedFilename = filename;
+                pb.MouseDown += (s, e) =>
+                {
+                    if (e.Button == MouseButtons.Left  && File.Exists(capturedPath)) System.Diagnostics.Process.Start(capturedPath);
+                    if (e.Button == MouseButtons.Right) ShowImageContextMenu(pb, capturedFilename);
+                };
+
+                _pnlImagesThumbs.Controls.Add(pb);
+                x += 52;
+            }
+        }
+
+        private void ShowImageContextMenu(PictureBox pb, string filename)
+        {
+            if (_sel == null) return;
+            var menu       = new ContextMenuStrip();
+            var viewItem   = new ToolStripMenuItem("View");
+            var removeItem = new ToolStripMenuItem("Remove");
+            viewItem.Click += (s, e) =>
+            {
+                string path = Path.Combine(GetTaskImageDir(_sel), filename);
+                if (File.Exists(path)) System.Diagnostics.Process.Start(path);
+            };
+            removeItem.Click += (s, e) =>
+            {
+                if (MessageBox.Show($"Remove \"{filename}\" from this task?\nThe file will be deleted.",
+                        "Confirm Remove", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+                string path = Path.Combine(GetTaskImageDir(_sel), filename);
+                _sel.ImagePaths.Remove(filename);
+                try { if (File.Exists(path)) File.Delete(path); } catch { }
+                SaveAll();
+                RefreshImageThumbs(_sel);
+            };
+            menu.Items.Add(viewItem);
+            menu.Items.Add(removeItem);
+            menu.Show(pb, new Point(0, pb.Height));
+        }
+
+        private void BtnAddImage_Click(object sender, EventArgs e)
+        {
+            if (_sel == null) return;
+            using (var ofd = new OpenFileDialog
+            {
+                Title       = "Select Image(s)",
+                Filter      = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.tiff;*.tif;*.webp|All Files|*.*",
+                Multiselect = true
+            })
+            {
+                if (ofd.ShowDialog(this) != DialogResult.OK) return;
+                AddImages(ofd.FileNames);
+            }
+        }
+
+        private void AddImages(string[] paths)
+        {
+            if (_sel == null || paths.Length == 0) return;
+            string taskDir = GetTaskImageDir(_sel);
+            Directory.CreateDirectory(taskDir);
+            bool any = false;
+            foreach (string src in paths)
+            {
+                if (!ImageExtensions.Contains(Path.GetExtension(src).ToLowerInvariant())) continue;
+                string name = Path.GetFileName(src);
+                string dest = Path.Combine(taskDir, name);
+                if (File.Exists(dest))
+                {
+                    string stem = Path.GetFileNameWithoutExtension(name);
+                    string ext  = Path.GetExtension(name);
+                    int    n    = 1;
+                    do { dest = Path.Combine(taskDir, $"{stem}_{n++}{ext}"); } while (File.Exists(dest));
+                    name = Path.GetFileName(dest);
+                }
+                try { File.Copy(src, dest); } catch { continue; }
+                _sel.ImagePaths.Add(name);
+                any = true;
+            }
+            if (!any) return;
+            SaveAll();
+            RefreshImageThumbs(_sel);
+        }
+
+        private void PasteImages()
+        {
+            if (_sel == null) return;
+            if (Clipboard.ContainsImage())
+            {
+                var img = Clipboard.GetImage();
+                if (img == null) return;
+                string taskDir  = GetTaskImageDir(_sel);
+                Directory.CreateDirectory(taskDir);
+                string filename = $"paste_{DateTime.Now:yyyyMMdd_HHmmss_fff}.png";
+                string dest     = Path.Combine(taskDir, filename);
+                try { img.Save(dest, System.Drawing.Imaging.ImageFormat.Png); } catch { img.Dispose(); return; }
+                img.Dispose();
+                _sel.ImagePaths.Add(filename);
+                SaveAll();
+                RefreshImageThumbs(_sel);
+            }
+            else if (Clipboard.ContainsFileDropList())
+            {
+                var files = Clipboard.GetFileDropList().Cast<string>()
+                    .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                    .ToArray();
+                AddImages(files);
+            }
+        }
+
+        private void PnlDetail_DragEnter(object sender, DragEventArgs e)
+        {
+            if (_sel == null || !e.Data.GetDataPresent(DataFormats.FileDrop)) { e.Effect = DragDropEffects.None; return; }
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            e.Effect = files.Any(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                ? DragDropEffects.Copy : DragDropEffects.None;
+        }
+
+        private void PnlDetail_DragDrop(object sender, DragEventArgs e)
+        {
+            if (_sel == null || !e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+            var files = ((string[])e.Data.GetData(DataFormats.FileDrop))
+                .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                .ToArray();
+            AddImages(files);
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.V) && _sel != null && ActiveControl != _txtNotes)
+                PasteImages();
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         // ── Persistence ───────────────────────────────────────────────────────

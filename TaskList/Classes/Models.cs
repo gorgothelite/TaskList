@@ -21,6 +21,7 @@ namespace Test
         public DateTime     SnoozedUntil    { get; set; } = DateTime.MinValue;
         public int          AlertLeadMinutes { get; set; } = 1440;
         public string       ParentId         { get; set; } = null;
+        public List<string> ImagePaths       { get; set; } = new List<string>();
 
         public TaskItem Clone() => (TaskItem)MemberwiseClone();
     }

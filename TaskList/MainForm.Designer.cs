@@ -43,6 +43,10 @@ namespace Test
         private System.Windows.Forms.Label   lblSubCaption;
         private System.Windows.Forms.Label   _lblSubInfo;
         private System.Windows.Forms.Button  _btnAddSubtask;
+        private System.Windows.Forms.Panel   pnlDivider3;
+        private System.Windows.Forms.Label   lblImagesCaption;
+        private System.Windows.Forms.Button  _btnAddImage;
+        private System.Windows.Forms.Panel   _pnlImagesThumbs;
 
         protected override void Dispose(bool disposing)
         {
@@ -86,6 +90,10 @@ namespace Test
             this.lblSubCaption      = new System.Windows.Forms.Label();
             this._lblSubInfo        = new System.Windows.Forms.Label();
             this._btnAddSubtask     = new System.Windows.Forms.Button();
+            this.pnlDivider3        = new System.Windows.Forms.Panel();
+            this.lblImagesCaption   = new System.Windows.Forms.Label();
+            this._btnAddImage       = new System.Windows.Forms.Button();
+            this._pnlImagesThumbs   = new System.Windows.Forms.Panel();
 
             this.pnlToolbar.SuspendLayout();
             this.pnlLeft.SuspendLayout();
@@ -133,7 +141,7 @@ namespace Test
             this._cmbStatusF.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbStatusF.FlatStyle     = System.Windows.Forms.FlatStyle.Flat;
             this._cmbStatusF.ForeColor     = System.Drawing.Color.White;
-            this._cmbStatusF.Items.AddRange(new object[] { "All", "Active", "Done" });
+            this._cmbStatusF.Items.AddRange(new object[] { "All", "Active", "Done", "On Hold" });
             this._cmbStatusF.Location      = new System.Drawing.Point(192, 13);
             this._cmbStatusF.Name          = "_cmbStatusF";
             this._cmbStatusF.Size          = new System.Drawing.Size(94, 23);
@@ -255,6 +263,13 @@ namespace Test
             this.pnlDetail.Controls.Add(this.lblSubCaption);
             this.pnlDetail.Controls.Add(this._lblSubInfo);
             this.pnlDetail.Controls.Add(this._btnAddSubtask);
+            this.pnlDetail.Controls.Add(this.pnlDivider3);
+            this.pnlDetail.Controls.Add(this.lblImagesCaption);
+            this.pnlDetail.Controls.Add(this._btnAddImage);
+            this.pnlDetail.Controls.Add(this._pnlImagesThumbs);
+            this.pnlDetail.AllowDrop = true;
+            this.pnlDetail.DragEnter += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragEnter);
+            this.pnlDetail.DragDrop  += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragDrop);
             this.pnlDetail.Dock     = System.Windows.Forms.DockStyle.Right;
             this.pnlDetail.Location = new System.Drawing.Point(760, 50);
             this.pnlDetail.Name     = "pnlDetail";
@@ -482,16 +497,59 @@ namespace Test
             this._btnAddSubtask.Visible   = false;
             this._btnAddSubtask.Click    += new System.EventHandler(this.BtnAddSubtask_Click);
 
+            // pnlDivider3
+            this.pnlDivider3.BackColor = System.Drawing.Color.FromArgb(60, 60, 68);
+            this.pnlDivider3.Location  = new System.Drawing.Point(18, 562);
+            this.pnlDivider3.Name      = "pnlDivider3";
+            this.pnlDivider3.Size      = new System.Drawing.Size(275, 1);
+            this.pnlDivider3.TabIndex  = 20;
+
+            // lblImagesCaption
+            this.lblImagesCaption.AutoSize  = true;
+            this.lblImagesCaption.BackColor = System.Drawing.Color.Transparent;
+            this.lblImagesCaption.Font      = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.lblImagesCaption.ForeColor = System.Drawing.Color.FromArgb(130, 130, 140);
+            this.lblImagesCaption.Location  = new System.Drawing.Point(18, 575);
+            this.lblImagesCaption.Name      = "lblImagesCaption";
+            this.lblImagesCaption.TabIndex  = 21;
+            this.lblImagesCaption.Text      = "IMAGES";
+
+            // _btnAddImage
+            this._btnAddImage.Anchor    = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            this._btnAddImage.BackColor = System.Drawing.Color.FromArgb(50, 50, 90);
+            this._btnAddImage.Enabled   = false;
+            this._btnAddImage.FlatAppearance.BorderSize = 0;
+            this._btnAddImage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnAddImage.ForeColor = System.Drawing.Color.White;
+            this._btnAddImage.Location  = new System.Drawing.Point(226, 568);
+            this._btnAddImage.Name      = "_btnAddImage";
+            this._btnAddImage.Size      = new System.Drawing.Size(67, 22);
+            this._btnAddImage.TabIndex  = 22;
+            this._btnAddImage.Text      = "+ Add";
+            this._btnAddImage.Click    += new System.EventHandler(this.BtnAddImage_Click);
+
+            // _pnlImagesThumbs
+            this._pnlImagesThumbs.AutoScroll  = true;
+            this._pnlImagesThumbs.BackColor   = System.Drawing.Color.FromArgb(28, 28, 32);
+            this._pnlImagesThumbs.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this._pnlImagesThumbs.Location    = new System.Drawing.Point(18, 596);
+            this._pnlImagesThumbs.Name        = "_pnlImagesThumbs";
+            this._pnlImagesThumbs.Size        = new System.Drawing.Size(275, 68);
+            this._pnlImagesThumbs.TabIndex    = 23;
+            this._pnlImagesThumbs.AllowDrop   = true;
+            this._pnlImagesThumbs.DragEnter  += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragEnter);
+            this._pnlImagesThumbs.DragDrop   += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragDrop);
+
             // ── MainForm ─────────────────────────────────────────────────────
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode       = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor           = System.Drawing.Color.FromArgb(28, 28, 30);
-            this.ClientSize          = new System.Drawing.Size(1080, 640);
+            this.ClientSize          = new System.Drawing.Size(1080, 720);
             this.Controls.Add(this.pnlLeft);
             this.Controls.Add(this.pnlDetail);
             this.Controls.Add(this.pnlToolbar);
             this.Font                = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.MinimumSize         = new System.Drawing.Size(860, 540);
+            this.MinimumSize         = new System.Drawing.Size(860, 600);
             this.Name                = "MainForm";
             this.StartPosition       = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Task List";

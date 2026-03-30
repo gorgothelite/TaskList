@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Test
 {
-    public partial class ExportDialog : Form
+    public partial class ExportDialog : DarkForm
     {
         private readonly List<TaskItem>        _tasks;
         private readonly List<EmailRecipient>  _recipients = new List<EmailRecipient>();
@@ -24,6 +24,7 @@ namespace Test
         {
             _tasks = tasks ?? new List<TaskItem>();
             InitializeComponent();
+            RegisterTitleBar(pnlTitleBar, showMin: false, showMax: false);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;

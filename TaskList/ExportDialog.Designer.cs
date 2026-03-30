@@ -4,6 +4,9 @@ namespace Test
     {
         private System.ComponentModel.IContainer components = null;
 
+        // ── Title bar ─────────────────────────────────────────────────────────
+        private System.Windows.Forms.Panel      pnlTitleBar;
+
         // ── Status filter ─────────────────────────────────────────────────────
         private System.Windows.Forms.GroupBox   grpStatus;
         private System.Windows.Forms.RadioButton _radAll;
@@ -43,6 +46,7 @@ namespace Test
 
         private void InitializeComponent()
         {
+            this.pnlTitleBar = new System.Windows.Forms.Panel();
             this.grpStatus = new System.Windows.Forms.GroupBox();
             this._radAll = new System.Windows.Forms.RadioButton();
             this._radActive = new System.Windows.Forms.RadioButton();
@@ -67,15 +71,25 @@ namespace Test
             this.grpStatus.SuspendLayout();
             this.grpPriority.SuspendLayout();
             this.grpColumns.SuspendLayout();
+            this.pnlTitleBar.SuspendLayout();
             this.SuspendLayout();
-            // 
+
+            // pnlTitleBar
+            this.pnlTitleBar.BackColor = System.Drawing.Color.FromArgb(44, 44, 46);
+            this.pnlTitleBar.Dock      = System.Windows.Forms.DockStyle.Top;
+            this.pnlTitleBar.Location  = new System.Drawing.Point(0, 0);
+            this.pnlTitleBar.Name      = "pnlTitleBar";
+            this.pnlTitleBar.Size      = new System.Drawing.Size(706, 32);
+            this.pnlTitleBar.TabIndex  = 10;
+
+            //
             // grpStatus
             // 
             this.grpStatus.Controls.Add(this._radAll);
             this.grpStatus.Controls.Add(this._radActive);
             this.grpStatus.Controls.Add(this._radDone);
             this.grpStatus.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            this.grpStatus.Location = new System.Drawing.Point(14, 14);
+            this.grpStatus.Location = new System.Drawing.Point(14, 46);
             this.grpStatus.Name = "grpStatus";
             this.grpStatus.Size = new System.Drawing.Size(180, 98);
             this.grpStatus.TabIndex = 0;
@@ -124,7 +138,7 @@ namespace Test
             this.grpPriority.Controls.Add(this._chkHigh);
             this.grpPriority.Controls.Add(this._chkCritical);
             this.grpPriority.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            this.grpPriority.Location = new System.Drawing.Point(206, 14);
+            this.grpPriority.Location = new System.Drawing.Point(206, 46);
             this.grpPriority.Name = "grpPriority";
             this.grpPriority.Size = new System.Drawing.Size(180, 98);
             this.grpPriority.TabIndex = 1;
@@ -191,7 +205,7 @@ namespace Test
             this.grpColumns.Controls.Add(this._chkColStatus);
             this.grpColumns.Controls.Add(this._chkColNotes);
             this.grpColumns.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            this.grpColumns.Location = new System.Drawing.Point(398, 14);
+            this.grpColumns.Location = new System.Drawing.Point(398, 46);
             this.grpColumns.Name = "grpColumns";
             this.grpColumns.Size = new System.Drawing.Size(294, 98);
             this.grpColumns.TabIndex = 2;
@@ -267,7 +281,7 @@ namespace Test
             // 
             this._lblCount.AutoSize = true;
             this._lblCount.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblCount.Location = new System.Drawing.Point(14, 124);
+            this._lblCount.Location = new System.Drawing.Point(14, 156);
             this._lblCount.Name = "_lblCount";
             this._lblCount.Size = new System.Drawing.Size(154, 17);
             this._lblCount.TabIndex = 3;
@@ -282,7 +296,7 @@ namespace Test
             this._txtPreview.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this._txtPreview.Font = new System.Drawing.Font("Consolas", 8.5F);
             this._txtPreview.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(190)))));
-            this._txtPreview.Location = new System.Drawing.Point(14, 144);
+            this._txtPreview.Location = new System.Drawing.Point(14, 176);
             this._txtPreview.Multiline = true;
             this._txtPreview.Name = "_txtPreview";
             this._txtPreview.ReadOnly = true;
@@ -298,7 +312,7 @@ namespace Test
             this._btnEditRecipients.FlatAppearance.BorderSize = 0;
             this._btnEditRecipients.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnEditRecipients.ForeColor = System.Drawing.Color.White;
-            this._btnEditRecipients.Location = new System.Drawing.Point(240, 406);
+            this._btnEditRecipients.Location = new System.Drawing.Point(240, 438);
             this._btnEditRecipients.Name = "_btnEditRecipients";
             this._btnEditRecipients.Size = new System.Drawing.Size(120, 28);
             this._btnEditRecipients.TabIndex = 5;
@@ -313,7 +327,7 @@ namespace Test
             this._btnSendOutlook.FlatAppearance.BorderSize = 0;
             this._btnSendOutlook.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnSendOutlook.ForeColor = System.Drawing.Color.White;
-            this._btnSendOutlook.Location = new System.Drawing.Point(369, 406);
+            this._btnSendOutlook.Location = new System.Drawing.Point(369, 438);
             this._btnSendOutlook.Name = "_btnSendOutlook";
             this._btnSendOutlook.Size = new System.Drawing.Size(125, 28);
             this._btnSendOutlook.TabIndex = 6;
@@ -328,7 +342,7 @@ namespace Test
             this._btnExport.FlatAppearance.BorderSize = 0;
             this._btnExport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnExport.ForeColor = System.Drawing.Color.White;
-            this._btnExport.Location = new System.Drawing.Point(504, 406);
+            this._btnExport.Location = new System.Drawing.Point(504, 438);
             this._btnExport.Name = "_btnExport";
             this._btnExport.Size = new System.Drawing.Size(100, 28);
             this._btnExport.TabIndex = 7;
@@ -344,7 +358,7 @@ namespace Test
             this._btnCancel.FlatAppearance.BorderSize = 0;
             this._btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnCancel.ForeColor = System.Drawing.Color.White;
-            this._btnCancel.Location = new System.Drawing.Point(614, 406);
+            this._btnCancel.Location = new System.Drawing.Point(614, 438);
             this._btnCancel.Name = "_btnCancel";
             this._btnCancel.Size = new System.Drawing.Size(78, 28);
             this._btnCancel.TabIndex = 8;
@@ -357,7 +371,7 @@ namespace Test
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.CancelButton = this._btnCancel;
-            this.ClientSize = new System.Drawing.Size(706, 448);
+            this.ClientSize = new System.Drawing.Size(706, 480);
             this.Controls.Add(this.grpStatus);
             this.Controls.Add(this.grpPriority);
             this.Controls.Add(this.grpColumns);
@@ -367,11 +381,9 @@ namespace Test
             this.Controls.Add(this._btnSendOutlook);
             this.Controls.Add(this._btnExport);
             this.Controls.Add(this._btnCancel);
+            this.Controls.Add(this.pnlTitleBar);
             this.Font = new System.Drawing.Font("Segoe UI", 9.5F);
             this.ForeColor = System.Drawing.Color.White;
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.Name = "ExportDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Export Tasks to CSV";
@@ -381,6 +393,7 @@ namespace Test
             this.grpPriority.PerformLayout();
             this.grpColumns.ResumeLayout(false);
             this.grpColumns.PerformLayout();
+            this.pnlTitleBar.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 

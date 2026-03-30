@@ -326,7 +326,6 @@ namespace Test
             this.Controls.Add(this.pnlHeader);
             this.Font            = new System.Drawing.Font("Segoe UI", 9.5F);
             this.ForeColor       = System.Drawing.Color.White;
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
             this.MinimumSize     = new System.Drawing.Size(580, 400);
             this.Name            = "JiraPresetsDialog";
             this.StartPosition   = System.Windows.Forms.FormStartPosition.CenterParent;

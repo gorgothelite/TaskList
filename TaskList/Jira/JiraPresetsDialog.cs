@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Test
 {
-    internal sealed partial class JiraPresetsDialog : Form
+    internal sealed partial class JiraPresetsDialog : DarkForm
     {
         private readonly List<JiraPreset> _original;
         private readonly List<JiraPreset> _working;
@@ -18,8 +18,10 @@ namespace Test
         {
             _original = presets;
             _working  = presets.Select(p => new JiraPreset { Name = p.Name, Jql = p.Jql }).ToList();
+            _resizable = true;
 
             InitializeComponent();
+            RegisterTitleBar(pnlHeader, showMin: true, showMax: true);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;

@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace Test
 {
-    public partial class MainForm : Form
+    public partial class MainForm : DarkForm
     {
         // ── State ────────────────────────────────────────────────────────────
         private List<TaskItem>             _tasks   = new List<TaskItem>();
@@ -54,7 +54,14 @@ namespace Test
         // ── Constructor ──────────────────────────────────────────────────────
         public MainForm()
         {
+            _resizable = true;
             InitializeComponent();
+            _lv.Columns.Add("",          22);
+            _lv.Columns.Add("Name",     255);
+            _lv.Columns.Add("Priority",  90);
+            _lv.Columns.Add("Due",      170);
+            _lv.Columns.Add("Status",   230);
+            RegisterTitleBar(pnlTitleBar, showMin: true, showMax: true);
             LoadSettings();
             WireListView();
             LoadHistory();

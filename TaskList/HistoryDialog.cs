@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace Test
 {
-    public partial class HistoryDialog : Form
+    public partial class HistoryDialog : DarkForm
     {
         public event Action HistoryCleared;
 
@@ -32,8 +32,10 @@ namespace Test
         {
             _entries   = entries ?? new List<RevisionEntry>();
             _backupDir = backupDir ?? string.Empty;
+            _resizable = true;
 
             InitializeComponent();
+            RegisterTitleBar(pnlToolbar, showMin: true, showMax: true);
             BuildLegend();
 
             if (System.ComponentModel.LicenseManager.UsageMode ==

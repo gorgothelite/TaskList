@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Test
 {
-    internal sealed partial class EmailRecipientsDialog : Form
+    internal sealed partial class EmailRecipientsDialog : DarkForm
     {
         private readonly List<EmailRecipient> _original;
         private readonly List<EmailRecipient> _working;
@@ -23,8 +23,10 @@ namespace Test
                 Position  = r.Position,
                 IsDefault = r.IsDefault
             }).ToList();
+            _resizable = true;
 
             InitializeComponent();
+            RegisterTitleBar(pnlHeader, showMin: true, showMax: false);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;

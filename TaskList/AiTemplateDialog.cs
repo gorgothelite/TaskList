@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Test
 {
-    internal sealed partial class AiTemplateDialog : Form
+    internal sealed partial class AiTemplateDialog : DarkForm
     {
         private readonly List<SummaryTemplate> _original;
         private readonly List<SummaryTemplate> _working;
@@ -17,8 +17,10 @@ namespace Test
         {
             _original = templates;
             _working  = templates.Select(t => new SummaryTemplate { Name = t.Name, Template = t.Template }).ToList();
+            _resizable = true;
 
             InitializeComponent();
+            RegisterTitleBar(pnlHeader, showMin: true, showMax: false);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;

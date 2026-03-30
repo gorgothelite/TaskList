@@ -3,16 +3,17 @@ using System.Windows.Forms;
 
 namespace Test
 {
-    public partial class AlertDialog : Form
+    public partial class AlertDialog : DarkForm
     {
         public SnoozeChoice Choice { get; private set; } = SnoozeChoice.Dismiss;
 
         // Parameterless constructor used by the VS designer
-        public AlertDialog() { InitializeComponent(); }
+        public AlertDialog() { InitializeComponent(); RegisterTitleBar(pnlTitleBar, showMin: false, showMax: false); }
 
         public AlertDialog(TaskItem task)
         {
             InitializeComponent();
+            RegisterTitleBar(pnlTitleBar, showMin: false, showMax: false);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;

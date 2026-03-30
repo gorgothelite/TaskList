@@ -52,6 +52,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\DpapiCrypto.cs" />
+    <Compile Include="DarkForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="AiTemplateDialog.cs">
       <SubType>Form</SubType>
     </Compile>

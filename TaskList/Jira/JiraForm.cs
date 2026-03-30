@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Test
 {
-    public partial class JiraForm : Form
+    public partial class JiraForm : DarkForm
     {
         // ── Static HTTP client (one per app lifetime) ─────────────────────────
         internal static readonly HttpClient Http        = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
@@ -32,7 +32,9 @@ namespace Test
         // ── Constructors ──────────────────────────────────────────────────────
         public JiraForm()
         {
+            _resizable = true;
             InitializeComponent();
+            RegisterTitleBar(pnlTitleBar, showMin: true, showMax: true);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;

@@ -100,7 +100,7 @@ namespace Test
             this._btnRestoreBackup.FlatAppearance.BorderSize = 0;
             this._btnRestoreBackup.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnRestoreBackup.ForeColor = System.Drawing.Color.White;
-            this._btnRestoreBackup.Location = new System.Drawing.Point(670, 9);
+            this._btnRestoreBackup.Location = new System.Drawing.Point(550, 9);
             this._btnRestoreBackup.Name = "_btnRestoreBackup";
             this._btnRestoreBackup.Size = new System.Drawing.Size(140, 28);
             this._btnRestoreBackup.TabIndex = 2;
@@ -115,7 +115,7 @@ namespace Test
             this._btnClearHistory.FlatAppearance.BorderSize = 0;
             this._btnClearHistory.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnClearHistory.ForeColor = System.Drawing.Color.White;
-            this._btnClearHistory.Location = new System.Drawing.Point(820, 9);
+            this._btnClearHistory.Location = new System.Drawing.Point(700, 9);
             this._btnClearHistory.Name = "_btnClearHistory";
             this._btnClearHistory.Size = new System.Drawing.Size(110, 28);
             this._btnClearHistory.TabIndex = 3;

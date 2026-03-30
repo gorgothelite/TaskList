@@ -4,9 +4,8 @@ namespace Test
     {
         private System.ComponentModel.IContainer components = null;
 
-        // ── Toolbar ───────────────────────────────────────────────────────────
-        private System.Windows.Forms.Panel  pnlToolbar;
-        private System.Windows.Forms.Label  _lblTitle;
+        // ── Title bar ─────────────────────────────────────────────────────────
+        private System.Windows.Forms.Panel  pnlTitleBar;
 
         // ── Left settings sidebar ─────────────────────────────────────────────
         private System.Windows.Forms.Panel      pnlSettings;
@@ -60,8 +59,7 @@ namespace Test
 
         private void InitializeComponent()
         {
-            this.pnlToolbar = new System.Windows.Forms.Panel();
-            this._lblTitle = new System.Windows.Forms.Label();
+            this.pnlTitleBar = new System.Windows.Forms.Panel();
             this.pnlSettings = new System.Windows.Forms.Panel();
             this.grpConnection = new System.Windows.Forms.GroupBox();
             this._lblUrlCaption = new System.Windows.Forms.Label();
@@ -94,7 +92,6 @@ namespace Test
             this._btnClearMaster = new System.Windows.Forms.Button();
             this._btnImportTasks = new System.Windows.Forms.Button();
             this._lblStatus = new System.Windows.Forms.Label();
-            this.pnlToolbar.SuspendLayout();
             this.pnlSettings.SuspendLayout();
             this.grpConnection.SuspendLayout();
             this.grpQuery.SuspendLayout();
@@ -103,27 +100,14 @@ namespace Test
             this.pnlMasterList.SuspendLayout();
             this.SuspendLayout();
             // 
-            // pnlToolbar
+            // pnlTitleBar
             // 
-            this.pnlToolbar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(44)))), ((int)(((byte)(44)))), ((int)(((byte)(46)))));
-            this.pnlToolbar.Controls.Add(this._lblTitle);
-            this.pnlToolbar.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlToolbar.Location = new System.Drawing.Point(0, 0);
-            this.pnlToolbar.Name = "pnlToolbar";
-            this.pnlToolbar.Size = new System.Drawing.Size(1200, 46);
-            this.pnlToolbar.TabIndex = 0;
-            // 
-            // _lblTitle
-            // 
-            this._lblTitle.AutoSize = true;
-            this._lblTitle.BackColor = System.Drawing.Color.Transparent;
-            this._lblTitle.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
-            this._lblTitle.ForeColor = System.Drawing.Color.White;
-            this._lblTitle.Location = new System.Drawing.Point(12, 12);
-            this._lblTitle.Name = "_lblTitle";
-            this._lblTitle.Size = new System.Drawing.Size(117, 20);
-            this._lblTitle.TabIndex = 0;
-            this._lblTitle.Text = "Jira Integration";
+            this.pnlTitleBar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(44)))), ((int)(((byte)(44)))), ((int)(((byte)(46)))));
+            this.pnlTitleBar.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTitleBar.Location = new System.Drawing.Point(0, 0);
+            this.pnlTitleBar.Name = "pnlTitleBar";
+            this.pnlTitleBar.Size = new System.Drawing.Size(1200, 32);
+            this.pnlTitleBar.TabIndex = 10;
             // 
             // pnlSettings
             // 
@@ -131,10 +115,10 @@ namespace Test
             this.pnlSettings.Controls.Add(this.grpConnection);
             this.pnlSettings.Controls.Add(this.grpQuery);
             this.pnlSettings.Dock = System.Windows.Forms.DockStyle.Left;
-            this.pnlSettings.Location = new System.Drawing.Point(0, 46);
+            this.pnlSettings.Location = new System.Drawing.Point(0, 32);
             this.pnlSettings.Name = "pnlSettings";
             this.pnlSettings.Padding = new System.Windows.Forms.Padding(10);
-            this.pnlSettings.Size = new System.Drawing.Size(290, 714);
+            this.pnlSettings.Size = new System.Drawing.Size(290, 728);
             this.pnlSettings.TabIndex = 1;
             // 
             // grpConnection
@@ -368,10 +352,10 @@ namespace Test
             this.pnlRight.Controls.Add(this.pnlMasterList);
             this.pnlRight.Controls.Add(this._lblStatus);
             this.pnlRight.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlRight.Location = new System.Drawing.Point(290, 46);
+            this.pnlRight.Location = new System.Drawing.Point(290, 32);
             this.pnlRight.Name = "pnlRight";
             this.pnlRight.Padding = new System.Windows.Forms.Padding(10, 6, 10, 0);
-            this.pnlRight.Size = new System.Drawing.Size(910, 714);
+            this.pnlRight.Size = new System.Drawing.Size(910, 728);
             this.pnlRight.TabIndex = 2;
             // 
             // _lvResults
@@ -386,7 +370,7 @@ namespace Test
             this._lvResults.HideSelection = false;
             this._lvResults.Location = new System.Drawing.Point(10, 18);
             this._lvResults.Name = "_lvResults";
-            this._lvResults.Size = new System.Drawing.Size(890, 398);
+            this._lvResults.Size = new System.Drawing.Size(890, 412);
             this._lvResults.TabIndex = 1;
             this._lvResults.UseCompatibleStateImageBehavior = false;
             this._lvResults.View = System.Windows.Forms.View.Details;
@@ -412,7 +396,7 @@ namespace Test
             this.pnlActionBar.Controls.Add(this._btnAddParent);
             this.pnlActionBar.Controls.Add(this._btnExportExcel);
             this.pnlActionBar.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlActionBar.Location = new System.Drawing.Point(10, 416);
+            this.pnlActionBar.Location = new System.Drawing.Point(10, 430);
             this.pnlActionBar.Name = "pnlActionBar";
             this.pnlActionBar.Size = new System.Drawing.Size(890, 44);
             this.pnlActionBar.TabIndex = 2;
@@ -468,7 +452,7 @@ namespace Test
             this.pnlMasterList.Controls.Add(this._btnClearMaster);
             this.pnlMasterList.Controls.Add(this._btnImportTasks);
             this.pnlMasterList.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlMasterList.Location = new System.Drawing.Point(10, 460);
+            this.pnlMasterList.Location = new System.Drawing.Point(10, 474);
             this.pnlMasterList.Name = "pnlMasterList";
             this.pnlMasterList.Padding = new System.Windows.Forms.Padding(6, 4, 6, 6);
             this.pnlMasterList.Size = new System.Drawing.Size(890, 232);
@@ -555,7 +539,7 @@ namespace Test
             this._lblStatus.Dock = System.Windows.Forms.DockStyle.Bottom;
             this._lblStatus.Font = new System.Drawing.Font("Segoe UI", 8.5F);
             this._lblStatus.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblStatus.Location = new System.Drawing.Point(10, 692);
+            this._lblStatus.Location = new System.Drawing.Point(10, 706);
             this._lblStatus.Name = "_lblStatus";
             this._lblStatus.Size = new System.Drawing.Size(890, 22);
             this._lblStatus.TabIndex = 4;
@@ -568,15 +552,13 @@ namespace Test
             this.ClientSize = new System.Drawing.Size(1200, 760);
             this.Controls.Add(this.pnlRight);
             this.Controls.Add(this.pnlSettings);
-            this.Controls.Add(this.pnlToolbar);
+            this.Controls.Add(this.pnlTitleBar);
             this.Font = new System.Drawing.Font("Segoe UI", 9.5F);
             this.ForeColor = System.Drawing.Color.White;
-            this.MinimumSize = new System.Drawing.Size(900, 600);
+            this.MinimumSize = new System.Drawing.Size(900, 632);
             this.Name = "JiraForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Jira Query";
-            this.pnlToolbar.ResumeLayout(false);
-            this.pnlToolbar.PerformLayout();
             this.pnlSettings.ResumeLayout(false);
             this.grpConnection.ResumeLayout(false);
             this.grpConnection.PerformLayout();

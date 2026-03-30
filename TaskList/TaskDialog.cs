@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace Test
 {
-    public partial class TaskDialog : Form
+    public partial class TaskDialog : DarkForm
     {
         public TaskItem Result { get; private set; }
 
@@ -30,6 +30,7 @@ namespace Test
         {
             Result = existing ?? new TaskItem();
             InitializeComponent();
+            RegisterTitleBar(pnlTitleBar, showMin: false, showMax: false);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;

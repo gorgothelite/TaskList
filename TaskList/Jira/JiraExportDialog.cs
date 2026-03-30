@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Test
 {
-    internal sealed partial class JiraExportDialog : Form
+    internal sealed partial class JiraExportDialog : DarkForm
     {
         // ── Fields ────────────────────────────────────────────────────────────
         private readonly List<JiraIssue> _searchIssues;
@@ -68,8 +68,10 @@ namespace Test
             _searchIssues = searchResults ?? new List<JiraIssue>();
             _masterIssues = masterItems   ?? new List<JiraIssue>();
             _baseUrl      = (baseUrl      ?? "").TrimEnd('/');
+            _resizable    = true;
 
             InitializeComponent();
+            RegisterTitleBar(pnlHeader, showMin: true, showMax: false);
 
             _radResults.Text = $"Search Results  ({_searchIssues.Count})";
             _radMaster.Text  = $"Master List  ({_masterIssues.Count})";

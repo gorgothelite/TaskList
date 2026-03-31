@@ -13,9 +13,9 @@ namespace Test
         // ── Toolbar controls ─────────────────────────────────────────────────
         private System.Windows.Forms.Button   btnAdd;
         private System.Windows.Forms.Label    lblStatusFilter;
-        private System.Windows.Forms.ComboBox _cmbStatusF;
+        private DarkComboBox _cmbStatusF;
         private System.Windows.Forms.Label    lblPriorityFilter;
-        private System.Windows.Forms.ComboBox _cmbPriorityF;
+        private DarkComboBox _cmbPriorityF;
         private System.Windows.Forms.Button   btnHistory;
         private System.Windows.Forms.Button   btnExport;
         private System.Windows.Forms.Button   btnJira;
@@ -62,9 +62,9 @@ namespace Test
             this.pnlToolbar = new System.Windows.Forms.Panel();
             this.btnAdd = new System.Windows.Forms.Button();
             this.lblStatusFilter = new System.Windows.Forms.Label();
-            this._cmbStatusF = new System.Windows.Forms.ComboBox();
+            this._cmbStatusF = new DarkComboBox();
             this.lblPriorityFilter = new System.Windows.Forms.Label();
-            this._cmbPriorityF = new System.Windows.Forms.ComboBox();
+            this._cmbPriorityF = new DarkComboBox();
             this.btnHistory = new System.Windows.Forms.Button();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnJira = new System.Windows.Forms.Button();

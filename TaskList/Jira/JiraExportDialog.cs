@@ -71,6 +71,7 @@ namespace Test
             _resizable    = true;
 
             InitializeComponent();
+            _cmbProvider.SelectedIndex = 0;
             RegisterTitleBar(pnlHeader, showMin: true, showMax: false);
 
             _radResults.Text = $"Search Results  ({_searchIssues.Count})";

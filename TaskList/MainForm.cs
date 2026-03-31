@@ -56,6 +56,8 @@ namespace Test
         {
             _resizable = true;
             InitializeComponent();
+            _cmbStatusF.SelectedIndex   = 0;
+            _cmbPriorityF.SelectedIndex = 0;
             _lv.Columns.Add("",          22);
             _lv.Columns.Add("Name",     255);
             _lv.Columns.Add("Priority",  90);

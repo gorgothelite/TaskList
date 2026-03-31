@@ -22,10 +22,10 @@ namespace Test
         private System.Windows.Forms.GroupBox grpAiSummary;
         private System.Windows.Forms.CheckBox _chkSummarize;
         private System.Windows.Forms.Label    _lblTemplate;
-        private System.Windows.Forms.ComboBox _cmbTemplate;
+        private DarkComboBox _cmbTemplate;
         private System.Windows.Forms.Button   _btnEditTemplates;
         private System.Windows.Forms.Label    _lblProvider;
-        private System.Windows.Forms.ComboBox _cmbProvider;
+        private DarkComboBox _cmbProvider;
         private System.Windows.Forms.Label    _lblAiKey;
         private System.Windows.Forms.TextBox  _txtAiKey;
         private System.Windows.Forms.Label    _lblAzureEndpoint;
@@ -83,10 +83,10 @@ namespace Test
             this._btnSaveSettings = new System.Windows.Forms.Button();
             this._chkSummarize = new System.Windows.Forms.CheckBox();
             this._lblTemplate = new System.Windows.Forms.Label();
-            this._cmbTemplate = new System.Windows.Forms.ComboBox();
+            this._cmbTemplate = new DarkComboBox();
             this._btnEditTemplates = new System.Windows.Forms.Button();
             this._lblProvider = new System.Windows.Forms.Label();
-            this._cmbProvider = new System.Windows.Forms.ComboBox();
+            this._cmbProvider = new DarkComboBox();
             this._lblAiKey = new System.Windows.Forms.Label();
             this._txtAiKey = new System.Windows.Forms.TextBox();
             this._lblAzureEndpoint = new System.Windows.Forms.Label();

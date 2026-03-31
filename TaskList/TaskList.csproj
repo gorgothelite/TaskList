@@ -51,6 +51,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\DarkComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Classes\DpapiCrypto.cs" />
     <Compile Include="DarkForm.cs">
       <SubType>Form</SubType>

@@ -12,6 +12,9 @@ namespace Test
     public class DarkForm : Form
     {
         // ── Win32 ─────────────────────────────────────────────────────────────────
+        [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
+        static extern int SetWindowTheme(IntPtr hwnd, string pszSubAppName, string pszSubIdList);
+
         [DllImport("user32.dll", SetLastError = false)]
         static extern bool ReleaseCapture();
 
@@ -56,6 +59,28 @@ namespace Test
                 var cp = base.CreateParams;
                 cp.ClassStyle |= 0x20000; // CS_DROPSHADOW
                 return cp;
+            }
+        }
+
+        // ── Dark scrollbars ───────────────────────────────────────────────────────
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            ApplyDarkScrollbars(this);
+        }
+
+        static void ApplyDarkScrollbars(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                if (c is ListView || c is ListBox || c is DataGridView ||
+                    c is RichTextBox || (c is TextBox tb && tb.Multiline) ||
+                    (c is Panel p && p.AutoScroll))
+                {
+                    SetWindowTheme(c.Handle, "DarkMode_Explorer", null);
+                }
+                if (c.HasChildren)
+                    ApplyDarkScrollbars(c);
             }
         }
 

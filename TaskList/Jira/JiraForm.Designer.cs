@@ -20,7 +20,7 @@ namespace Test
         private System.Windows.Forms.Button     _btnTestConnection;
         private System.Windows.Forms.GroupBox   grpQuery;
         private System.Windows.Forms.Label      _lblPresetsCaption;
-        private System.Windows.Forms.ComboBox   _cmbPresets;
+        private DarkComboBox                    _cmbPresets;
         private System.Windows.Forms.Button     _btnManagePresets;
         private System.Windows.Forms.Label      _lblJqlCaption;
         private System.Windows.Forms.TextBox    _txtJql;
@@ -72,7 +72,7 @@ namespace Test
             this._btnTestConnection = new System.Windows.Forms.Button();
             this.grpQuery = new System.Windows.Forms.GroupBox();
             this._lblPresetsCaption = new System.Windows.Forms.Label();
-            this._cmbPresets = new System.Windows.Forms.ComboBox();
+            this._cmbPresets = new DarkComboBox();
             this._btnManagePresets = new System.Windows.Forms.Button();
             this._lblJqlCaption = new System.Windows.Forms.Label();
             this._txtJql = new System.Windows.Forms.TextBox();

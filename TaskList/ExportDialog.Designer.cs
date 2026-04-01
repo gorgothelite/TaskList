@@ -35,6 +35,7 @@ namespace Test
         // ── Buttons ───────────────────────────────────────────────────────────
         private System.Windows.Forms.Button _btnEditRecipients;
         private System.Windows.Forms.Button _btnSendOutlook;
+        private System.Windows.Forms.Button _btnJiraImport;
         private System.Windows.Forms.Button _btnExport;
         private System.Windows.Forms.Button _btnCancel;
 
@@ -66,6 +67,7 @@ namespace Test
             this._txtPreview = new System.Windows.Forms.TextBox();
             this._btnEditRecipients = new System.Windows.Forms.Button();
             this._btnSendOutlook = new System.Windows.Forms.Button();
+            this._btnJiraImport = new System.Windows.Forms.Button();
             this._btnExport = new System.Windows.Forms.Button();
             this._btnCancel = new System.Windows.Forms.Button();
             this.grpStatus.SuspendLayout();
@@ -79,7 +81,7 @@ namespace Test
             this.pnlTitleBar.Dock      = System.Windows.Forms.DockStyle.Top;
             this.pnlTitleBar.Location  = new System.Drawing.Point(0, 0);
             this.pnlTitleBar.Name      = "pnlTitleBar";
-            this.pnlTitleBar.Size      = new System.Drawing.Size(706, 32);
+            this.pnlTitleBar.Size      = new System.Drawing.Size(840, 32);
             this.pnlTitleBar.TabIndex  = 10;
 
             //
@@ -207,7 +209,7 @@ namespace Test
             this.grpColumns.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             this.grpColumns.Location = new System.Drawing.Point(398, 46);
             this.grpColumns.Name = "grpColumns";
-            this.grpColumns.Size = new System.Drawing.Size(294, 98);
+            this.grpColumns.Size = new System.Drawing.Size(428, 98);
             this.grpColumns.TabIndex = 2;
             this.grpColumns.TabStop = false;
             this.grpColumns.Text = "Columns to export";
@@ -301,67 +303,82 @@ namespace Test
             this._txtPreview.Name = "_txtPreview";
             this._txtPreview.ReadOnly = true;
             this._txtPreview.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this._txtPreview.Size = new System.Drawing.Size(678, 248);
+            this._txtPreview.Size = new System.Drawing.Size(812, 248);
             this._txtPreview.TabIndex = 4;
             this._txtPreview.WordWrap = false;
-            // 
+            //
             // _btnEditRecipients
-            // 
+            //
             this._btnEditRecipients.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._btnEditRecipients.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
             this._btnEditRecipients.FlatAppearance.BorderSize = 0;
             this._btnEditRecipients.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnEditRecipients.ForeColor = System.Drawing.Color.White;
-            this._btnEditRecipients.Location = new System.Drawing.Point(240, 438);
+            this._btnEditRecipients.Location = new System.Drawing.Point(254, 438);
             this._btnEditRecipients.Name = "_btnEditRecipients";
             this._btnEditRecipients.Size = new System.Drawing.Size(120, 28);
             this._btnEditRecipients.TabIndex = 5;
             this._btnEditRecipients.Text = "Edit Recipients…";
             this._btnEditRecipients.UseVisualStyleBackColor = false;
             this._btnEditRecipients.Click += new System.EventHandler(this.BtnEditRecipients_Click);
-            // 
+            //
             // _btnSendOutlook
-            // 
+            //
             this._btnSendOutlook.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._btnSendOutlook.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
             this._btnSendOutlook.FlatAppearance.BorderSize = 0;
             this._btnSendOutlook.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnSendOutlook.ForeColor = System.Drawing.Color.White;
-            this._btnSendOutlook.Location = new System.Drawing.Point(369, 438);
+            this._btnSendOutlook.Location = new System.Drawing.Point(382, 438);
             this._btnSendOutlook.Name = "_btnSendOutlook";
             this._btnSendOutlook.Size = new System.Drawing.Size(125, 28);
             this._btnSendOutlook.TabIndex = 6;
             this._btnSendOutlook.Text = "Send via Outlook…";
             this._btnSendOutlook.UseVisualStyleBackColor = false;
             this._btnSendOutlook.Click += new System.EventHandler(this.BtnSendOutlook_Click);
-            // 
+            //
+            // _btnJiraImport
+            //
+            this._btnJiraImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this._btnJiraImport.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(84)))), ((int)(((byte)(158)))));
+            this._btnJiraImport.FlatAppearance.BorderSize = 0;
+            this._btnJiraImport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnJiraImport.ForeColor = System.Drawing.Color.White;
+            this._btnJiraImport.Location = new System.Drawing.Point(515, 438);
+            this._btnJiraImport.Name = "_btnJiraImport";
+            this._btnJiraImport.Size = new System.Drawing.Size(115, 28);
+            this._btnJiraImport.TabIndex = 7;
+            this._btnJiraImport.Text = "Import to Jira…";
+            this._btnJiraImport.UseVisualStyleBackColor = false;
+            this._btnJiraImport.Click += new System.EventHandler(this.BtnJiraImport_Click);
+            //
             // _btnExport
-            // 
+            //
             this._btnExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._btnExport.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(120)))), ((int)(((byte)(215)))));
             this._btnExport.FlatAppearance.BorderSize = 0;
             this._btnExport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnExport.ForeColor = System.Drawing.Color.White;
-            this._btnExport.Location = new System.Drawing.Point(504, 438);
+            this._btnExport.Location = new System.Drawing.Point(638, 438);
             this._btnExport.Name = "_btnExport";
             this._btnExport.Size = new System.Drawing.Size(100, 28);
-            this._btnExport.TabIndex = 7;
+            this._btnExport.TabIndex = 8;
             this._btnExport.Text = "Export CSV…";
             this._btnExport.UseVisualStyleBackColor = false;
             this._btnExport.Click += new System.EventHandler(this.BtnExport_Click);
-            // 
+            //
             // _btnCancel
-            // 
+            //
             this._btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._btnCancel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(70)))), ((int)(((byte)(70)))), ((int)(((byte)(78)))));
             this._btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this._btnCancel.FlatAppearance.BorderSize = 0;
             this._btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnCancel.ForeColor = System.Drawing.Color.White;
-            this._btnCancel.Location = new System.Drawing.Point(614, 438);
+            this._btnCancel.Location = new System.Drawing.Point(748, 438);
             this._btnCancel.Name = "_btnCancel";
             this._btnCancel.Size = new System.Drawing.Size(78, 28);
-            this._btnCancel.TabIndex = 8;
+            this._btnCancel.TabIndex = 9;
             this._btnCancel.Text = "Cancel";
             this._btnCancel.UseVisualStyleBackColor = false;
             // 
@@ -371,7 +388,7 @@ namespace Test
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.CancelButton = this._btnCancel;
-            this.ClientSize = new System.Drawing.Size(706, 480);
+            this.ClientSize = new System.Drawing.Size(840, 480);
             this.Controls.Add(this.grpStatus);
             this.Controls.Add(this.grpPriority);
             this.Controls.Add(this.grpColumns);
@@ -379,6 +396,7 @@ namespace Test
             this.Controls.Add(this._txtPreview);
             this.Controls.Add(this._btnEditRecipients);
             this.Controls.Add(this._btnSendOutlook);
+            this.Controls.Add(this._btnJiraImport);
             this.Controls.Add(this._btnExport);
             this.Controls.Add(this._btnCancel);
             this.Controls.Add(this.pnlTitleBar);
@@ -386,7 +404,7 @@ namespace Test
             this.ForeColor = System.Drawing.Color.White;
             this.Name = "ExportDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Export Tasks to CSV";
+            this.Text = "Export / Import Tasks";
             this.grpStatus.ResumeLayout(false);
             this.grpStatus.PerformLayout();
             this.grpPriority.ResumeLayout(false);

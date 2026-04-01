@@ -185,6 +185,19 @@ namespace Test
             }
         }
 
+        private void BtnJiraImport_Click(object sender, EventArgs e)
+        {
+            var tasks = GetFiltered().ToList();
+            if (tasks.Count == 0)
+            {
+                MessageBox.Show("No tasks match the current filters.", "Nothing to Import",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            using (var dlg = new JiraImportDialog(tasks))
+                dlg.ShowDialog(this);
+        }
+
         private void BtnEditRecipients_Click(object sender, EventArgs e)
         {
             using (var dlg = new EmailRecipientsDialog(_recipients))

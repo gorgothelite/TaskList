@@ -68,9 +68,9 @@ namespace Test
 
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.pnlHeader = new System.Windows.Forms.Panel();
             this._lblTitle = new System.Windows.Forms.Label();
             this.grpSource = new System.Windows.Forms.GroupBox();
@@ -83,10 +83,10 @@ namespace Test
             this._btnSaveSettings = new System.Windows.Forms.Button();
             this._chkSummarize = new System.Windows.Forms.CheckBox();
             this._lblTemplate = new System.Windows.Forms.Label();
-            this._cmbTemplate = new DarkComboBox();
+            this._cmbTemplate = new Test.DarkComboBox();
             this._btnEditTemplates = new System.Windows.Forms.Button();
             this._lblProvider = new System.Windows.Forms.Label();
-            this._cmbProvider = new DarkComboBox();
+            this._cmbProvider = new Test.DarkComboBox();
             this._lblAiKey = new System.Windows.Forms.Label();
             this._txtAiKey = new System.Windows.Forms.TextBox();
             this._lblAzureEndpoint = new System.Windows.Forms.Label();
@@ -149,6 +149,7 @@ namespace Test
             // 
             this.grpSource.Controls.Add(this._radResults);
             this.grpSource.Controls.Add(this._radMaster);
+            this.grpSource.Enabled = false;
             this.grpSource.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             this.grpSource.Location = new System.Drawing.Point(14, 52);
             this.grpSource.Name = "grpSource";
@@ -276,6 +277,7 @@ namespace Test
             // _cmbTemplate
             // 
             this._cmbTemplate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            this._cmbTemplate.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this._cmbTemplate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbTemplate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._cmbTemplate.ForeColor = System.Drawing.Color.White;
@@ -313,6 +315,7 @@ namespace Test
             // _cmbProvider
             // 
             this._cmbProvider.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            this._cmbProvider.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this._cmbProvider.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbProvider.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._cmbProvider.ForeColor = System.Drawing.Color.White;
@@ -564,7 +567,7 @@ namespace Test
             this.grpPreview.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             this.grpPreview.Location = new System.Drawing.Point(14, 494);
             this.grpPreview.Name = "grpPreview";
-            this.grpPreview.Size = new System.Drawing.Size(692, 248);
+            this.grpPreview.Size = new System.Drawing.Size(692, 225);
             this.grpPreview.TabIndex = 5;
             this.grpPreview.TabStop = false;
             this.grpPreview.Text = "Preview";
@@ -598,32 +601,32 @@ namespace Test
             this._dgvPreview.AllowUserToAddRows = false;
             this._dgvPreview.AllowUserToDeleteRows = false;
             this._dgvPreview.AllowUserToResizeRows = false;
-            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(42)))), ((int)(((byte)(45)))));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.White;
-            this._dgvPreview.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(42)))), ((int)(((byte)(45)))));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.White;
+            this._dgvPreview.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this._dgvPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._dgvPreview.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(32)))));
             this._dgvPreview.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this._dgvPreview.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(55)))));
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            dataGridViewCellStyle5.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            dataGridViewCellStyle5.Padding = new System.Windows.Forms.Padding(4, 0, 0, 0);
-            this._dgvPreview.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(55)))));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
+            dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(4, 0, 0, 0);
+            this._dgvPreview.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this._dgvPreview.ColumnHeadersHeight = 26;
             this._dgvPreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            dataGridViewCellStyle6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.Color.White;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this._dgvPreview.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this._dgvPreview.DefaultCellStyle = dataGridViewCellStyle3;
             this._dgvPreview.EnableHeadersVisualStyles = false;
             this._dgvPreview.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._dgvPreview.Location = new System.Drawing.Point(14, 56);
@@ -631,7 +634,7 @@ namespace Test
             this._dgvPreview.ReadOnly = true;
             this._dgvPreview.RowHeadersVisible = false;
             this._dgvPreview.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this._dgvPreview.Size = new System.Drawing.Size(664, 178);
+            this._dgvPreview.Size = new System.Drawing.Size(664, 155);
             this._dgvPreview.TabIndex = 2;
             // 
             // _lblStatus
@@ -639,7 +642,7 @@ namespace Test
             this._lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._lblStatus.AutoSize = true;
             this._lblStatus.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this._lblStatus.Location = new System.Drawing.Point(14, 758);
+            this._lblStatus.Location = new System.Drawing.Point(14, 776);
             this._lblStatus.Name = "_lblStatus";
             this._lblStatus.Size = new System.Drawing.Size(47, 17);
             this._lblStatus.TabIndex = 6;
@@ -652,7 +655,7 @@ namespace Test
             this._btnEditRecipients.FlatAppearance.BorderSize = 0;
             this._btnEditRecipients.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnEditRecipients.ForeColor = System.Drawing.Color.White;
-            this._btnEditRecipients.Location = new System.Drawing.Point(198, 752);
+            this._btnEditRecipients.Location = new System.Drawing.Point(198, 736);
             this._btnEditRecipients.Name = "_btnEditRecipients";
             this._btnEditRecipients.Size = new System.Drawing.Size(120, 28);
             this._btnEditRecipients.TabIndex = 7;
@@ -667,11 +670,11 @@ namespace Test
             this._btnSendOutlookDefault.FlatAppearance.BorderSize = 0;
             this._btnSendOutlookDefault.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnSendOutlookDefault.ForeColor = System.Drawing.Color.White;
-            this._btnSendOutlookDefault.Location = new System.Drawing.Point(328, 752);
+            this._btnSendOutlookDefault.Location = new System.Drawing.Point(483, 770);
             this._btnSendOutlookDefault.Name = "_btnSendOutlookDefault";
             this._btnSendOutlookDefault.Size = new System.Drawing.Size(152, 28);
             this._btnSendOutlookDefault.TabIndex = 8;
-            this._btnSendOutlookDefault.Text = "Send via Outlook…";
+            this._btnSendOutlookDefault.Text = "Email Default…";
             this._btnSendOutlookDefault.UseVisualStyleBackColor = false;
             this._btnSendOutlookDefault.Click += new System.EventHandler(this.BtnSendOutlookDefault_Click);
             // 
@@ -682,7 +685,7 @@ namespace Test
             this._btnExport.FlatAppearance.BorderSize = 0;
             this._btnExport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnExport.ForeColor = System.Drawing.Color.White;
-            this._btnExport.Location = new System.Drawing.Point(490, 752);
+            this._btnExport.Location = new System.Drawing.Point(324, 736);
             this._btnExport.Name = "_btnExport";
             this._btnExport.Size = new System.Drawing.Size(152, 28);
             this._btnExport.TabIndex = 9;
@@ -698,7 +701,7 @@ namespace Test
             this._btnCancel.FlatAppearance.BorderSize = 0;
             this._btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnCancel.ForeColor = System.Drawing.Color.White;
-            this._btnCancel.Location = new System.Drawing.Point(652, 752);
+            this._btnCancel.Location = new System.Drawing.Point(652, 736);
             this._btnCancel.Name = "_btnCancel";
             this._btnCancel.Size = new System.Drawing.Size(54, 28);
             this._btnCancel.TabIndex = 8;
@@ -712,11 +715,11 @@ namespace Test
             this._btnSendOutlookCustom.FlatAppearance.BorderSize = 0;
             this._btnSendOutlookCustom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnSendOutlookCustom.ForeColor = System.Drawing.Color.White;
-            this._btnSendOutlookCustom.Location = new System.Drawing.Point(82, 752);
+            this._btnSendOutlookCustom.Location = new System.Drawing.Point(483, 736);
             this._btnSendOutlookCustom.Name = "_btnSendOutlookCustom";
             this._btnSendOutlookCustom.Size = new System.Drawing.Size(152, 28);
             this._btnSendOutlookCustom.TabIndex = 10;
-            this._btnSendOutlookCustom.Text = "Send via Outlook…";
+            this._btnSendOutlookCustom.Text = "Email Custom...";
             this._btnSendOutlookCustom.UseVisualStyleBackColor = false;
             this._btnSendOutlookCustom.Click += new System.EventHandler(this.BtnSendOutlookCustom_Click);
             // 
@@ -726,7 +729,7 @@ namespace Test
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.CancelButton = this._btnCancel;
-            this.ClientSize = new System.Drawing.Size(720, 792);
+            this.ClientSize = new System.Drawing.Size(720, 810);
             this.Controls.Add(this._btnSendOutlookCustom);
             this.Controls.Add(this.grpSource);
             this.Controls.Add(this.grpInclude);

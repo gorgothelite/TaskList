@@ -72,7 +72,7 @@ namespace Test
             this._btnTestConnection = new System.Windows.Forms.Button();
             this.grpQuery = new System.Windows.Forms.GroupBox();
             this._lblPresetsCaption = new System.Windows.Forms.Label();
-            this._cmbPresets = new DarkComboBox();
+            this._cmbPresets = new Test.DarkComboBox();
             this._btnManagePresets = new System.Windows.Forms.Button();
             this._lblJqlCaption = new System.Windows.Forms.Label();
             this._txtJql = new System.Windows.Forms.TextBox();
@@ -265,6 +265,7 @@ namespace Test
             // _cmbPresets
             // 
             this._cmbPresets.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            this._cmbPresets.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this._cmbPresets.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbPresets.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._cmbPresets.ForeColor = System.Drawing.Color.White;
@@ -404,6 +405,7 @@ namespace Test
             // _btnAddIssue
             // 
             this._btnAddIssue.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(100)))), ((int)(((byte)(60)))));
+            this._btnAddIssue.Enabled = false;
             this._btnAddIssue.FlatAppearance.BorderSize = 0;
             this._btnAddIssue.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnAddIssue.ForeColor = System.Drawing.Color.White;
@@ -413,11 +415,13 @@ namespace Test
             this._btnAddIssue.TabIndex = 0;
             this._btnAddIssue.Text = "↓  Add to Master List";
             this._btnAddIssue.UseVisualStyleBackColor = false;
+            this._btnAddIssue.Visible = false;
             this._btnAddIssue.Click += new System.EventHandler(this.BtnAddIssue_Click);
             // 
             // _btnAddParent
             // 
             this._btnAddParent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(70)))), ((int)(((byte)(50)))), ((int)(((byte)(100)))));
+            this._btnAddParent.Enabled = false;
             this._btnAddParent.FlatAppearance.BorderSize = 0;
             this._btnAddParent.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnAddParent.ForeColor = System.Drawing.Color.White;
@@ -427,6 +431,7 @@ namespace Test
             this._btnAddParent.TabIndex = 1;
             this._btnAddParent.Text = "↓  Add Parent / Epic";
             this._btnAddParent.UseVisualStyleBackColor = false;
+            this._btnAddParent.Visible = false;
             this._btnAddParent.Click += new System.EventHandler(this.BtnAddParent_Click);
             // 
             // _btnExportExcel
@@ -452,11 +457,13 @@ namespace Test
             this.pnlMasterList.Controls.Add(this._btnClearMaster);
             this.pnlMasterList.Controls.Add(this._btnImportTasks);
             this.pnlMasterList.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlMasterList.Enabled = false;
             this.pnlMasterList.Location = new System.Drawing.Point(10, 474);
             this.pnlMasterList.Name = "pnlMasterList";
             this.pnlMasterList.Padding = new System.Windows.Forms.Padding(6, 4, 6, 6);
             this.pnlMasterList.Size = new System.Drawing.Size(890, 232);
             this.pnlMasterList.TabIndex = 3;
+            this.pnlMasterList.Visible = false;
             // 
             // _lblMasterCount
             // 

@@ -14,6 +14,9 @@ namespace Test
         public string       Notes        { get; set; } = "";
         public TaskPriority Priority     { get; set; } = TaskPriority.Medium;
         public DateTime     DueDate      { get; set; } = DateTime.Now.AddDays(1);
+        public DateTime     StartDate { get; set; } = DateTime.Now;
+        public DateTime     EndDate { get; set; } = DateTime.Now.AddDays(1);
+        public double       TotalTime { get; set; } = 0;
         public bool         IsDone       { get; set; } = false;
         public bool         IsOnHold     { get; set; } = false;
         public bool         AlertIgnored    { get; set; } = false;

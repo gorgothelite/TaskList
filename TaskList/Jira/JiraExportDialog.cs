@@ -95,11 +95,11 @@ namespace Test
         // ── Provider combo ────────────────────────────────────────────────────
         private enum AiProvider { Claude, OpenAI, Azure, Forge }
 
-        private AiProvider GetSelectedProvider() =>
-            _cmbProvider.SelectedIndex == 1 ? AiProvider.OpenAI :
-            _cmbProvider.SelectedIndex == 2 ? AiProvider.Azure  :
-            _cmbProvider.SelectedIndex == 3 ? AiProvider.Forge:
-                                              AiProvider.Claude;
+        private AiProvider GetSelectedProvider() => AiProvider.Forge;
+            //_cmbProvider.SelectedIndex == 1 ? AiProvider.OpenAI :
+            //_cmbProvider.SelectedIndex == 2 ? AiProvider.Azure  :
+            //_cmbProvider.SelectedIndex == 3 ? AiProvider.Forge:
+            //                                  AiProvider.Claude;
 
         internal void CmbProvider_Changed(object sender, EventArgs e)
         {

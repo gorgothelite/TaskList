@@ -68,9 +68,9 @@ namespace Test
 
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
             this.pnlHeader = new System.Windows.Forms.Panel();
             this._lblTitle = new System.Windows.Forms.Label();
             this.grpSource = new System.Windows.Forms.GroupBox();
@@ -245,7 +245,7 @@ namespace Test
             this._btnSaveSettings.FlatAppearance.BorderSize = 0;
             this._btnSaveSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnSaveSettings.ForeColor = System.Drawing.Color.White;
-            this._btnSaveSettings.Location = new System.Drawing.Point(564, 15);
+            this._btnSaveSettings.Location = new System.Drawing.Point(562, 158);
             this._btnSaveSettings.Name = "_btnSaveSettings";
             this._btnSaveSettings.Size = new System.Drawing.Size(116, 28);
             this._btnSaveSettings.TabIndex = 9;
@@ -270,9 +270,9 @@ namespace Test
             this._lblTemplate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
             this._lblTemplate.Location = new System.Drawing.Point(14, 52);
             this._lblTemplate.Name = "_lblTemplate";
-            this._lblTemplate.Size = new System.Drawing.Size(100, 12);
+            this._lblTemplate.Size = new System.Drawing.Size(113, 12);
             this._lblTemplate.TabIndex = 8;
-            this._lblTemplate.Text = "PROMPT TEMPLATE";
+            this._lblTemplate.Text = "AI PROMPT TEMPLATE";
             // 
             // _cmbTemplate
             // 
@@ -308,9 +308,9 @@ namespace Test
             this._lblProvider.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
             this._lblProvider.Location = new System.Drawing.Point(14, 96);
             this._lblProvider.Name = "_lblProvider";
-            this._lblProvider.Size = new System.Drawing.Size(55, 12);
+            this._lblProvider.Size = new System.Drawing.Size(68, 12);
             this._lblProvider.TabIndex = 1;
-            this._lblProvider.Text = "PROVIDER";
+            this._lblProvider.Text = "AI PROVIDER";
             // 
             // _cmbProvider
             // 
@@ -320,9 +320,6 @@ namespace Test
             this._cmbProvider.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._cmbProvider.ForeColor = System.Drawing.Color.White;
             this._cmbProvider.Items.AddRange(new object[] {
-            "Claude (Anthropic)",
-            "ChatGPT (OpenAI)",
-            "Azure OpenAI (Copilot)",
             "Forge"});
             this._cmbProvider.Location = new System.Drawing.Point(14, 110);
             this._cmbProvider.Name = "_cmbProvider";
@@ -337,9 +334,9 @@ namespace Test
             this._lblAiKey.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
             this._lblAiKey.Location = new System.Drawing.Point(228, 96);
             this._lblAiKey.Name = "_lblAiKey";
-            this._lblAiKey.Size = new System.Drawing.Size(103, 12);
+            this._lblAiKey.Size = new System.Drawing.Size(41, 12);
             this._lblAiKey.TabIndex = 3;
-            this._lblAiKey.Text = "ANTHROPIC API KEY";
+            this._lblAiKey.Text = "API KEY";
             // 
             // _txtAiKey
             // 
@@ -371,7 +368,7 @@ namespace Test
             this._txtAzureEndpoint.ForeColor = System.Drawing.Color.White;
             this._txtAzureEndpoint.Location = new System.Drawing.Point(14, 162);
             this._txtAzureEndpoint.Name = "_txtAzureEndpoint";
-            this._txtAzureEndpoint.Size = new System.Drawing.Size(666, 24);
+            this._txtAzureEndpoint.Size = new System.Drawing.Size(452, 24);
             this._txtAzureEndpoint.TabIndex = 6;
             this._txtAzureEndpoint.Visible = false;
             // 
@@ -418,7 +415,7 @@ namespace Test
             this._chkColSummary.Checked = true;
             this._chkColSummary.CheckState = System.Windows.Forms.CheckState.Checked;
             this._chkColSummary.ForeColor = System.Drawing.Color.White;
-            this._chkColSummary.Location = new System.Drawing.Point(80, 24);
+            this._chkColSummary.Location = new System.Drawing.Point(110, 25);
             this._chkColSummary.Name = "_chkColSummary";
             this._chkColSummary.Size = new System.Drawing.Size(81, 21);
             this._chkColSummary.TabIndex = 1;
@@ -442,7 +439,7 @@ namespace Test
             this._chkColStatus.Checked = true;
             this._chkColStatus.CheckState = System.Windows.Forms.CheckState.Checked;
             this._chkColStatus.ForeColor = System.Drawing.Color.White;
-            this._chkColStatus.Location = new System.Drawing.Point(310, 24);
+            this._chkColStatus.Location = new System.Drawing.Point(330, 24);
             this._chkColStatus.Name = "_chkColStatus";
             this._chkColStatus.Size = new System.Drawing.Size(62, 21);
             this._chkColStatus.TabIndex = 3;
@@ -454,7 +451,7 @@ namespace Test
             this._chkColPriority.Checked = true;
             this._chkColPriority.CheckState = System.Windows.Forms.CheckState.Checked;
             this._chkColPriority.ForeColor = System.Drawing.Color.White;
-            this._chkColPriority.Location = new System.Drawing.Point(410, 24);
+            this._chkColPriority.Location = new System.Drawing.Point(460, 25);
             this._chkColPriority.Name = "_chkColPriority";
             this._chkColPriority.Size = new System.Drawing.Size(68, 21);
             this._chkColPriority.TabIndex = 4;
@@ -550,7 +547,7 @@ namespace Test
             this._chkColText.Checked = true;
             this._chkColText.CheckState = System.Windows.Forms.CheckState.Checked;
             this._chkColText.ForeColor = System.Drawing.Color.White;
-            this._chkColText.Location = new System.Drawing.Point(210, 80);
+            this._chkColText.Location = new System.Drawing.Point(220, 80);
             this._chkColText.Name = "_chkColText";
             this._chkColText.Size = new System.Drawing.Size(50, 21);
             this._chkColText.TabIndex = 12;
@@ -601,32 +598,32 @@ namespace Test
             this._dgvPreview.AllowUserToAddRows = false;
             this._dgvPreview.AllowUserToDeleteRows = false;
             this._dgvPreview.AllowUserToResizeRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(42)))), ((int)(((byte)(45)))));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.White;
-            this._dgvPreview.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(42)))), ((int)(((byte)(45)))));
+            dataGridViewCellStyle7.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.Color.White;
+            this._dgvPreview.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
             this._dgvPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._dgvPreview.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(32)))));
             this._dgvPreview.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this._dgvPreview.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(55)))));
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(4, 0, 0, 0);
-            this._dgvPreview.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(55)))));
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            dataGridViewCellStyle8.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
+            dataGridViewCellStyle8.Padding = new System.Windows.Forms.Padding(4, 0, 0, 0);
+            this._dgvPreview.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle8;
             this._dgvPreview.ColumnHeadersHeight = 26;
             this._dgvPreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.White;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this._dgvPreview.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle9.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            dataGridViewCellStyle9.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
+            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this._dgvPreview.DefaultCellStyle = dataGridViewCellStyle9;
             this._dgvPreview.EnableHeadersVisualStyles = false;
             this._dgvPreview.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._dgvPreview.Location = new System.Drawing.Point(14, 56);

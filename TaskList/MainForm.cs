@@ -20,6 +20,7 @@ namespace Test
         private HistoryDialog              _historyWindow;
         private JiraForm                   _jiraWindow;
         private System.Windows.Forms.Timer _notesSaveTimer;
+        private System.Windows.Forms.Timer _TimeSpentTimer;
         private bool                       _loadingDetails;
         private bool                       _refreshingList;
         private NotifyIcon                 _notifyIcon;
@@ -78,6 +79,9 @@ namespace Test
             _notesSaveTimer = new System.Windows.Forms.Timer { Interval = 800 };
             _notesSaveTimer.Tick += NotesSaveTimer_Tick;
 
+            _TimeSpentTimer = new System.Windows.Forms.Timer { Interval = 1000 };
+            _TimeSpentTimer.Tick += TimeSpentTimer_Tick;
+            _TimeSpentTimer.Start();
             Shown += (s, e) => CheckAlerts(null, null);
             InitTray();
         }
@@ -250,7 +254,7 @@ namespace Test
             _lblPriority.Text = PriName[(int)t.Priority]; _lblPriority.ForeColor = PriCol[(int)t.Priority];
             _lblDue.Text = t.DueDate.ToString("f") + "\n" + AlertLeadLabel(t.AlertLeadMinutes);
             _lblDue.ForeColor = overdue ? Color.FromArgb(255,100,100) : Color.White;
-
+            lblTotalTimeSpentDisplay.Text = (_sel.TotalTime/3600).ToString("F2");
             if      (t.IsDone)    { _lblStatus.Text = "✓  Completed"; _lblStatus.ForeColor = Color.FromArgb(88,196,88); }
             else if (t.IsOnHold)  { _lblStatus.Text = "⏸  On Hold";   _lblStatus.ForeColor = Color.FromArgb(220,160,0); }
             else if (overdue)     { _lblStatus.Text = "⚠  Overdue";   _lblStatus.ForeColor = Color.FromArgb(255,100,100); }
@@ -450,6 +454,8 @@ namespace Test
             if (_sel == null) return;
             bool was = _sel.IsDone;
             _sel.IsDone = !was;
+            _sel.EndDate = DateTime.Now;
+            _sel.TotalTime = (_sel.EndDate - _sel.StartDate).TotalHours;
             AddRevision(new RevisionEntry { Action = RevisionAction.StatusChanged, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" marked {(_sel.IsDone ? "Done" : "Active")}", Changes = new List<FieldChange> { new FieldChange { Field = "IsDone", OldValue = was.ToString(), NewValue = _sel.IsDone.ToString() } } });
             SaveAll(); RefreshList();
         }
@@ -560,6 +566,17 @@ namespace Test
             // Reset the debounce timer on every keystroke
             _notesSaveTimer.Stop();
             _notesSaveTimer.Start();
+        }
+
+        private void TimeSpentTimer_Tick(object sender, EventArgs e)
+        {
+            var due = _tasks.Where(t => !t.IsDone && !t.IsOnHold)
+                .OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate);
+
+            foreach (TaskItem wTask in due)
+            {
+                wTask.TotalTime++;
+            }
         }
 
         private void NotesSaveTimer_Tick(object sender, EventArgs e)

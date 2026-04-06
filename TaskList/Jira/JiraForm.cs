@@ -130,7 +130,7 @@ namespace Test
 
         private static List<JiraPreset> DefaultPresets() => new List<JiraPreset>
         {
-            new JiraPreset { Name = "My open issues",        Jql = "assignee = currentUser() AND resolution = Unresolved ORDER BY priority DESC" },
+            new JiraPreset { Name = "My Current Tasks",      Jql = "Sprint in openSprints() AND assignee = currentUser() AND resolution = Unresolved ORDER BY priority DESC" },
             new JiraPreset { Name = "My work last week",     Jql = "assignee = currentUser() AND updated >= -1w ORDER BY updated DESC" },
             new JiraPreset { Name = "Open bugs by priority", Jql = "issuetype = Bug AND status != Done ORDER BY priority DESC" },
             new JiraPreset { Name = "In progress",           Jql = "status = \"In Progress\" ORDER BY updated DESC" },
@@ -245,7 +245,6 @@ namespace Test
             int idx = _cmbPresets.SelectedIndex - 1; // offset by 1 for placeholder
             if (idx < 0 || idx >= _presets.Count) return;
             _txtJql.Text = _presets[idx].Jql;
-            _cmbPresets.SelectedIndex = 0;
         }
 
         private void LvResults_DoubleClick(object sender, EventArgs e)

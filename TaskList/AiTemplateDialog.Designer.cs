@@ -11,10 +11,6 @@ namespace Test
         // ── Left panel (template list) ────────────────────────────────────────
         private System.Windows.Forms.Panel    pnlLeft;
         private System.Windows.Forms.ListView _lvTemplates;
-        private System.Windows.Forms.Button   _btnNew;
-        private System.Windows.Forms.Button   _btnDelete;
-        private System.Windows.Forms.Button   _btnUp;
-        private System.Windows.Forms.Button   _btnDown;
 
         // ── Right panel (editor) ──────────────────────────────────────────────
         private System.Windows.Forms.Panel   pnlRight;
@@ -40,10 +36,6 @@ namespace Test
             this._lblTitle = new System.Windows.Forms.Label();
             this.pnlLeft = new System.Windows.Forms.Panel();
             this._lvTemplates = new System.Windows.Forms.ListView();
-            this._btnNew = new System.Windows.Forms.Button();
-            this._btnDelete = new System.Windows.Forms.Button();
-            this._btnUp = new System.Windows.Forms.Button();
-            this._btnDown = new System.Windows.Forms.Button();
             this.pnlRight = new System.Windows.Forms.Panel();
             this._lblNameCaption = new System.Windows.Forms.Label();
             this._txtName = new System.Windows.Forms.TextBox();
@@ -52,6 +44,10 @@ namespace Test
             this.pnlBottom = new System.Windows.Forms.Panel();
             this._btnOk = new System.Windows.Forms.Button();
             this._btnCancel = new System.Windows.Forms.Button();
+            this._btnNew = new System.Windows.Forms.Button();
+            this._btnDelete = new System.Windows.Forms.Button();
+            this._btnUp = new System.Windows.Forms.Button();
+            this._btnDown = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             this.pnlLeft.SuspendLayout();
             this.pnlRight.SuspendLayout();
@@ -83,15 +79,11 @@ namespace Test
             // 
             this.pnlLeft.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(36)))), ((int)(((byte)(40)))));
             this.pnlLeft.Controls.Add(this._lvTemplates);
-            this.pnlLeft.Controls.Add(this._btnNew);
-            this.pnlLeft.Controls.Add(this._btnDelete);
-            this.pnlLeft.Controls.Add(this._btnUp);
-            this.pnlLeft.Controls.Add(this._btnDown);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlLeft.Location = new System.Drawing.Point(0, 42);
             this.pnlLeft.Name = "pnlLeft";
             this.pnlLeft.Padding = new System.Windows.Forms.Padding(10);
-            this.pnlLeft.Size = new System.Drawing.Size(234, 474);
+            this.pnlLeft.Size = new System.Drawing.Size(234, 431);
             this.pnlLeft.TabIndex = 1;
             // 
             // _lvTemplates
@@ -109,71 +101,11 @@ namespace Test
             this._lvTemplates.Location = new System.Drawing.Point(10, 10);
             this._lvTemplates.MultiSelect = false;
             this._lvTemplates.Name = "_lvTemplates";
-            this._lvTemplates.Size = new System.Drawing.Size(212, 390);
+            this._lvTemplates.Size = new System.Drawing.Size(212, 408);
             this._lvTemplates.TabIndex = 0;
             this._lvTemplates.UseCompatibleStateImageBehavior = false;
             this._lvTemplates.View = System.Windows.Forms.View.Details;
-            this._lvTemplates.Columns.Add("Name", 210);
             this._lvTemplates.SelectedIndexChanged += new System.EventHandler(this.LvTemplates_SelectedIndexChanged);
-            // 
-            // _btnNew
-            // 
-            this._btnNew.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(120)))), ((int)(((byte)(215)))));
-            this._btnNew.FlatAppearance.BorderSize = 0;
-            this._btnNew.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this._btnNew.ForeColor = System.Drawing.Color.White;
-            this._btnNew.Location = new System.Drawing.Point(10, 408);
-            this._btnNew.Name = "_btnNew";
-            this._btnNew.Size = new System.Drawing.Size(56, 26);
-            this._btnNew.TabIndex = 1;
-            this._btnNew.Text = "New";
-            this._btnNew.UseVisualStyleBackColor = false;
-            this._btnNew.Click += new System.EventHandler(this.BtnNew_Click);
-            // 
-            // _btnDelete
-            // 
-            this._btnDelete.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this._btnDelete.Enabled = false;
-            this._btnDelete.FlatAppearance.BorderSize = 0;
-            this._btnDelete.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this._btnDelete.ForeColor = System.Drawing.Color.White;
-            this._btnDelete.Location = new System.Drawing.Point(74, 408);
-            this._btnDelete.Name = "_btnDelete";
-            this._btnDelete.Size = new System.Drawing.Size(56, 26);
-            this._btnDelete.TabIndex = 2;
-            this._btnDelete.Text = "Delete";
-            this._btnDelete.UseVisualStyleBackColor = false;
-            this._btnDelete.Click += new System.EventHandler(this.BtnDelete_Click);
-            // 
-            // _btnUp
-            // 
-            this._btnUp.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
-            this._btnUp.Enabled = false;
-            this._btnUp.FlatAppearance.BorderSize = 0;
-            this._btnUp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this._btnUp.ForeColor = System.Drawing.Color.White;
-            this._btnUp.Location = new System.Drawing.Point(10, 442);
-            this._btnUp.Name = "_btnUp";
-            this._btnUp.Size = new System.Drawing.Size(56, 26);
-            this._btnUp.TabIndex = 3;
-            this._btnUp.Text = "↑ Up";
-            this._btnUp.UseVisualStyleBackColor = false;
-            this._btnUp.Click += new System.EventHandler(this.BtnUp_Click);
-            // 
-            // _btnDown
-            // 
-            this._btnDown.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
-            this._btnDown.Enabled = false;
-            this._btnDown.FlatAppearance.BorderSize = 0;
-            this._btnDown.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this._btnDown.ForeColor = System.Drawing.Color.White;
-            this._btnDown.Location = new System.Drawing.Point(74, 442);
-            this._btnDown.Name = "_btnDown";
-            this._btnDown.Size = new System.Drawing.Size(62, 26);
-            this._btnDown.TabIndex = 4;
-            this._btnDown.Text = "↓ Down";
-            this._btnDown.UseVisualStyleBackColor = false;
-            this._btnDown.Click += new System.EventHandler(this.BtnDown_Click);
             // 
             // pnlRight
             // 
@@ -186,7 +118,7 @@ namespace Test
             this.pnlRight.Location = new System.Drawing.Point(234, 42);
             this.pnlRight.Name = "pnlRight";
             this.pnlRight.Padding = new System.Windows.Forms.Padding(14, 10, 14, 10);
-            this.pnlRight.Size = new System.Drawing.Size(546, 474);
+            this.pnlRight.Size = new System.Drawing.Size(546, 431);
             this.pnlRight.TabIndex = 2;
             // 
             // _lblNameCaption
@@ -236,18 +168,22 @@ namespace Test
             this._txtTemplate.Multiline = true;
             this._txtTemplate.Name = "_txtTemplate";
             this._txtTemplate.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._txtTemplate.Size = new System.Drawing.Size(522, 385);
+            this._txtTemplate.Size = new System.Drawing.Size(522, 342);
             this._txtTemplate.TabIndex = 3;
             // 
             // pnlBottom
             // 
             this.pnlBottom.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(36)))), ((int)(((byte)(40)))));
+            this.pnlBottom.Controls.Add(this._btnNew);
+            this.pnlBottom.Controls.Add(this._btnDelete);
+            this.pnlBottom.Controls.Add(this._btnUp);
+            this.pnlBottom.Controls.Add(this._btnDown);
             this.pnlBottom.Controls.Add(this._btnOk);
             this.pnlBottom.Controls.Add(this._btnCancel);
             this.pnlBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlBottom.Location = new System.Drawing.Point(0, 516);
+            this.pnlBottom.Location = new System.Drawing.Point(0, 473);
             this.pnlBottom.Name = "pnlBottom";
-            this.pnlBottom.Size = new System.Drawing.Size(780, 44);
+            this.pnlBottom.Size = new System.Drawing.Size(780, 87);
             this.pnlBottom.TabIndex = 3;
             // 
             // _btnOk
@@ -257,9 +193,9 @@ namespace Test
             this._btnOk.FlatAppearance.BorderSize = 0;
             this._btnOk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnOk.ForeColor = System.Drawing.Color.White;
-            this._btnOk.Location = new System.Drawing.Point(636, 8);
+            this._btnOk.Location = new System.Drawing.Point(561, 6);
             this._btnOk.Name = "_btnOk";
-            this._btnOk.Size = new System.Drawing.Size(70, 28);
+            this._btnOk.Size = new System.Drawing.Size(100, 30);
             this._btnOk.TabIndex = 0;
             this._btnOk.Text = "OK";
             this._btnOk.UseVisualStyleBackColor = false;
@@ -273,12 +209,68 @@ namespace Test
             this._btnCancel.FlatAppearance.BorderSize = 0;
             this._btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnCancel.ForeColor = System.Drawing.Color.White;
-            this._btnCancel.Location = new System.Drawing.Point(716, 8);
+            this._btnCancel.Location = new System.Drawing.Point(670, 6);
             this._btnCancel.Name = "_btnCancel";
-            this._btnCancel.Size = new System.Drawing.Size(54, 28);
+            this._btnCancel.Size = new System.Drawing.Size(100, 30);
             this._btnCancel.TabIndex = 1;
             this._btnCancel.Text = "Cancel";
             this._btnCancel.UseVisualStyleBackColor = false;
+            // 
+            // _btnNew
+            // 
+            this._btnNew.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(100)))), ((int)(((byte)(60)))));
+            this._btnNew.FlatAppearance.BorderSize = 0;
+            this._btnNew.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnNew.ForeColor = System.Drawing.Color.White;
+            this._btnNew.Location = new System.Drawing.Point(16, 9);
+            this._btnNew.Name = "_btnNew";
+            this._btnNew.Size = new System.Drawing.Size(100, 30);
+            this._btnNew.TabIndex = 4;
+            this._btnNew.Text = "+ New";
+            this._btnNew.UseVisualStyleBackColor = false;
+            this._btnNew.Click += new System.EventHandler(this.BtnNew_Click);
+            // 
+            // _btnDelete
+            // 
+            this._btnDelete.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(110)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this._btnDelete.FlatAppearance.BorderSize = 0;
+            this._btnDelete.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnDelete.ForeColor = System.Drawing.Color.White;
+            this._btnDelete.Location = new System.Drawing.Point(124, 9);
+            this._btnDelete.Name = "_btnDelete";
+            this._btnDelete.Size = new System.Drawing.Size(100, 30);
+            this._btnDelete.TabIndex = 5;
+            this._btnDelete.Text = "Delete";
+            this._btnDelete.UseVisualStyleBackColor = false;
+            this._btnDelete.Click += new System.EventHandler(this.BtnDelete_Click);
+            // 
+            // _btnUp
+            // 
+            this._btnUp.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
+            this._btnUp.FlatAppearance.BorderSize = 0;
+            this._btnUp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnUp.ForeColor = System.Drawing.Color.White;
+            this._btnUp.Location = new System.Drawing.Point(16, 45);
+            this._btnUp.Name = "_btnUp";
+            this._btnUp.Size = new System.Drawing.Size(100, 30);
+            this._btnUp.TabIndex = 6;
+            this._btnUp.Text = "▲  Up";
+            this._btnUp.UseVisualStyleBackColor = false;
+            this._btnUp.Click += new System.EventHandler(this.BtnUp_Click);
+            // 
+            // _btnDown
+            // 
+            this._btnDown.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
+            this._btnDown.FlatAppearance.BorderSize = 0;
+            this._btnDown.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnDown.ForeColor = System.Drawing.Color.White;
+            this._btnDown.Location = new System.Drawing.Point(124, 45);
+            this._btnDown.Name = "_btnDown";
+            this._btnDown.Size = new System.Drawing.Size(100, 30);
+            this._btnDown.TabIndex = 7;
+            this._btnDown.Text = "▼  Down";
+            this._btnDown.UseVisualStyleBackColor = false;
+            this._btnDown.Click += new System.EventHandler(this.BtnDown_Click);
             // 
             // AiTemplateDialog
             // 
@@ -307,5 +299,10 @@ namespace Test
             this.ResumeLayout(false);
 
         }
+
+        private System.Windows.Forms.Button _btnNew;
+        private System.Windows.Forms.Button _btnDelete;
+        private System.Windows.Forms.Button _btnUp;
+        private System.Windows.Forms.Button _btnDown;
     }
 }

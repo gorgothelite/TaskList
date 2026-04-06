@@ -62,9 +62,9 @@ namespace Test
             this.pnlToolbar = new System.Windows.Forms.Panel();
             this.btnAdd = new System.Windows.Forms.Button();
             this.lblStatusFilter = new System.Windows.Forms.Label();
-            this._cmbStatusF = new DarkComboBox();
+            this._cmbStatusF = new Test.DarkComboBox();
             this.lblPriorityFilter = new System.Windows.Forms.Label();
-            this._cmbPriorityF = new DarkComboBox();
+            this._cmbPriorityF = new Test.DarkComboBox();
             this.btnHistory = new System.Windows.Forms.Button();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnJira = new System.Windows.Forms.Button();
@@ -95,6 +95,8 @@ namespace Test
             this.lblImagesCaption = new System.Windows.Forms.Label();
             this._btnAddImage = new System.Windows.Forms.Button();
             this._pnlImagesThumbs = new System.Windows.Forms.Panel();
+            this.lblTotalTimeSpent = new System.Windows.Forms.Label();
+            this.lblTotalTimeSpentDisplay = new System.Windows.Forms.Label();
             this.pnlToolbar.SuspendLayout();
             this.pnlLeft.SuspendLayout();
             this.pnlDetail.SuspendLayout();
@@ -153,6 +155,7 @@ namespace Test
             // _cmbStatusF
             // 
             this._cmbStatusF.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            this._cmbStatusF.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this._cmbStatusF.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbStatusF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._cmbStatusF.ForeColor = System.Drawing.Color.White;
@@ -180,6 +183,7 @@ namespace Test
             // _cmbPriorityF
             // 
             this._cmbPriorityF.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
+            this._cmbPriorityF.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this._cmbPriorityF.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbPriorityF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._cmbPriorityF.ForeColor = System.Drawing.Color.White;
@@ -247,7 +251,7 @@ namespace Test
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlLeft.Location = new System.Drawing.Point(0, 82);
             this.pnlLeft.Name = "pnlLeft";
-            this.pnlLeft.Size = new System.Drawing.Size(760, 673);
+            this.pnlLeft.Size = new System.Drawing.Size(760, 714);
             this.pnlLeft.TabIndex = 1;
             // 
             // _lv
@@ -263,7 +267,7 @@ namespace Test
             this._lv.MultiSelect = false;
             this._lv.Name = "_lv";
             this._lv.OwnerDraw = true;
-            this._lv.Size = new System.Drawing.Size(760, 673);
+            this._lv.Size = new System.Drawing.Size(760, 714);
             this._lv.TabIndex = 0;
             this._lv.UseCompatibleStateImageBehavior = false;
             this._lv.View = System.Windows.Forms.View.Details;
@@ -272,6 +276,8 @@ namespace Test
             // 
             this.pnlDetail.AllowDrop = true;
             this.pnlDetail.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(36)))), ((int)(((byte)(40)))));
+            this.pnlDetail.Controls.Add(this.lblTotalTimeSpent);
+            this.pnlDetail.Controls.Add(this.lblTotalTimeSpentDisplay);
             this.pnlDetail.Controls.Add(this.lblDetailHeader);
             this.pnlDetail.Controls.Add(this.lblNameCaption);
             this.pnlDetail.Controls.Add(this._lblName);
@@ -299,7 +305,7 @@ namespace Test
             this.pnlDetail.Dock = System.Windows.Forms.DockStyle.Right;
             this.pnlDetail.Location = new System.Drawing.Point(760, 82);
             this.pnlDetail.Name = "pnlDetail";
-            this.pnlDetail.Size = new System.Drawing.Size(320, 673);
+            this.pnlDetail.Size = new System.Drawing.Size(320, 714);
             this.pnlDetail.TabIndex = 2;
             this.pnlDetail.DragDrop += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragDrop);
             this.pnlDetail.DragEnter += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragEnter);
@@ -433,7 +439,7 @@ namespace Test
             // pnlDivider
             // 
             this.pnlDivider.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(68)))));
-            this.pnlDivider.Location = new System.Drawing.Point(18, 382);
+            this.pnlDivider.Location = new System.Drawing.Point(18, 426);
             this.pnlDivider.Name = "pnlDivider";
             this.pnlDivider.Size = new System.Drawing.Size(275, 1);
             this.pnlDivider.TabIndex = 11;
@@ -445,7 +451,7 @@ namespace Test
             this._btnEdit.FlatAppearance.BorderSize = 0;
             this._btnEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnEdit.ForeColor = System.Drawing.Color.White;
-            this._btnEdit.Location = new System.Drawing.Point(18, 392);
+            this._btnEdit.Location = new System.Drawing.Point(18, 436);
             this._btnEdit.Name = "_btnEdit";
             this._btnEdit.Size = new System.Drawing.Size(76, 28);
             this._btnEdit.TabIndex = 12;
@@ -460,7 +466,7 @@ namespace Test
             this._btnDone.FlatAppearance.BorderSize = 0;
             this._btnDone.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnDone.ForeColor = System.Drawing.Color.White;
-            this._btnDone.Location = new System.Drawing.Point(104, 392);
+            this._btnDone.Location = new System.Drawing.Point(104, 436);
             this._btnDone.Name = "_btnDone";
             this._btnDone.Size = new System.Drawing.Size(100, 28);
             this._btnDone.TabIndex = 13;
@@ -475,7 +481,7 @@ namespace Test
             this._btnDelete.FlatAppearance.BorderSize = 0;
             this._btnDelete.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnDelete.ForeColor = System.Drawing.Color.White;
-            this._btnDelete.Location = new System.Drawing.Point(214, 392);
+            this._btnDelete.Location = new System.Drawing.Point(214, 436);
             this._btnDelete.Name = "_btnDelete";
             this._btnDelete.Size = new System.Drawing.Size(76, 28);
             this._btnDelete.TabIndex = 14;
@@ -490,7 +496,7 @@ namespace Test
             this._btnHold.FlatAppearance.BorderSize = 0;
             this._btnHold.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnHold.ForeColor = System.Drawing.Color.White;
-            this._btnHold.Location = new System.Drawing.Point(18, 430);
+            this._btnHold.Location = new System.Drawing.Point(18, 474);
             this._btnHold.Name = "_btnHold";
             this._btnHold.Size = new System.Drawing.Size(275, 28);
             this._btnHold.TabIndex = 15;
@@ -501,7 +507,7 @@ namespace Test
             // pnlDivider2
             // 
             this.pnlDivider2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(68)))));
-            this.pnlDivider2.Location = new System.Drawing.Point(18, 468);
+            this.pnlDivider2.Location = new System.Drawing.Point(18, 512);
             this.pnlDivider2.Name = "pnlDivider2";
             this.pnlDivider2.Size = new System.Drawing.Size(275, 1);
             this.pnlDivider2.TabIndex = 16;
@@ -513,7 +519,7 @@ namespace Test
             this.lblSubCaption.BackColor = System.Drawing.Color.Transparent;
             this.lblSubCaption.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
             this.lblSubCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this.lblSubCaption.Location = new System.Drawing.Point(18, 480);
+            this.lblSubCaption.Location = new System.Drawing.Point(18, 524);
             this.lblSubCaption.Name = "lblSubCaption";
             this.lblSubCaption.Size = new System.Drawing.Size(54, 12);
             this.lblSubCaption.TabIndex = 17;
@@ -525,7 +531,7 @@ namespace Test
             this._lblSubInfo.BackColor = System.Drawing.Color.Transparent;
             this._lblSubInfo.Font = new System.Drawing.Font("Segoe UI", 9.5F);
             this._lblSubInfo.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(190)))));
-            this._lblSubInfo.Location = new System.Drawing.Point(18, 496);
+            this._lblSubInfo.Location = new System.Drawing.Point(18, 540);
             this._lblSubInfo.Name = "_lblSubInfo";
             this._lblSubInfo.Size = new System.Drawing.Size(275, 20);
             this._lblSubInfo.TabIndex = 18;
@@ -538,7 +544,7 @@ namespace Test
             this._btnAddSubtask.FlatAppearance.BorderSize = 0;
             this._btnAddSubtask.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnAddSubtask.ForeColor = System.Drawing.Color.White;
-            this._btnAddSubtask.Location = new System.Drawing.Point(18, 524);
+            this._btnAddSubtask.Location = new System.Drawing.Point(18, 568);
             this._btnAddSubtask.Name = "_btnAddSubtask";
             this._btnAddSubtask.Size = new System.Drawing.Size(275, 28);
             this._btnAddSubtask.TabIndex = 19;
@@ -550,7 +556,7 @@ namespace Test
             // pnlDivider3
             // 
             this.pnlDivider3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(68)))));
-            this.pnlDivider3.Location = new System.Drawing.Point(18, 562);
+            this.pnlDivider3.Location = new System.Drawing.Point(18, 606);
             this.pnlDivider3.Name = "pnlDivider3";
             this.pnlDivider3.Size = new System.Drawing.Size(275, 1);
             this.pnlDivider3.TabIndex = 20;
@@ -561,7 +567,7 @@ namespace Test
             this.lblImagesCaption.BackColor = System.Drawing.Color.Transparent;
             this.lblImagesCaption.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
             this.lblImagesCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this.lblImagesCaption.Location = new System.Drawing.Point(18, 575);
+            this.lblImagesCaption.Location = new System.Drawing.Point(18, 619);
             this.lblImagesCaption.Name = "lblImagesCaption";
             this.lblImagesCaption.Size = new System.Drawing.Size(43, 12);
             this.lblImagesCaption.TabIndex = 21;
@@ -575,7 +581,7 @@ namespace Test
             this._btnAddImage.FlatAppearance.BorderSize = 0;
             this._btnAddImage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this._btnAddImage.ForeColor = System.Drawing.Color.White;
-            this._btnAddImage.Location = new System.Drawing.Point(226, 568);
+            this._btnAddImage.Location = new System.Drawing.Point(226, 612);
             this._btnAddImage.Name = "_btnAddImage";
             this._btnAddImage.Size = new System.Drawing.Size(67, 22);
             this._btnAddImage.TabIndex = 22;
@@ -588,19 +594,41 @@ namespace Test
             this._pnlImagesThumbs.AllowDrop = true;
             this._pnlImagesThumbs.AutoScroll = true;
             this._pnlImagesThumbs.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(32)))));
-            this._pnlImagesThumbs.Location = new System.Drawing.Point(18, 596);
+            this._pnlImagesThumbs.Location = new System.Drawing.Point(18, 640);
             this._pnlImagesThumbs.Name = "_pnlImagesThumbs";
             this._pnlImagesThumbs.Size = new System.Drawing.Size(275, 68);
             this._pnlImagesThumbs.TabIndex = 23;
             this._pnlImagesThumbs.DragDrop += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragDrop);
             this._pnlImagesThumbs.DragEnter += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragEnter);
             // 
+            // lblTotalTimeSpent
+            // 
+            this.lblTotalTimeSpent.AutoSize = true;
+            this.lblTotalTimeSpent.BackColor = System.Drawing.Color.Transparent;
+            this.lblTotalTimeSpent.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.lblTotalTimeSpent.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
+            this.lblTotalTimeSpent.Location = new System.Drawing.Point(19, 375);
+            this.lblTotalTimeSpent.Name = "lblTotalTimeSpent";
+            this.lblTotalTimeSpent.Size = new System.Drawing.Size(84, 12);
+            this.lblTotalTimeSpent.TabIndex = 24;
+            this.lblTotalTimeSpent.Text = "Total Time Spent";
+            // 
+            // lblTotalTimeSpentDisplay
+            // 
+            this.lblTotalTimeSpentDisplay.BackColor = System.Drawing.Color.Transparent;
+            this.lblTotalTimeSpentDisplay.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblTotalTimeSpentDisplay.ForeColor = System.Drawing.Color.White;
+            this.lblTotalTimeSpentDisplay.Location = new System.Drawing.Point(19, 391);
+            this.lblTotalTimeSpentDisplay.Name = "lblTotalTimeSpentDisplay";
+            this.lblTotalTimeSpentDisplay.Size = new System.Drawing.Size(275, 40);
+            this.lblTotalTimeSpentDisplay.TabIndex = 25;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(30)))));
-            this.ClientSize = new System.Drawing.Size(1080, 755);
+            this.ClientSize = new System.Drawing.Size(1080, 796);
             this.Controls.Add(this.pnlLeft);
             this.Controls.Add(this.pnlDetail);
             this.Controls.Add(this.pnlToolbar);
@@ -618,5 +646,8 @@ namespace Test
             this.ResumeLayout(false);
 
         }
+
+        private System.Windows.Forms.Label lblTotalTimeSpent;
+        private System.Windows.Forms.Label lblTotalTimeSpentDisplay;
     }
 }

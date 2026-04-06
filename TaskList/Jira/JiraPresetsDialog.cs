@@ -16,11 +16,13 @@ namespace Test
 
         public JiraPresetsDialog(List<JiraPreset> presets)
         {
+
             _original = presets;
             _working  = presets.Select(p => new JiraPreset { Name = p.Name, Jql = p.Jql }).ToList();
             _resizable = true;
 
             InitializeComponent();
+            this._lvPresets.Columns.Add("Name", 228);
             RegisterTitleBar(pnlHeader, showMin: true, showMax: true);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==
@@ -75,6 +77,15 @@ namespace Test
         private void BtnNew_Click(object sender, EventArgs e)
         {
             _working.Add(new JiraPreset { Name = "New Preset", Jql = "" });
+            RefreshList(_working.Count - 1);
+            _txtName.Focus();
+            _txtName.SelectAll();
+        }
+        private void BtnCopy_Click(object sender, EventArgs e)
+        {
+            if (_lvPresets.SelectedItems.Count == 0) return;
+            int idx = _lvPresets.SelectedIndices[0];
+            _working.Add(new JiraPreset { Name = _working[idx].Name, Jql = _working[idx].Jql });
             RefreshList(_working.Count - 1);
             _txtName.Focus();
             _txtName.SelectAll();

@@ -20,6 +20,8 @@ namespace Test
             _resizable = true;
 
             InitializeComponent();
+            this._lvTemplates.Columns.Add("Name", 210);
+
             RegisterTitleBar(pnlHeader, showMin: true, showMax: false);
 
             if (System.ComponentModel.LicenseManager.UsageMode ==

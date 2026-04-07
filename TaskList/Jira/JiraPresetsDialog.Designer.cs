@@ -373,7 +373,7 @@ namespace Test
             this.MinimumSize = new System.Drawing.Size(580, 400);
             this.Name = "JiraPresetsDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = ". I meant jirapresetsdialog.cs";
+            this.Text = "Manage JQL Presets";
             this.pnlHeader.ResumeLayout(false);
             this.pnlHeader.PerformLayout();
             this._pnlBottom.ResumeLayout(false);

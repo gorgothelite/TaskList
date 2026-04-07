@@ -58,6 +58,7 @@ namespace Test
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.pnlTitleBar = new System.Windows.Forms.Panel();
             this.pnlToolbar = new System.Windows.Forms.Panel();
             this.btnAdd = new System.Windows.Forms.Button();
@@ -71,6 +72,8 @@ namespace Test
             this.pnlLeft = new System.Windows.Forms.Panel();
             this._lv = new System.Windows.Forms.ListView();
             this.pnlDetail = new System.Windows.Forms.Panel();
+            this.lblTotalTimeSpent = new System.Windows.Forms.Label();
+            this.lblTotalTimeSpentDisplay = new System.Windows.Forms.Label();
             this.lblDetailHeader = new System.Windows.Forms.Label();
             this.lblNameCaption = new System.Windows.Forms.Label();
             this._lblName = new System.Windows.Forms.Label();
@@ -95,8 +98,6 @@ namespace Test
             this.lblImagesCaption = new System.Windows.Forms.Label();
             this._btnAddImage = new System.Windows.Forms.Button();
             this._pnlImagesThumbs = new System.Windows.Forms.Panel();
-            this.lblTotalTimeSpent = new System.Windows.Forms.Label();
-            this.lblTotalTimeSpentDisplay = new System.Windows.Forms.Label();
             this.pnlToolbar.SuspendLayout();
             this.pnlLeft.SuspendLayout();
             this.pnlDetail.SuspendLayout();
@@ -309,6 +310,28 @@ namespace Test
             this.pnlDetail.TabIndex = 2;
             this.pnlDetail.DragDrop += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragDrop);
             this.pnlDetail.DragEnter += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragEnter);
+            // 
+            // lblTotalTimeSpent
+            // 
+            this.lblTotalTimeSpent.AutoSize = true;
+            this.lblTotalTimeSpent.BackColor = System.Drawing.Color.Transparent;
+            this.lblTotalTimeSpent.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.lblTotalTimeSpent.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
+            this.lblTotalTimeSpent.Location = new System.Drawing.Point(19, 375);
+            this.lblTotalTimeSpent.Name = "lblTotalTimeSpent";
+            this.lblTotalTimeSpent.Size = new System.Drawing.Size(84, 12);
+            this.lblTotalTimeSpent.TabIndex = 24;
+            this.lblTotalTimeSpent.Text = "Total Time Spent";
+            // 
+            // lblTotalTimeSpentDisplay
+            // 
+            this.lblTotalTimeSpentDisplay.BackColor = System.Drawing.Color.Transparent;
+            this.lblTotalTimeSpentDisplay.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblTotalTimeSpentDisplay.ForeColor = System.Drawing.Color.White;
+            this.lblTotalTimeSpentDisplay.Location = new System.Drawing.Point(19, 391);
+            this.lblTotalTimeSpentDisplay.Name = "lblTotalTimeSpentDisplay";
+            this.lblTotalTimeSpentDisplay.Size = new System.Drawing.Size(275, 40);
+            this.lblTotalTimeSpentDisplay.TabIndex = 25;
             // 
             // lblDetailHeader
             // 
@@ -601,28 +624,6 @@ namespace Test
             this._pnlImagesThumbs.DragDrop += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragDrop);
             this._pnlImagesThumbs.DragEnter += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragEnter);
             // 
-            // lblTotalTimeSpent
-            // 
-            this.lblTotalTimeSpent.AutoSize = true;
-            this.lblTotalTimeSpent.BackColor = System.Drawing.Color.Transparent;
-            this.lblTotalTimeSpent.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
-            this.lblTotalTimeSpent.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
-            this.lblTotalTimeSpent.Location = new System.Drawing.Point(19, 375);
-            this.lblTotalTimeSpent.Name = "lblTotalTimeSpent";
-            this.lblTotalTimeSpent.Size = new System.Drawing.Size(84, 12);
-            this.lblTotalTimeSpent.TabIndex = 24;
-            this.lblTotalTimeSpent.Text = "Total Time Spent";
-            // 
-            // lblTotalTimeSpentDisplay
-            // 
-            this.lblTotalTimeSpentDisplay.BackColor = System.Drawing.Color.Transparent;
-            this.lblTotalTimeSpentDisplay.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.lblTotalTimeSpentDisplay.ForeColor = System.Drawing.Color.White;
-            this.lblTotalTimeSpentDisplay.Location = new System.Drawing.Point(19, 391);
-            this.lblTotalTimeSpentDisplay.Name = "lblTotalTimeSpentDisplay";
-            this.lblTotalTimeSpentDisplay.Size = new System.Drawing.Size(275, 40);
-            this.lblTotalTimeSpentDisplay.TabIndex = 25;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -634,6 +635,7 @@ namespace Test
             this.Controls.Add(this.pnlToolbar);
             this.Controls.Add(this.pnlTitleBar);
             this.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(860, 632);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

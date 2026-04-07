@@ -51,12 +51,19 @@ namespace Test
         // ── Visual maps ──────────────────────────────────────────────────────
         private static readonly Color[]  PriCol  = { Color.FromArgb(88,196,88), Color.FromArgb(214,188,50), Color.FromArgb(232,116,40), Color.FromArgb(222,52,52) };
         private static readonly string[] PriName = { "Low", "Medium", "High", "Critical" };
-
+        private Icon _iconFromPng; // to keep the handle aliv
         // ── Constructor ──────────────────────────────────────────────────────
         public MainForm()
         {
             _resizable = true;
             InitializeComponent();
+
+            //using (var bmp = (Bitmap)Image.FromFile("Resources\\automation.png"))
+            //{
+            //    _iconFromPng = Icon.FromHandle(bmp.GetHicon());
+            //    this.Icon = _iconFromPng;
+            //}
+
             _cmbStatusF.SelectedIndex   = 0;
             _cmbPriorityF.SelectedIndex = 0;
             _lv.Columns.Add("",          22);
@@ -173,11 +180,11 @@ namespace Test
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            if (WindowState == FormWindowState.Minimized)
-            {
-                Hide();
-                _notifyIcon.Visible = true;
-            }
+            //if (WindowState == FormWindowState.Minimized)
+            //{
+                //Hide();
+                //_notifyIcon.Visible = true;
+            //}
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)

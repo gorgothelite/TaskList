@@ -485,19 +485,19 @@ namespace Test
         {
             var sourceList = _radResults.Checked ? _searchIssues : _masterIssues;
 
-            //if (sourceList.Count == 0)
-            //{ SetStatus("No issues in selected source.", true); return; }
+            if (sourceList.Count == 0)
+            { SetStatus("No issues in selected source.", true); return; }
 
-            //if (!_chkWorklogs.Checked && !_chkComments.Checked)
-            //{ SetStatus("Select at least one of: Worklogs, Comments.", true); return; }
+            if (!_chkWorklogs.Checked && !_chkComments.Checked)
+            { SetStatus("Select at least one of: Worklogs, Comments.", true); return; }
 
-            //if (_recipients.Count == 0)
-            //{
-            //    MessageBox.Show(
-            //        "No recipients configured. Use \"Edit Recipients\u2026\" to add recipients first.",
-            //        "No Recipients", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            //    return;
-            //}
+            if (_recipients.Count == 0)
+            {
+                MessageBox.Show(
+                    "No recipients configured. Use \"Edit Recipients\u2026\" to add recipients first.",
+                    "No Recipients", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             var selectedRecipients = PickRecipients(iIsDefault);
             if (selectedRecipients == null || selectedRecipients.Count == 0) return;

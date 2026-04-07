@@ -367,7 +367,6 @@ namespace Test
             this._lvResults.Font = new System.Drawing.Font("Segoe UI", 9F);
             this._lvResults.ForeColor = System.Drawing.Color.White;
             this._lvResults.FullRowSelect = true;
-            this._lvResults.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this._lvResults.HideSelection = false;
             this._lvResults.Location = new System.Drawing.Point(10, 18);
             this._lvResults.Name = "_lvResults";
@@ -375,6 +374,7 @@ namespace Test
             this._lvResults.TabIndex = 1;
             this._lvResults.UseCompatibleStateImageBehavior = false;
             this._lvResults.View = System.Windows.Forms.View.Details;
+            this._lvResults.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.LvResults_ColumnClick);
             this._lvResults.DoubleClick += new System.EventHandler(this.LvResults_DoubleClick);
             // 
             // _lblResultsCaption

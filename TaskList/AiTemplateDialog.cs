@@ -25,12 +25,6 @@ namespace Test
             if (System.ComponentModel.LicenseManager.UsageMode ==
                 System.ComponentModel.LicenseUsageMode.Designtime) return;
 
-            _txtName.TextChanged += (s, e) =>
-            {
-                if (_suppress || _lvTemplates.SelectedItems.Count == 0) return;
-                _lvTemplates.SelectedItems[0].Text = _txtName.Text;
-            };
-
             RefreshList(-1);
             if (_lvTemplates.Items.Count > 0)
                 _lvTemplates.Items[0].Selected = true;
@@ -106,15 +100,17 @@ namespace Test
             RefreshList(idx + 1);
         }
 
+        private void BtnApply_Click(object sender, EventArgs e)
+        {
+            if (_lvTemplates.SelectedItems.Count == 0) return;
+            int idx                        = _lvTemplates.SelectedIndices[0];
+            _working[idx].Name             = _txtName.Text.Trim();
+            _working[idx].Template         = _txtTemplate.Text;
+            _lvTemplates.Items[idx].Text   = _working[idx].Name;
+        }
+
         private void BtnOk_Click(object sender, EventArgs e)
         {
-            // Commit any pending edits so the user doesn't need to explicitly click Apply
-            if (_lvTemplates.SelectedItems.Count > 0)
-            {
-                int idx = _lvTemplates.SelectedIndices[0];
-                _working[idx].Name     = _txtName.Text.Trim();
-                _working[idx].Template = _txtTemplate.Text;
-            }
             DialogResult = DialogResult.OK;
             Close();
         }
@@ -132,6 +128,7 @@ namespace Test
             bool sel = _lvTemplates.SelectedItems.Count > 0;
             int  idx = sel ? _lvTemplates.SelectedIndices[0] : -1;
             _btnDelete.Enabled = sel;
+            _btnApply.Enabled  = sel;
             _btnUp.Enabled     = sel && idx > 0;
             _btnDown.Enabled   = sel && idx < _working.Count - 1;
         }

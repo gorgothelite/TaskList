@@ -23,6 +23,10 @@ namespace Test
         private readonly List<JiraIssue>  _masterItems = new List<JiraIssue>();
         private readonly List<JiraPreset> _presets     = new List<JiraPreset>();
 
+        // ── Results sort state ────────────────────────────────────────────────
+        private int  _resultsSortCol = -1;
+        private bool _resultsSortAsc = true;
+
         /// <summary>
         /// Raised when the user clicks "Import to Tasks".
         /// Payload is the list of TaskItems to be added to MainForm.
@@ -255,6 +259,19 @@ namespace Test
             if (key == null || string.IsNullOrEmpty(base_)) return;
             try { System.Diagnostics.Process.Start($"{base_}/browse/{key}"); }
             catch (Exception ex) { MessageBox.Show($"Could not open browser:\n{ex.Message}"); }
+        }
+
+        private void LvResults_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            if (_resultsSortCol == e.Column)
+                _resultsSortAsc = !_resultsSortAsc;
+            else
+            {
+                _resultsSortCol = e.Column;
+                _resultsSortAsc = true;
+            }
+            _lvResults.ListViewItemSorter = new JiraListSorter(_resultsSortCol, _resultsSortAsc);
+            _lvResults.Sort();
         }
 
         // ── Export to Excel ───────────────────────────────────────────────────
@@ -516,5 +533,65 @@ namespace Test
     {
         public string Name { get; set; }
         public string Jql  { get; set; }
+    }
+
+    // ── ListView column sorter ─────────────────────────────────────────────────
+    internal class JiraListSorter : System.Collections.IComparer
+    {
+        private static readonly Dictionary<string, int> PriorityRank = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["blocker"]  = 0, ["critical"] = 0, ["highest"] = 0,
+            ["major"]    = 1, ["high"]     = 1,
+            ["medium"]   = 2, ["normal"]   = 2,
+            ["minor"]    = 3, ["low"]      = 3,
+            ["trivial"]  = 4, ["lowest"]   = 4,
+        };
+
+        private readonly int  _col;
+        private readonly bool _asc;
+
+        public JiraListSorter(int col, bool asc) { _col = col; _asc = asc; }
+
+        public int Compare(object x, object y)
+        {
+            var a = (ListViewItem)x;
+            var b = (ListViewItem)y;
+            string va = _col == 0 ? a.Text : a.SubItems.Count > _col ? a.SubItems[_col].Text : "";
+            string vb = _col == 0 ? b.Text : b.SubItems.Count > _col ? b.SubItems[_col].Text : "";
+
+            int result;
+            if (_col == 4) // Priority
+            {
+                int ra = PriorityRank.TryGetValue(va, out int tmp) ? tmp : 99;
+                int rb = PriorityRank.TryGetValue(vb, out tmp)     ? tmp : 99;
+                result = ra.CompareTo(rb);
+            }
+            else if (_col == 0) // Key (e.g. PROJ-123 — sort by number)
+            {
+                result = CompareKeys(va, vb);
+            }
+            else
+            {
+                result = string.Compare(va, vb, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return _asc ? result : -result;
+        }
+
+        private static int CompareKeys(string a, string b)
+        {
+            // Split "PREFIX-NUMBER" and compare numerically on the number part
+            int ia = a.LastIndexOf('-'), ib = b.LastIndexOf('-');
+            if (ia > 0 && ib > 0)
+            {
+                string prefA = a.Substring(0, ia), prefB = b.Substring(0, ib);
+                int cmp = string.Compare(prefA, prefB, StringComparison.OrdinalIgnoreCase);
+                if (cmp != 0) return cmp;
+                if (int.TryParse(a.Substring(ia + 1), out int na) &&
+                    int.TryParse(b.Substring(ib + 1), out int nb))
+                    return na.CompareTo(nb);
+            }
+            return string.Compare(a, b, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

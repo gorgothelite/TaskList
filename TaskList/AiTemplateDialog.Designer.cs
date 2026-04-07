@@ -18,6 +18,7 @@ namespace Test
         private System.Windows.Forms.TextBox _txtName;
         private System.Windows.Forms.Label   _lblTemplateCaption;
         private System.Windows.Forms.TextBox _txtTemplate;
+        private System.Windows.Forms.Button  _btnApply;
 
         // ── Bottom strip ──────────────────────────────────────────────────────
         private System.Windows.Forms.Panel  pnlBottom;
@@ -41,6 +42,7 @@ namespace Test
             this._txtName = new System.Windows.Forms.TextBox();
             this._lblTemplateCaption = new System.Windows.Forms.Label();
             this._txtTemplate = new System.Windows.Forms.TextBox();
+            this._btnApply = new System.Windows.Forms.Button();
             this.pnlBottom = new System.Windows.Forms.Panel();
             this._btnOk = new System.Windows.Forms.Button();
             this._btnCancel = new System.Windows.Forms.Button();
@@ -114,6 +116,7 @@ namespace Test
             this.pnlRight.Controls.Add(this._txtName);
             this.pnlRight.Controls.Add(this._lblTemplateCaption);
             this.pnlRight.Controls.Add(this._txtTemplate);
+            this.pnlRight.Controls.Add(this._btnApply);
             this.pnlRight.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlRight.Location = new System.Drawing.Point(234, 42);
             this.pnlRight.Name = "pnlRight";
@@ -158,8 +161,8 @@ namespace Test
             // _txtTemplate
             // 
             this._txtTemplate.AcceptsReturn = true;
-            this._txtTemplate.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this._txtTemplate.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this._txtTemplate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._txtTemplate.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -168,9 +171,24 @@ namespace Test
             this._txtTemplate.Multiline = true;
             this._txtTemplate.Name = "_txtTemplate";
             this._txtTemplate.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._txtTemplate.Size = new System.Drawing.Size(522, 342);
+            this._txtTemplate.Size = new System.Drawing.Size(522, 303);
             this._txtTemplate.TabIndex = 3;
-            // 
+            //
+            // _btnApply
+            //
+            this._btnApply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this._btnApply.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(175)))));
+            this._btnApply.FlatAppearance.BorderSize = 0;
+            this._btnApply.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnApply.ForeColor = System.Drawing.Color.White;
+            this._btnApply.Location = new System.Drawing.Point(14, 389);
+            this._btnApply.Name = "_btnApply";
+            this._btnApply.Size = new System.Drawing.Size(140, 28);
+            this._btnApply.TabIndex = 4;
+            this._btnApply.Text = "Apply Changes";
+            this._btnApply.UseVisualStyleBackColor = false;
+            this._btnApply.Click += new System.EventHandler(this.BtnApply_Click);
+            //
             // pnlBottom
             // 
             this.pnlBottom.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(36)))), ((int)(((byte)(40)))));

@@ -70,6 +70,16 @@ namespace Test
             _txtName.SelectAll();
         }
 
+        private void BtnCopy_Click(object sender, EventArgs e)
+        {
+            if (_lvTemplates.SelectedItems.Count == 0) return;
+            int idx = _lvTemplates.SelectedIndices[0];
+            _working.Add(new SummaryTemplate { Name = _working[idx].Name, Template = _working[idx].Template });
+            RefreshList(_working.Count - 1);
+            _txtName.Focus();
+            _txtName.SelectAll();
+        }
+
         private void BtnDelete_Click(object sender, EventArgs e)
         {
             if (_lvTemplates.SelectedItems.Count == 0) return;
@@ -128,6 +138,7 @@ namespace Test
             bool sel = _lvTemplates.SelectedItems.Count > 0;
             int  idx = sel ? _lvTemplates.SelectedIndices[0] : -1;
             _btnDelete.Enabled = sel;
+            _btnCopy.Enabled   = sel;
             _btnApply.Enabled  = sel;
             _btnUp.Enabled     = sel && idx > 0;
             _btnDown.Enabled   = sel && idx < _working.Count - 1;

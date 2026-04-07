@@ -248,7 +248,7 @@ namespace Test
 
         // ── Data fetch ────────────────────────────────────────────────────────
         private async Task<(List<string> headers, List<List<string>> rows)> FetchAndBuildRows(
-            List<JiraIssue> issues)
+            List<JiraIssue> issues, bool includeEmpty = false)
         {
             var headers = new List<string>();
             if (_chkColKey.Checked)        headers.Add("Key");
@@ -275,6 +275,8 @@ namespace Test
                 var issue = issues[i];
                 _lblStatus.Text = $"Fetching {i + 1}/{issues.Count}: {issue.Key}\u2026";
                 Application.DoEvents();
+
+                int rowsBefore = rows.Count;
 
                 // ── Worklogs ──────────────────────────────────────────────────
                 if (_chkWorklogs.Checked)
@@ -335,6 +337,10 @@ namespace Test
                     }
                     catch { /* skip failed fetch */ }
                 }
+
+                // If this issue produced no rows and caller wants all items, add a blank row
+                if (includeEmpty && rows.Count == rowsBefore)
+                    rows.Add(BuildRow(issue, "", "", "", "", ""));
             }
 
             return (headers, rows);
@@ -936,12 +942,6 @@ namespace Test
                 return;
             }
 
-            if (!_chkWorklogs.Checked && !_chkComments.Checked)
-            {
-                _lblPreviewInfo.Text = "Select at least one of: Worklogs, Comments.";
-                return;
-            }
-
             _btnLoadPreview.Enabled = false;
             _lblPreviewInfo.Text    = "Loading\u2026";
             _dgvPreview.Columns.Clear();
@@ -949,10 +949,7 @@ namespace Test
 
             try
             {
-                int limit        = Math.Min(5, sourceList.Count);
-                var previewIssues = sourceList.GetRange(0, limit);
-
-                var result  = await FetchAndBuildRows(previewIssues);
+                var result  = await FetchAndBuildRows(sourceList, includeEmpty: true);
                 var headers = result.headers;
                 var rows    = result.rows;
 
@@ -971,11 +968,7 @@ namespace Test
                 foreach (var row in rows)
                     _dgvPreview.Rows.Add(row.ToArray());
 
-                string issueWord = limit == 1 ? "issue" : "issues";
-                _lblPreviewInfo.Text = $"{rows.Count} row(s) from first {limit} {issueWord}" +
-                                       (sourceList.Count > limit
-                                            ? $" (of {sourceList.Count} total — full data exported)"
-                                            : ".");
+                _lblPreviewInfo.Text = $"{rows.Count} row(s) from {sourceList.Count} issue(s).";
                 UpdateStatusLabel();
             }
             catch (Exception ex)

@@ -48,6 +48,7 @@ namespace Test
             this._btnCancel = new System.Windows.Forms.Button();
             this._btnNew = new System.Windows.Forms.Button();
             this._btnDelete = new System.Windows.Forms.Button();
+            this._btnCopy = new System.Windows.Forms.Button();
             this._btnUp = new System.Windows.Forms.Button();
             this._btnDown = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
@@ -194,6 +195,7 @@ namespace Test
             this.pnlBottom.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(36)))), ((int)(((byte)(40)))));
             this.pnlBottom.Controls.Add(this._btnNew);
             this.pnlBottom.Controls.Add(this._btnDelete);
+            this.pnlBottom.Controls.Add(this._btnCopy);
             this.pnlBottom.Controls.Add(this._btnUp);
             this.pnlBottom.Controls.Add(this._btnDown);
             this.pnlBottom.Controls.Add(this._btnOk);
@@ -261,7 +263,21 @@ namespace Test
             this._btnDelete.Text = "Delete";
             this._btnDelete.UseVisualStyleBackColor = false;
             this._btnDelete.Click += new System.EventHandler(this.BtnDelete_Click);
-            // 
+            //
+            // _btnCopy
+            //
+            this._btnCopy.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(100)))), ((int)(((byte)(60)))));
+            this._btnCopy.FlatAppearance.BorderSize = 0;
+            this._btnCopy.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnCopy.ForeColor = System.Drawing.Color.White;
+            this._btnCopy.Location = new System.Drawing.Point(232, 9);
+            this._btnCopy.Name = "_btnCopy";
+            this._btnCopy.Size = new System.Drawing.Size(100, 30);
+            this._btnCopy.TabIndex = 8;
+            this._btnCopy.Text = "++ Copy";
+            this._btnCopy.UseVisualStyleBackColor = false;
+            this._btnCopy.Click += new System.EventHandler(this.BtnCopy_Click);
+            //
             // _btnUp
             // 
             this._btnUp.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(70)))));
@@ -320,6 +336,7 @@ namespace Test
 
         private System.Windows.Forms.Button _btnNew;
         private System.Windows.Forms.Button _btnDelete;
+        private System.Windows.Forms.Button _btnCopy;
         private System.Windows.Forms.Button _btnUp;
         private System.Windows.Forms.Button _btnDown;
     }

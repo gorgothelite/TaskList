@@ -56,13 +56,13 @@ namespace Test
                 _cmbAlert.Items.Add(opt.Label);
 
             // Select the option whose minutes match; fall back to "1 day before"
-            int alertIdx = 7; // default: 1 day before
+            int alertIdx = -1; // default: Never
             for (int i = 0; i < AlertOptions.Length; i++)
             {
                 if (AlertOptions[i].Minutes == Result.AlertLeadMinutes)
                 { alertIdx = i; break; }
             }
-            _cmbAlert.SelectedIndex = alertIdx;
+            _cmbAlert.SelectedIndex = 0;
         }
 
         private void BtnSave_Click(object sender, EventArgs e)

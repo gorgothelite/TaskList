@@ -272,6 +272,7 @@ namespace Test
             this._lv.TabIndex = 0;
             this._lv.UseCompatibleStateImageBehavior = false;
             this._lv.View = System.Windows.Forms.View.Details;
+            this._lv.DoubleClick += new System.EventHandler(this._lv_DoubleClick);
             // 
             // pnlDetail
             // 

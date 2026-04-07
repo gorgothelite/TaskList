@@ -990,5 +990,10 @@ namespace Test
             }
             catch { }
         }
+
+        private void _lv_DoubleClick(object sender, EventArgs e)
+        {
+            EditTask();
+        }
     }
 }

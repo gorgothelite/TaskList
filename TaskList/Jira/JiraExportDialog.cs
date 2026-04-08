@@ -525,7 +525,7 @@ namespace Test
 
             try
             {
-                var result  = await FetchAndBuildRows(sourceList);
+                var result  = await FetchAndBuildRows(sourceList, includeEmpty: _chkIncludeEmpty.Checked);
                 var headers = result.headers;
                 var rows    = result.rows;
 
@@ -1027,7 +1027,7 @@ namespace Test
 
             try
             {
-                var result  = await FetchAndBuildRows(sourceList);
+                var result  = await FetchAndBuildRows(sourceList, includeEmpty: _chkIncludeEmpty.Checked);
                 var headers = result.headers;
                 var rows    = result.rows;
 

@@ -17,6 +17,7 @@ namespace Test
         private System.Windows.Forms.GroupBox grpInclude;
         private System.Windows.Forms.CheckBox _chkWorklogs;
         private System.Windows.Forms.CheckBox _chkComments;
+        private System.Windows.Forms.CheckBox _chkIncludeEmpty;
 
         // ── AI Summary group ──────────────────────────────────────────────────
         private System.Windows.Forms.GroupBox grpAiSummary;
@@ -68,9 +69,9 @@ namespace Test
 
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.pnlHeader = new System.Windows.Forms.Panel();
             this._lblTitle = new System.Windows.Forms.Label();
             this.grpSource = new System.Windows.Forms.GroupBox();
@@ -79,6 +80,7 @@ namespace Test
             this.grpInclude = new System.Windows.Forms.GroupBox();
             this._chkWorklogs = new System.Windows.Forms.CheckBox();
             this._chkComments = new System.Windows.Forms.CheckBox();
+            this._chkIncludeEmpty = new System.Windows.Forms.CheckBox();
             this.grpAiSummary = new System.Windows.Forms.GroupBox();
             this._btnSaveSettings = new System.Windows.Forms.Button();
             this._chkSummarize = new System.Windows.Forms.CheckBox();
@@ -186,10 +188,11 @@ namespace Test
             // 
             this.grpInclude.Controls.Add(this._chkWorklogs);
             this.grpInclude.Controls.Add(this._chkComments);
+            this.grpInclude.Controls.Add(this._chkIncludeEmpty);
             this.grpInclude.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             this.grpInclude.Location = new System.Drawing.Point(226, 52);
             this.grpInclude.Name = "grpInclude";
-            this.grpInclude.Size = new System.Drawing.Size(140, 80);
+            this.grpInclude.Size = new System.Drawing.Size(160, 97);
             this.grpInclude.TabIndex = 2;
             this.grpInclude.TabStop = false;
             this.grpInclude.Text = "Include";
@@ -217,6 +220,16 @@ namespace Test
             this._chkComments.Size = new System.Drawing.Size(89, 21);
             this._chkComments.TabIndex = 1;
             this._chkComments.Text = "Comments";
+            // 
+            // _chkIncludeEmpty
+            // 
+            this._chkIncludeEmpty.AutoSize = true;
+            this._chkIncludeEmpty.ForeColor = System.Drawing.Color.White;
+            this._chkIncludeEmpty.Location = new System.Drawing.Point(14, 74);
+            this._chkIncludeEmpty.Name = "_chkIncludeEmpty";
+            this._chkIncludeEmpty.Size = new System.Drawing.Size(142, 21);
+            this._chkIncludeEmpty.TabIndex = 2;
+            this._chkIncludeEmpty.Text = "Show no-work rows";
             // 
             // grpAiSummary
             // 
@@ -598,32 +611,32 @@ namespace Test
             this._dgvPreview.AllowUserToAddRows = false;
             this._dgvPreview.AllowUserToDeleteRows = false;
             this._dgvPreview.AllowUserToResizeRows = false;
-            dataGridViewCellStyle7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(42)))), ((int)(((byte)(45)))));
-            dataGridViewCellStyle7.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
-            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
-            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.Color.White;
-            this._dgvPreview.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(42)))), ((int)(((byte)(45)))));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.White;
+            this._dgvPreview.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this._dgvPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._dgvPreview.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(32)))));
             this._dgvPreview.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this._dgvPreview.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(55)))));
-            dataGridViewCellStyle8.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            dataGridViewCellStyle8.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            dataGridViewCellStyle8.Padding = new System.Windows.Forms.Padding(4, 0, 0, 0);
-            this._dgvPreview.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(55)))));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
+            dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(4, 0, 0, 0);
+            this._dgvPreview.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this._dgvPreview.ColumnHeadersHeight = 26;
             this._dgvPreview.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle9.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            dataGridViewCellStyle9.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
-            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
-            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.Color.White;
-            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this._dgvPreview.DefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9.5F);
+            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(180)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this._dgvPreview.DefaultCellStyle = dataGridViewCellStyle3;
             this._dgvPreview.EnableHeadersVisualStyles = false;
             this._dgvPreview.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._dgvPreview.Location = new System.Drawing.Point(14, 56);

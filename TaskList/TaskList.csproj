@@ -97,6 +97,12 @@
     <Compile Include="Jira\JiraExportDialog.Designer.cs">
       <DependentUpon>JiraExportDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Jira\JiraQuickRunDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Jira\JiraQuickRunDialog.Designer.cs">
+      <DependentUpon>JiraQuickRunDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Classes\XlsxWriter.cs" />
     <Compile Include="AlertDialog.cs">
       <SubType>Form</SubType>

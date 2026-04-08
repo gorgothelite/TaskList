@@ -274,6 +274,45 @@ namespace Test
             _lvResults.Sort();
         }
 
+        // ── Quick Run ─────────────────────────────────────────────────────────
+        private async void BtnQuickRun_Click(object sender, EventArgs e)
+        {
+            if (!JiraQuickRunDialog.IsConfigured())
+            {
+                using (var dlg = new JiraQuickRunDialog())
+                    dlg.ShowDialog(this);
+                return;
+            }
+
+            _btnQuickRun.Enabled      = false;
+            _btnQuickRunSetup.Enabled = false;
+            try
+            {
+                using (var runner = new JiraQuickRunDialog())
+                {
+                    runner.ExternalStatusCallback = (msg, isErr) =>
+                    {
+                        _lblStatus.Text      = msg;
+                        _lblStatus.ForeColor = isErr
+                            ? System.Drawing.Color.FromArgb(222, 80, 80)
+                            : System.Drawing.Color.FromArgb(130, 130, 140);
+                    };
+                    await runner.RunAsync();
+                }
+            }
+            finally
+            {
+                _btnQuickRun.Enabled      = true;
+                _btnQuickRunSetup.Enabled = true;
+            }
+        }
+
+        private void BtnQuickRunSetup_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new JiraQuickRunDialog())
+                dlg.ShowDialog(this);
+        }
+
         // ── Export to Excel ───────────────────────────────────────────────────
         private void BtnExportExcel_Click(object sender, EventArgs e)
         {

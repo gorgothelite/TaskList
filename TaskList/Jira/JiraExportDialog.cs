@@ -702,6 +702,7 @@ namespace Test
             int iRec     = headers.IndexOf("Record Type");
             int iHours   = headers.IndexOf("Hours");
             int iText    = headers.IndexOf("Text");
+            int iStatus  = headers.IndexOf("Status");
 
             var body      = new StringBuilder();
             int charBudget = 80_000;
@@ -716,12 +717,13 @@ namespace Test
                 string author  = iAuthor  >= 0 && iAuthor < row.Count ? row[iAuthor]  : "";
                 string hours   = iHours   >= 0 && iHours  < row.Count ? row[iHours]   : "";
                 string text    = iText    >= 0 && iText   < row.Count ? row[iText]    : "";
+                string status  = iStatus  >= 0 && iStatus < row.Count ? row[iStatus] : "";
 
                 if (string.IsNullOrWhiteSpace(text)) continue;
 
                 string line = rec == "Worklog"
-                    ? $"[Worklog] Key: {key} | Project: {project} | Date: {date} | Author: {author} | Hours: {hours}h | Summary: {text}\n"
-                    : $"[Comment] Key: {key} | Project: {project} | Date: {date} | Author: {author} | Summary:{text}\n";
+                    ? $"[Worklog] Key: {key} | Project: {project} | Date: {date} | Author: {author} | Hours: {hours}h | Summary: {text} | Status: {status}\n"
+                    : $"[Comment] Key: {key} | Project: {project} | Date: {date} | Author: {author} | Summary:{text} | Status: {status}\n";
 
                 if (body.Length + line.Length > charBudget)
                 {

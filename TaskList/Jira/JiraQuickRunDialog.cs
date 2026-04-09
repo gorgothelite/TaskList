@@ -549,7 +549,7 @@ namespace Test
             switch (_aiProvider)
             {
                 case 1:  return _openAiKey;
-                case 3:  return _forgeKey;
+                case 0:  return _forgeKey;
                 default: return _claudeKey;
             }
         }
@@ -562,7 +562,7 @@ namespace Test
             switch (_aiProvider)
             {
                 case 1:  return await CallOpenAI(prompt);
-                case 3:  return await CallForge(prompt);
+                case 0:  return await CallForge(prompt);
                 default: return await CallClaude(prompt);
             }
         }

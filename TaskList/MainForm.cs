@@ -261,7 +261,7 @@ namespace Test
             _lblPriority.Text = PriName[(int)t.Priority]; _lblPriority.ForeColor = PriCol[(int)t.Priority];
             _lblDue.Text = t.DueDate.ToString("f") + "\n" + AlertLeadLabel(t.AlertLeadMinutes);
             _lblDue.ForeColor = overdue ? Color.FromArgb(255,100,100) : Color.White;
-            lblTotalTimeSpentDisplay.Text = (_sel.TotalTime/3600).ToString("F2");
+            lblTotalTimeSpentDisplay.Text = _sel.ComputeTotalActiveHours().ToString("F2");
             if      (t.IsDone)    { _lblStatus.Text = "✓  Completed"; _lblStatus.ForeColor = Color.FromArgb(88,196,88); }
             else if (t.IsOnHold)  { _lblStatus.Text = "⏸  On Hold";   _lblStatus.ForeColor = Color.FromArgb(220,160,0); }
             else if (overdue)     { _lblStatus.Text = "⚠  Overdue";   _lblStatus.ForeColor = Color.FromArgb(255,100,100); }
@@ -437,6 +437,7 @@ namespace Test
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
                 _tasks.Add(dlg.Result);
+                BeginActiveSession(dlg.Result);
                 _sel = dlg.Result;
                 AddRevision(new RevisionEntry { Action = RevisionAction.TaskAdded, TaskId = dlg.Result.Id, TaskName = dlg.Result.Name, Summary = $"Task \"{dlg.Result.Name}\" added (Priority: {dlg.Result.Priority}, Due: {dlg.Result.DueDate:g})" });
                 SaveAll(); RefreshList();
@@ -461,8 +462,8 @@ namespace Test
             if (_sel == null) return;
             bool was = _sel.IsDone;
             _sel.IsDone = !was;
-            _sel.EndDate = DateTime.Now;
-            _sel.TotalTime = (_sel.EndDate - _sel.StartDate).TotalHours;
+            if (_sel.IsDone) EndActiveSession(_sel);
+            else             BeginActiveSession(_sel);
             AddRevision(new RevisionEntry { Action = RevisionAction.StatusChanged, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" marked {(_sel.IsDone ? "Done" : "Active")}", Changes = new List<FieldChange> { new FieldChange { Field = "IsDone", OldValue = was.ToString(), NewValue = _sel.IsDone.ToString() } } });
             SaveAll(); RefreshList();
         }
@@ -494,6 +495,7 @@ namespace Test
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
                 dlg.Result.ParentId = parentTask.Id;
                 _tasks.Add(dlg.Result);
+                BeginActiveSession(dlg.Result);
                 AddRevision(new RevisionEntry { Action = RevisionAction.TaskAdded, TaskId = dlg.Result.Id, TaskName = dlg.Result.Name, Summary = $"Subtask \"{dlg.Result.Name}\" added to \"{parentTask.Name}\" (Priority: {dlg.Result.Priority}, Due: {dlg.Result.DueDate:g})" });
                 SaveAll(); RefreshList();
             }
@@ -504,6 +506,8 @@ namespace Test
             if (_sel == null) return;
             bool wasOnHold = _sel.IsOnHold;
             _sel.IsOnHold = !wasOnHold;
+            if (_sel.IsOnHold) EndActiveSession(_sel);
+            else               BeginActiveSession(_sel);
             AddRevision(new RevisionEntry { Action = RevisionAction.StatusChanged, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" {(_sel.IsOnHold ? "put on hold" : "removed from hold")}", Changes = new List<FieldChange> { new FieldChange { Field = "IsOnHold", OldValue = wasOnHold.ToString(), NewValue = _sel.IsOnHold.ToString() } } });
             SaveAll(); RefreshList();
         }
@@ -542,6 +546,7 @@ namespace Test
                 // Skip if a task with the same name already exists
                 if (_tasks.Exists(x => x.Name == t.Name)) continue;
                 _tasks.Add(t);
+                BeginActiveSession(t);
                 AddRevision(new RevisionEntry
                 {
                     Action   = RevisionAction.TaskAdded,
@@ -575,15 +580,26 @@ namespace Test
             _notesSaveTimer.Start();
         }
 
+        // ── Work-session helpers ─────────────────────────────────────────────
+        private static void BeginActiveSession(TaskItem t)
+        {
+            if (t.IsDone || t.IsOnHold) return;
+            if (t.WorkLog.Any(s => s.End == null)) return;   // already open
+            t.WorkLog.Add(new WorkSession { Start = DateTime.Now });
+        }
+
+        private static void EndActiveSession(TaskItem t)
+        {
+            var open = t.WorkLog.LastOrDefault(s => s.End == null);
+            if (open != null) open.End = DateTime.Now;
+        }
+
         private void TimeSpentTimer_Tick(object sender, EventArgs e)
         {
-            var due = _tasks.Where(t => !t.IsDone && !t.IsOnHold)
-                .OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate);
-
-            foreach (TaskItem wTask in due)
-            {
-                wTask.TotalTime++;
-            }
+            // No longer mutates data — just keeps the detail panel display current
+            // for the selected task while it is active.
+            if (_sel != null && !_sel.IsDone && !_sel.IsOnHold)
+                lblTotalTimeSpentDisplay.Text = _sel.ComputeTotalActiveHours().ToString("F2");
         }
 
         private void NotesSaveTimer_Tick(object sender, EventArgs e)
@@ -957,6 +973,10 @@ namespace Test
             try
             {
                 _tasks = JsonConvert.DeserializeObject<List<TaskItem>>(File.ReadAllText(DataFile)) ?? new List<TaskItem>();
+                // For active tasks that have no open session (new tasks or migration from old data),
+                // begin one now so time accumulates from this session forward.
+                foreach (var t in _tasks.Where(t => !t.IsDone && !t.IsOnHold))
+                    BeginActiveSession(t);
                 AddRevision(new RevisionEntry { Action=RevisionAction.DataLoaded, TaskName="(startup)", Summary=$"{_tasks.Count} task(s) loaded at {DateTime.Now:g}" });
             }
             catch { _tasks = new List<TaskItem>(); }

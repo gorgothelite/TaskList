@@ -259,7 +259,15 @@ namespace Test
 
             _lblName.Text = t.Name; _lblName.ForeColor = Color.White;
             _lblPriority.Text = PriName[(int)t.Priority]; _lblPriority.ForeColor = PriCol[(int)t.Priority];
-            _lblDue.Text = t.DueDate.ToString("f") + "\n" + AlertLeadLabel(t.AlertLeadMinutes);
+            if (t.DueDateEnabled)
+            {
+                _lblDue.Text = t.DueDate.ToString("f") + "\n" + AlertLeadLabel(t.AlertLeadMinutes);
+            }
+            else
+            {
+                overdue = false;
+                _lblDue.Text = "N/A";
+            }
             _lblDue.ForeColor = overdue ? Color.FromArgb(255,100,100) : Color.White;
             lblTotalTimeSpentDisplay.Text = _sel.ComputeTotalActiveHours().ToString("F2");
             if      (t.IsDone)    { _lblStatus.Text = "✓  Completed"; _lblStatus.ForeColor = Color.FromArgb(88,196,88); }

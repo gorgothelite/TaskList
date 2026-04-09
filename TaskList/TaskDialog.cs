@@ -45,6 +45,7 @@ namespace Test
             _txtName.Text              = Result.Name;
             _rtbNotes.Text             = Result.Notes;
             _cmbPriority.SelectedIndex = (int)Result.Priority;
+            cbDueDateEnabled.Checked = Result.DueDateEnabled;
             try
             {
                 _dtpDate.Value = Result.DueDate.Date;
@@ -79,7 +80,26 @@ namespace Test
             Result.DueDate          = _dtpDate.Value.Date + _dtpTime.Value.TimeOfDay;
             Result.Notes            = _rtbNotes.Text.Trim();
             Result.AlertLeadMinutes = AlertOptions[_cmbAlert.SelectedIndex].Minutes;
+            Result.DueDateEnabled   = cbDueDateEnabled.Checked;
             DialogResult            = DialogResult.OK;
+        }
+
+        private void cbDueDateEnabled_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbDueDateEnabled.Checked)
+            {
+                _cmbAlert.Enabled = true;
+                _dtpDate.Enabled = true;
+                _dtpTime.Enabled = true;
+            }
+            else
+            {
+                _cmbAlert.Enabled = false;
+                if(_cmbAlert.Items.Count > 0)
+                    _cmbAlert.SelectedIndex = 0;
+                _dtpDate.Enabled = false;
+                _dtpTime.Enabled = false;
+            }
         }
     }
 }

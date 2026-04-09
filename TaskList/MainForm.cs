@@ -155,7 +155,7 @@ namespace Test
             _notifyIcon = new NotifyIcon
             {
                 Icon             = _trayIconNormal,
-                Text             = "Task Manager",
+                Text             = "Task List",
                 ContextMenuStrip = _trayMenu,
                 Visible          = false
             };
@@ -174,7 +174,7 @@ namespace Test
         {
             _mutedNotifications  = _trayMuteItem.Checked;
             _notifyIcon.Icon     = _mutedNotifications ? _trayIconMuted  : _trayIconNormal;
-            _notifyIcon.Text     = _mutedNotifications ? "Task Manager (Muted)" : "Task Manager";
+            _notifyIcon.Text     = _mutedNotifications ? "Task List (Muted)" : "Task List";
         }
 
         protected override void OnResize(EventArgs e)

@@ -157,7 +157,7 @@ namespace Test
                 Icon             = _trayIconNormal,
                 Text             = "Task List",
                 ContextMenuStrip = _trayMenu,
-                Visible          = false
+                Visible          = true
             };
             _notifyIcon.DoubleClick += (s, e) => RestoreFromTray();
         }
@@ -167,7 +167,6 @@ namespace Test
             Show();
             WindowState = FormWindowState.Normal;
             Activate();
-            _notifyIcon.Visible = false;
         }
 
         private void TrayMute_Click(object sender, EventArgs e)
@@ -194,6 +193,7 @@ namespace Test
                 e.Cancel = true;
                 Hide();
                 _notifyIcon.Visible = true;
+                TrayPopup.Show("Task List is still running in the system tray.");
                 return;
             }
             _notifyIcon.Visible = false;

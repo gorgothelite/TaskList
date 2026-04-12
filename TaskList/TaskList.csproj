@@ -131,6 +131,7 @@
       <DependentUpon>TaskDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TrayPopup.cs" />
     <EmbeddedResource Include="AiTemplateDialog.resx">
       <DependentUpon>AiTemplateDialog.cs</DependentUpon>
     </EmbeddedResource>

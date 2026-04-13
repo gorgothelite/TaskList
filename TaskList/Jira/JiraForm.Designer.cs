@@ -87,7 +87,7 @@ namespace Test
             this._btnAddIssue = new System.Windows.Forms.Button();
             this._btnAddParent = new System.Windows.Forms.Button();
             this._btnExportExcel = new System.Windows.Forms.Button();
-            this._btnQuickRun      = new System.Windows.Forms.Button();
+            this._btnQuickRun = new System.Windows.Forms.Button();
             this._btnQuickRunSetup = new System.Windows.Forms.Button();
             this.pnlMasterList = new System.Windows.Forms.Panel();
             this._lblMasterCount = new System.Windows.Forms.Label();
@@ -453,37 +453,37 @@ namespace Test
             this._btnExportExcel.Text = "⬇  Export to Excel…";
             this._btnExportExcel.UseVisualStyleBackColor = false;
             this._btnExportExcel.Click += new System.EventHandler(this.BtnExportExcel_Click);
-            //
+            // 
             // _btnQuickRun
-            //
-            this._btnQuickRun.BackColor                 = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(160)))));
+            // 
+            this._btnQuickRun.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(100)))), ((int)(((byte)(160)))));
             this._btnQuickRun.FlatAppearance.BorderSize = 0;
-            this._btnQuickRun.FlatStyle                 = System.Windows.Forms.FlatStyle.Flat;
-            this._btnQuickRun.ForeColor                 = System.Drawing.Color.White;
-            this._btnQuickRun.Location                  = new System.Drawing.Point(580, 8);
-            this._btnQuickRun.Name                      = "_btnQuickRun";
-            this._btnQuickRun.Size                      = new System.Drawing.Size(148, 28);
-            this._btnQuickRun.TabIndex                  = 3;
-            this._btnQuickRun.Text                      = "\u26a1  Quick Run";
-            this._btnQuickRun.UseVisualStyleBackColor   = false;
+            this._btnQuickRun.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnQuickRun.ForeColor = System.Drawing.Color.White;
+            this._btnQuickRun.Location = new System.Drawing.Point(580, 8);
+            this._btnQuickRun.Name = "_btnQuickRun";
+            this._btnQuickRun.Size = new System.Drawing.Size(148, 28);
+            this._btnQuickRun.TabIndex = 3;
+            this._btnQuickRun.Text = "⚡  Quick Run";
+            this._btnQuickRun.UseVisualStyleBackColor = false;
             this._btnQuickRun.Click += new System.EventHandler(this.BtnQuickRun_Click);
-            //
+            // 
             // _btnQuickRunSetup
-            //
-            this._btnQuickRunSetup.BackColor                 = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(65)))));
+            // 
+            this._btnQuickRunSetup.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(65)))));
             this._btnQuickRunSetup.FlatAppearance.BorderSize = 0;
-            this._btnQuickRunSetup.FlatStyle                 = System.Windows.Forms.FlatStyle.Flat;
-            this._btnQuickRunSetup.ForeColor                 = System.Drawing.Color.White;
-            this._btnQuickRunSetup.Location                  = new System.Drawing.Point(734, 8);
-            this._btnQuickRunSetup.Name                      = "_btnQuickRunSetup";
-            this._btnQuickRunSetup.Size                      = new System.Drawing.Size(52, 28);
-            this._btnQuickRunSetup.TabIndex                  = 4;
-            this._btnQuickRunSetup.Text                      = "\u2699";
-            this._btnQuickRunSetup.UseVisualStyleBackColor   = false;
+            this._btnQuickRunSetup.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnQuickRunSetup.ForeColor = System.Drawing.Color.White;
+            this._btnQuickRunSetup.Location = new System.Drawing.Point(734, 8);
+            this._btnQuickRunSetup.Name = "_btnQuickRunSetup";
+            this._btnQuickRunSetup.Size = new System.Drawing.Size(52, 28);
+            this._btnQuickRunSetup.TabIndex = 4;
+            this._btnQuickRunSetup.Text = "⚙";
+            this._btnQuickRunSetup.UseVisualStyleBackColor = false;
             this._btnQuickRunSetup.Click += new System.EventHandler(this.BtnQuickRunSetup_Click);
-            //
+            // 
             // pnlMasterList
-            //
+            // 
             this.pnlMasterList.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(36)))), ((int)(((byte)(40)))));
             this.pnlMasterList.Controls.Add(this._lblMasterCount);
             this.pnlMasterList.Controls.Add(this._lvMaster);

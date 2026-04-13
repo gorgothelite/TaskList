@@ -73,6 +73,7 @@ namespace Test
             _lv.Columns.Add("Status",   230);
             RegisterTitleBar(pnlTitleBar, showMin: true, showMax: true);
             LoadSettings();
+            UpdateThemeButton();
             WireListView();
             LoadHistory();
             LoadTasks();
@@ -533,6 +534,24 @@ namespace Test
                 dlg.ShowDialog(this);
         }
 
+        private void BtnTheme_Click(object sender, EventArgs e)
+        {
+            ThemeManager.Toggle();
+            SaveSettings();
+        }
+
+        private void UpdateThemeButton()
+        {
+            btnTheme.Text = ThemeManager.IsDark ? "☀ Light Mode" : "🌙 Dark Mode";
+        }
+
+        protected override void OnThemeChanged(object sender, EventArgs e)
+        {
+            base.OnThemeChanged(sender, e);
+            UpdateThemeButton();
+            _lv.Invalidate();
+        }
+
         private void BtnJira_Click(object sender, EventArgs e)
         {
             if (_jiraWindow != null && !_jiraWindow.IsDisposed)
@@ -649,12 +668,12 @@ namespace Test
         // ── Custom drawing ────────────────────────────────────────────────────
         private void DrawHeader(object sender, DrawListViewColumnHeaderEventArgs e)
         {
-            using (var bg = new SolidBrush(Color.FromArgb(44,44,46))) e.Graphics.FillRectangle(bg, e.Bounds);
-            using (var pen = new Pen(Color.FromArgb(60,60,65))) e.Graphics.DrawLine(pen, e.Bounds.Left, e.Bounds.Bottom-1, e.Bounds.Right, e.Bounds.Bottom-1);
+            using (var bg = new SolidBrush(ThemeManager.ListHeaderBg))  e.Graphics.FillRectangle(bg, e.Bounds);
+            using (var pen = new Pen(ThemeManager.ListHeaderLine))       e.Graphics.DrawLine(pen, e.Bounds.Left, e.Bounds.Bottom-1, e.Bounds.Right, e.Bounds.Bottom-1);
 
             bool isSorted = e.ColumnIndex == _sortColumn;
             string arrow  = isSorted ? (_sortAscending ? " ▲" : " ▼") : "";
-            Color  fg     = isSorted ? Color.FromArgb(220, 220, 230) : Color.FromArgb(160, 160, 170);
+            Color  fg     = isSorted ? ThemeManager.ListHeaderFgSorted : ThemeManager.ListHeaderFg;
             TextRenderer.DrawText(e.Graphics, e.Header.Text + arrow, new Font("Segoe UI",8.5f,FontStyle.Bold), new Rectangle(e.Bounds.X+5, e.Bounds.Y, e.Bounds.Width-5, e.Bounds.Height), fg, TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
         }
 
@@ -664,7 +683,7 @@ namespace Test
             if (task == null) { e.DrawDefault = true; return; }
 
             bool sel = e.Item.Selected, isDone = task.IsDone, overdue = !isDone && task.DueDate < DateTime.Now;
-            Color bg = sel ? Color.FromArgb(0,84,158) : (e.ItemIndex%2==0 ? Color.FromArgb(28,28,30) : Color.FromArgb(33,33,37));
+            Color bg = sel ? ThemeManager.ListSelected : (e.ItemIndex % 2 == 0 ? ThemeManager.ListBg : ThemeManager.ListBgAlt);
             using (var br = new SolidBrush(bg)) e.Graphics.FillRectangle(br, e.Bounds);
 
             if (e.ColumnIndex == 0)
@@ -676,12 +695,12 @@ namespace Test
             }
 
             Color fg;
-            if      (sel)                                                     fg = Color.White;
-            else if (isDone)                                                  fg = Color.FromArgb(100,100,108);
-            else if (e.ColumnIndex == 2)                                      fg = PriCol[(int)task.Priority];
-            else if (e.ColumnIndex==4 && task.IsOnHold)                       fg = Color.FromArgb(220,160,0);
-            else if ((e.ColumnIndex==3 || e.ColumnIndex==4) && overdue)      fg = Color.FromArgb(255,108,108);
-            else                                                              fg = Color.FromArgb(218,218,225);
+            if      (sel)                                                fg = ThemeManager.ListTextSelected;
+            else if (isDone)                                             fg = ThemeManager.ListTextDone;
+            else if (e.ColumnIndex == 2)                                 fg = PriCol[(int)task.Priority];
+            else if (e.ColumnIndex==4 && task.IsOnHold)                  fg = ThemeManager.ListTextOnHold;
+            else if ((e.ColumnIndex==3 || e.ColumnIndex==4) && overdue) fg = ThemeManager.ListTextOverdue;
+            else                                                         fg = ThemeManager.ListTextNormal;
 
             // Collapse/expand triangle for parent tasks in column 1
             bool isParent = e.ColumnIndex == 1 && _parentIds.Contains(task.Id);
@@ -689,7 +708,7 @@ namespace Test
             {
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
                 bool collapsed = _collapsed.Contains(task.Id);
-                Color arrowColor = sel ? Color.White : Color.FromArgb(150, 150, 165);
+                Color arrowColor = sel ? Color.White : ThemeManager.ListArrowColor;
                 int cx = e.Bounds.X + 7, cy = e.Bounds.Y + e.Bounds.Height / 2;
                 Point[] tri = collapsed
                     ? new[] { new Point(cx, cy-5), new Point(cx+8, cy), new Point(cx, cy+5) }           // ▶
@@ -1004,6 +1023,7 @@ namespace Test
                 var obj = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(SettingsFile));
                 _sortColumn    = obj.Value<int?>("SortColumn")    ?? -1;
                 _sortAscending = obj.Value<bool?>("SortAscending") ?? true;
+                ThemeManager.LoadTheme(obj.Value<bool?>("DarkTheme") ?? true);
             }
             catch { }
         }
@@ -1013,7 +1033,7 @@ namespace Test
             try
             {
                 File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(
-                    new { SortColumn = _sortColumn, SortAscending = _sortAscending },
+                    new { SortColumn = _sortColumn, SortAscending = _sortAscending, DarkTheme = ThemeManager.IsDark },
                     Formatting.Indented));
             }
             catch { }

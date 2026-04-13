@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -42,8 +43,9 @@ namespace Test
         /// </summary>
         protected bool _resizable;
 
-        private Button _btnMax;
-        private Label  _lblCaption;   // auto-injected title label (null when panel has its own)
+        private Button        _btnMax;
+        private Label         _lblCaption;   // auto-injected title label (null when panel has its own)
+        private List<Button>  _neutralCaptionBtns = new List<Button>();
 
         // ── Constructor ───────────────────────────────────────────────────────────
         protected DarkForm()
@@ -62,25 +64,48 @@ namespace Test
             }
         }
 
-        // ── Dark scrollbars ───────────────────────────────────────────────────────
+        // ── Theme / scrollbars ────────────────────────────────────────────────────
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            ApplyDarkScrollbars(this);
+            ThemeManager.Apply(this);
+            ApplyScrollbarTheme(this);
+            UpdateNeutralCaptionHovers();
+            ThemeManager.ThemeChanged += OnThemeChanged;
+            FormClosed += (s, ev) => ThemeManager.ThemeChanged -= OnThemeChanged;
         }
 
-        static void ApplyDarkScrollbars(Control parent)
+        protected virtual void OnThemeChanged(object sender, EventArgs e)
         {
+            if (IsDisposed || !IsHandleCreated) return;
+            ThemeManager.Apply(this);
+            ApplyScrollbarTheme(this);
+            UpdateNeutralCaptionHovers();
+            Invalidate(true);
+        }
+
+        void ApplyScrollbarTheme(Control parent)
+        {
+            string theme = ThemeManager.IsDark ? "DarkMode_Explorer" : "Explorer";
             foreach (Control c in parent.Controls)
             {
                 if (c is ListView || c is ListBox || c is DataGridView ||
                     c is RichTextBox || (c is TextBox tb && tb.Multiline) ||
                     (c is Panel p && p.AutoScroll))
                 {
-                    SetWindowTheme(c.Handle, "DarkMode_Explorer", null);
+                    SetWindowTheme(c.Handle, theme, null);
                 }
                 if (c.HasChildren)
-                    ApplyDarkScrollbars(c);
+                    ApplyScrollbarTheme(c);
+            }
+        }
+
+        void UpdateNeutralCaptionHovers()
+        {
+            foreach (var btn in _neutralCaptionBtns)
+            {
+                btn.FlatAppearance.MouseOverBackColor = ThemeManager.CaptionBtnHover;
+                btn.FlatAppearance.MouseDownBackColor = ThemeManager.CaptionBtnHover;
             }
         }
 
@@ -135,6 +160,7 @@ namespace Test
                 _btnMax = MakeCaptionBtn("□", right - BtnW, 0, BtnW, h, BtnHoverBg);
                 _btnMax.Click += (s, e) => ToggleMaximize();
                 panel.Controls.Add(_btnMax);
+                _neutralCaptionBtns.Add(_btnMax);
                 right -= BtnW;
             }
 
@@ -143,6 +169,7 @@ namespace Test
                 var btnMin = MakeCaptionBtn("—", right - BtnW, 0, BtnW, h, BtnHoverBg);
                 btnMin.Click += (s, e) => WindowState = FormWindowState.Minimized;
                 panel.Controls.Add(btnMin);
+                _neutralCaptionBtns.Add(btnMin);
                 right -= BtnW;
             }
 

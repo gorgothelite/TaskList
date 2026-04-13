@@ -19,6 +19,7 @@ namespace Test
         private System.Windows.Forms.Button   btnHistory;
         private System.Windows.Forms.Button   btnExport;
         private System.Windows.Forms.Button   btnJira;
+        private System.Windows.Forms.Button   btnTheme;
 
         // ── List view ────────────────────────────────────────────────────────
         private System.Windows.Forms.ListView _lv;
@@ -69,6 +70,7 @@ namespace Test
             this.btnHistory = new System.Windows.Forms.Button();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnJira = new System.Windows.Forms.Button();
+            this.btnTheme = new System.Windows.Forms.Button();
             this.pnlLeft = new System.Windows.Forms.Panel();
             this._lv = new System.Windows.Forms.ListView();
             this.pnlDetail = new System.Windows.Forms.Panel();
@@ -123,6 +125,7 @@ namespace Test
             this.pnlToolbar.Controls.Add(this.btnHistory);
             this.pnlToolbar.Controls.Add(this.btnExport);
             this.pnlToolbar.Controls.Add(this.btnJira);
+            this.pnlToolbar.Controls.Add(this.btnTheme);
             this.pnlToolbar.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlToolbar.Location = new System.Drawing.Point(0, 32);
             this.pnlToolbar.Name = "pnlToolbar";
@@ -244,9 +247,23 @@ namespace Test
             this.btnJira.Text = "Jira";
             this.btnJira.UseVisualStyleBackColor = false;
             this.btnJira.Click += new System.EventHandler(this.BtnJira_Click);
-            // 
+            //
+            // btnTheme
+            //
+            this.btnTheme.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(70)))), ((int)(((byte)(70)))), ((int)(((byte)(78)))));
+            this.btnTheme.FlatAppearance.BorderSize = 0;
+            this.btnTheme.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnTheme.ForeColor = System.Drawing.Color.White;
+            this.btnTheme.Location = new System.Drawing.Point(484, 11);
+            this.btnTheme.Name = "btnTheme";
+            this.btnTheme.Size = new System.Drawing.Size(100, 28);
+            this.btnTheme.TabIndex = 8;
+            this.btnTheme.Text = "☀ Light Mode";
+            this.btnTheme.UseVisualStyleBackColor = false;
+            this.btnTheme.Click += new System.EventHandler(this.BtnTheme_Click);
+            //
             // pnlLeft
-            // 
+            //
             this.pnlLeft.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(30)))));
             this.pnlLeft.Controls.Add(this._lv);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Fill;

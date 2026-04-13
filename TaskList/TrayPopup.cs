@@ -27,7 +27,7 @@ namespace Test
             StartPosition   = FormStartPosition.Manual;
             ShowInTaskbar   = false;
             TopMost         = true;
-            BackColor       = Color.FromArgb(45, 45, 48);
+            BackColor       = ThemeManager.TrayPopupBg;
             Padding         = new Padding(12, 10, 12, 10);
             AutoSize        = false;
 
@@ -49,7 +49,7 @@ namespace Test
             {
                 Text      = message,
                 Font      = new Font("Segoe UI", 9f),
-                ForeColor = Color.White,
+                ForeColor = ThemeManager.TrayPopupText,
                 AutoSize  = false,
                 Size      = new Size(220, 40),
                 Location  = new Point(42, 10),
@@ -63,7 +63,7 @@ namespace Test
             // Border
             Paint += (s, e) =>
             {
-                using (var pen = new Pen(Color.FromArgb(80, 80, 85), 1))
+                using (var pen = new Pen(ThemeManager.TrayPopupBorder, 1))
                     e.Graphics.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
             };
 

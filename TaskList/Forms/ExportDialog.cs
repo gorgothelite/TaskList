@@ -107,6 +107,11 @@ namespace Test
             if (_chkColDue.Checked)      cols.Add("Due Date");
             if (_chkColStatus.Checked)   cols.Add("Status");
             if (_chkColNotes.Checked)    cols.Add("Notes");
+            cols.Add("Story Points");
+            cols.Add("Project");
+            cols.Add("Feature");
+            cols.Add("Assignee");
+            cols.Add("Reporter");
             return cols;
         }
 
@@ -121,6 +126,14 @@ namespace Test
                 if (_chkColDue.Checked)      row.Add(t.DueDate.ToString("yyyy-MM-dd HH:mm"));
                 if (_chkColStatus.Checked)   row.Add(t.IsDone ? "Done" : (t.DueDate < DateTime.Now ? "Overdue" : "Active"));
                 if (_chkColNotes.Checked)    row.Add(t.Notes);
+                if (t.JiraImportable)
+                {
+                    row.Add(t.JiraStoryPoints.ToString());
+                    row.Add(t.JiraProject);
+                    row.Add(t.JiraFeature);
+                    row.Add(t.JiraAssignee);
+                    row.Add(t.JiraReporter);
+                }
                 result.Add(row);
             }
             return result;

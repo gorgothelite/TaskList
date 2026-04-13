@@ -54,114 +54,128 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\DarkComboBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Classes\DpapiCrypto.cs" />
-    <Compile Include="DarkForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AiTemplateDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AiTemplateDialog.Designer.cs">
-      <DependentUpon>AiTemplateDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="EmailRecipientsDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="EmailRecipientsDialog.Designer.cs">
-      <DependentUpon>EmailRecipientsDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ExportDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ExportDialog.Designer.cs">
-      <DependentUpon>ExportDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Jira\JiraForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Jira\JiraForm.Designer.cs">
-      <DependentUpon>JiraForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Jira\JiraPresetsDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Jira\JiraPresetsDialog.Designer.cs">
-      <DependentUpon>JiraPresetsDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Jira\JiraExportDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Jira\JiraExportDialog.Designer.cs">
-      <DependentUpon>JiraExportDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Jira\JiraQuickRunDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Jira\JiraQuickRunDialog.Designer.cs">
-      <DependentUpon>JiraQuickRunDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Classes\XlsxWriter.cs" />
-    <Compile Include="AlertDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AlertDialog.Designer.cs">
-      <DependentUpon>AlertDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="HistoryDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="HistoryDialog.Designer.cs">
-      <DependentUpon>HistoryDialog.cs</DependentUpon>
-    </Compile>
+    <!-- Root -->
+    <Compile Include="Program.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Classes\Models.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="TaskDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TaskDialog.Designer.cs">
-      <DependentUpon>TaskDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThemeManager.cs" />
-    <Compile Include="TrayPopup.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <EmbeddedResource Include="AiTemplateDialog.resx">
-      <DependentUpon>AiTemplateDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="EmailRecipientsDialog.resx">
-      <DependentUpon>EmailRecipientsDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="AlertDialog.resx">
-      <DependentUpon>AlertDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ExportDialog.resx">
-      <DependentUpon>ExportDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="HistoryDialog.resx">
-      <DependentUpon>HistoryDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Jira\JiraExportDialog.resx">
-      <DependentUpon>JiraExportDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Jira\JiraForm.resx">
-      <DependentUpon>JiraForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Jira\JiraPresetsDialog.resx">
-      <DependentUpon>JiraPresetsDialog.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
+
+    <!-- Forms -->
+    <Compile Include="Forms\AlertDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AlertDialog.Designer.cs">
+      <DependentUpon>AlertDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Forms\AlertDialog.resx">
+      <DependentUpon>AlertDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Forms\AiTemplateDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AiTemplateDialog.Designer.cs">
+      <DependentUpon>AiTemplateDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Forms\AiTemplateDialog.resx">
+      <DependentUpon>AiTemplateDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Forms\EmailRecipientsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\EmailRecipientsDialog.Designer.cs">
+      <DependentUpon>EmailRecipientsDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Forms\EmailRecipientsDialog.resx">
+      <DependentUpon>EmailRecipientsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Forms\ExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ExportDialog.Designer.cs">
+      <DependentUpon>ExportDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Forms\ExportDialog.resx">
+      <DependentUpon>ExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Forms\HistoryDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\HistoryDialog.Designer.cs">
+      <DependentUpon>HistoryDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Forms\HistoryDialog.resx">
+      <DependentUpon>HistoryDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Forms\TaskDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\TaskDialog.Designer.cs">
+      <DependentUpon>TaskDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Forms\TaskDialog.resx">
+      <DependentUpon>TaskDialog.cs</DependentUpon>
+    </EmbeddedResource>
+
+    <!-- UI infrastructure -->
+    <Compile Include="UI\DarkForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\DarkComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\ThemeManager.cs" />
+    <Compile Include="UI\TrayPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+
+    <!-- Classes -->
+    <Compile Include="Classes\DpapiCrypto.cs" />
+    <Compile Include="Classes\Models.cs" />
+    <Compile Include="Classes\XlsxWriter.cs" />
+
+    <!-- Jira -->
+    <Compile Include="Jira\JiraForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Jira\JiraForm.Designer.cs">
+      <DependentUpon>JiraForm.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Jira\JiraForm.resx">
+      <DependentUpon>JiraForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Jira\JiraPresetsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Jira\JiraPresetsDialog.Designer.cs">
+      <DependentUpon>JiraPresetsDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Jira\JiraPresetsDialog.resx">
+      <DependentUpon>JiraPresetsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Jira\JiraExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Jira\JiraExportDialog.Designer.cs">
+      <DependentUpon>JiraExportDialog.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Jira\JiraExportDialog.resx">
+      <DependentUpon>JiraExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Jira\JiraQuickRunDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Jira\JiraQuickRunDialog.Designer.cs">
+      <DependentUpon>JiraQuickRunDialog.cs</DependentUpon>
+    </Compile>
+
+    <!-- Properties -->
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -172,9 +186,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="TaskDialog.resx">
-      <DependentUpon>TaskDialog.cs</DependentUpon>
-    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

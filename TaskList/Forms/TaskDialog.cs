@@ -22,8 +22,12 @@ namespace Test
             ("1 week before",  10080),
         };
 
-        // -- Constructors -----------------------------------------------------
-        // Parameterless constructor used by the VS designer
+        private const int CollapsedHeight = 420;
+        private const int ExpandedHeight  = 578;   // 420 + pnlJira.Height(150) + gap(8)
+        private const int BtnYCollapsed   = 382;
+        private const int BtnYExpanded    = 540;   // 378 + 150 + 12
+
+        // ── Constructors ──────────────────────────────────────────────────────
         public TaskDialog() : this(null) { }
 
         public TaskDialog(TaskItem existing)
@@ -38,14 +42,14 @@ namespace Test
             Populate();
         }
 
-        // -- Logic ------------------------------------------------------------
+        // ── Populate / Save ───────────────────────────────────────────────────
         private void Populate()
         {
             Text = string.IsNullOrEmpty(Result.Name) ? "Add Task" : "Edit Task";
             _txtName.Text              = Result.Name;
             _rtbNotes.Text             = Result.Notes;
             _cmbPriority.SelectedIndex = (int)Result.Priority;
-            cbDueDateEnabled.Checked = Result.DueDateEnabled;
+            cbDueDateEnabled.Checked   = Result.DueDateEnabled;
             try
             {
                 _dtpDate.Value = Result.DueDate.Date;
@@ -56,14 +60,23 @@ namespace Test
             foreach (var opt in AlertOptions)
                 _cmbAlert.Items.Add(opt.Label);
 
-            // Select the option whose minutes match; fall back to "1 day before"
-            int alertIdx = -1; // default: Never
             for (int i = 0; i < AlertOptions.Length; i++)
             {
                 if (AlertOptions[i].Minutes == Result.AlertLeadMinutes)
-                { alertIdx = i; break; }
+                { _cmbAlert.SelectedIndex = i; break; }
             }
-            _cmbAlert.SelectedIndex = 0;
+            if (_cmbAlert.SelectedIndex < 0) _cmbAlert.SelectedIndex = 0;
+
+            // Jira fields
+            cbJiraImportable.Checked  = Result.JiraImportable;
+            _txtStoryPoints.Text      = Result.JiraStoryPoints?.ToString() ?? "";
+            _txtProject.Text          = Result.JiraProject  ?? "";
+            _txtFeature.Text          = Result.JiraFeature  ?? "";
+            _txtAssignee.Text         = Result.JiraAssignee ?? "";
+            _txtReporter.Text         = Result.JiraReporter ?? "";
+
+            if (Result.JiraImportable)
+                ExpandJiraPanel();
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
@@ -81,25 +94,50 @@ namespace Test
             Result.Notes            = _rtbNotes.Text.Trim();
             Result.AlertLeadMinutes = AlertOptions[_cmbAlert.SelectedIndex].Minutes;
             Result.DueDateEnabled   = cbDueDateEnabled.Checked;
-            DialogResult            = DialogResult.OK;
+
+            Result.JiraImportable  = cbJiraImportable.Checked;
+            Result.JiraStoryPoints = int.TryParse(_txtStoryPoints.Text.Trim(), out int sp) ? sp : (int?)null;
+            Result.JiraProject     = _txtProject.Text.Trim();
+            Result.JiraFeature     = _txtFeature.Text.Trim();
+            Result.JiraAssignee    = _txtAssignee.Text.Trim();
+            Result.JiraReporter    = _txtReporter.Text.Trim();
+
+            DialogResult = DialogResult.OK;
         }
 
+        // ── Expand / Collapse ─────────────────────────────────────────────────
+        private void CbJiraImportable_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbJiraImportable.Checked)
+                ExpandJiraPanel();
+            else
+                CollapseJiraPanel();
+        }
+
+        private void ExpandJiraPanel()
+        {
+            pnlJira.Visible  = true;
+            ClientSize       = new Size(ClientSize.Width, ExpandedHeight);
+            _btnSave.Top     = BtnYExpanded;
+            _btnCancel.Top   = BtnYExpanded;
+        }
+
+        private void CollapseJiraPanel()
+        {
+            pnlJira.Visible  = false;
+            ClientSize       = new Size(ClientSize.Width, CollapsedHeight);
+            _btnSave.Top     = BtnYCollapsed;
+            _btnCancel.Top   = BtnYCollapsed;
+        }
+
+        // ── Due date toggle ───────────────────────────────────────────────────
         private void cbDueDateEnabled_CheckedChanged(object sender, EventArgs e)
         {
-            if (cbDueDateEnabled.Checked)
-            {
-                _cmbAlert.Enabled = true;
-                _dtpDate.Enabled = true;
-                _dtpTime.Enabled = true;
-            }
-            else
-            {
-                _cmbAlert.Enabled = false;
-                if(_cmbAlert.Items.Count > 0)
-                    _cmbAlert.SelectedIndex = 0;
-                _dtpDate.Enabled = false;
-                _dtpTime.Enabled = false;
-            }
+            _cmbAlert.Enabled = cbDueDateEnabled.Checked;
+            _dtpDate.Enabled  = cbDueDateEnabled.Checked;
+            _dtpTime.Enabled  = cbDueDateEnabled.Checked;
+            if (!cbDueDateEnabled.Checked && _cmbAlert.Items.Count > 0)
+                _cmbAlert.SelectedIndex = 0;
         }
     }
 }

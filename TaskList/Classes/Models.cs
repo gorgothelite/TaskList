@@ -35,6 +35,14 @@ namespace Test
         public string       ParentId         { get; set; } = null;
         public List<string> ImagePaths       { get; set; } = new List<string>();
 
+        // ── Jira ──────────────────────────────────────────────────────────────
+        public bool   JiraImportable  { get; set; } = false;
+        public int?   JiraStoryPoints { get; set; } = null;
+        public string JiraProject     { get; set; } = "";
+        public string JiraFeature     { get; set; } = "";
+        public string JiraAssignee    { get; set; } = "";
+        public string JiraReporter    { get; set; } = "";
+
         /// <summary>
         /// Sum of all completed work sessions plus any currently-open session.
         /// Hold and Done periods are excluded because sessions are closed at those transitions.

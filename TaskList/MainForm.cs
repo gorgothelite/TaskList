@@ -50,6 +50,7 @@ namespace Test
         // ── Constructor ──────────────────────────────────────────────────────
         public MainForm()
         {
+            AddStory();
             _resizable = true;
             InitializeComponent();
 
@@ -94,9 +95,47 @@ namespace Test
             Shown += (s, e) => CheckAlerts(null, null);
             InitTray();
         }
+        // Add this at the top if it's missing:
 
-        // ── System tray ───────────────────────────────────────────────────────
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+// Example: Button click handler in MainForm.cs
+private async void AddStory()
+    {
+        try
+        {
+            using (var jira = new JiraPortable.JiraClient(
+                baseUrl: "",
+                usernameOrEmail: "",
+                apiTokenOrPassword: "",
+                isCloud: false))
+            {
+                var req = new JiraPortable.JiraStoryCreateRequest
+                {
+                    ProjectKey = "IOSTESTING",
+                    Summary = "User can export reports to CSV",
+                    Description = "As a user, I want to export reports to CSV so that I can share them.",
+                    Assignee = "correa", // Cloud: accountId
+                    PriorityName = "Medium",
+                    Labels = { "reporting", "export" }
+                };
+
+                // If you have Story Points custom field
+                // req.AdditionalFields["customfield_10026"] = 5;
+
+                var result = await jira.CreateStoryAsync(req);
+                MessageBox.Show($"Created: {result.key} (id {result.id})", "Jira", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        catch (JiraPortable.JiraApiException ex)
+        {
+            MessageBox.Show($"Jira error: {ex}\nDetails: {ex.Details}", "Jira Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Unexpected error: {ex}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+    // ── System tray ───────────────────────────────────────────────────────
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool DestroyIcon(IntPtr handle);
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]

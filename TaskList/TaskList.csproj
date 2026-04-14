@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Root -->
+    <Compile Include="Classes\JiraClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -65,7 +66,6 @@
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
-
     <!-- Forms -->
     <Compile Include="Forms\AlertDialog.cs">
       <SubType>Form</SubType>
@@ -121,7 +121,6 @@
     <EmbeddedResource Include="Forms\TaskDialog.resx">
       <DependentUpon>TaskDialog.cs</DependentUpon>
     </EmbeddedResource>
-
     <!-- UI infrastructure -->
     <Compile Include="UI\DarkForm.cs">
       <SubType>Form</SubType>
@@ -133,12 +132,10 @@
     <Compile Include="UI\TrayPopup.cs">
       <SubType>Form</SubType>
     </Compile>
-
     <!-- Classes -->
     <Compile Include="Classes\DpapiCrypto.cs" />
     <Compile Include="Classes\Models.cs" />
     <Compile Include="Classes\XlsxWriter.cs" />
-
     <!-- Services -->
     <Compile Include="Services\AlertService.cs" />
     <Compile Include="Services\AiSummaryService.cs" />
@@ -148,7 +145,6 @@
     <Compile Include="Services\SettingsService.cs" />
     <Compile Include="Services\TaskRepository.cs" />
     <Compile Include="Services\TaskService.cs" />
-
     <!-- Jira -->
     <Compile Include="Jira\JiraForm.cs">
       <SubType>Form</SubType>
@@ -183,7 +179,6 @@
     <Compile Include="Jira\JiraQuickRunDialog.Designer.cs">
       <DependentUpon>JiraQuickRunDialog.cs</DependentUpon>
     </Compile>
-
     <!-- Properties -->
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

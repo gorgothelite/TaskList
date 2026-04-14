@@ -62,7 +62,7 @@ namespace JiraPortable
 
             var issueType = request.IssueTypeName ?? "Story";
             // Map display names to keys allowed on Create
-            var createFields = await GetCreateFieldMapAsync(request.ProjectKey, issueType, ct).ConfigureAwait(false);
+            //var createFields = await GetCreateFieldMapAsync(request.ProjectKey, issueType, ct).ConfigureAwait(false);
 
             // Assemble the fields object according to Jira REST v2
             // Cloud requires accountId for assignee; Server/DC uses name.
@@ -73,7 +73,7 @@ namespace JiraPortable
                 ["description"] = request.Description ?? string.Empty,
                 ["issuetype"] = new { name = request.IssueTypeName ?? "Story" },
                 ["customfield_22503"] = request.IssueStoryPoints,
-                ["featurelink"] = "IOSTESTING - 1",
+                ["customfield_10006"] = "IOSTESTING-1",
             };
 
             if (!string.IsNullOrWhiteSpace(request.PriorityName))

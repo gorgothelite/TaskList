@@ -249,9 +249,10 @@ namespace Test
             var cols = GetCurrentColumns();
             List<string>       headers;
             List<List<string>> rows;
+            string wBaseUrl = (config.Url ?? "").TrimEnd('/');
             try
             {
-                var result = await FetchAndBuildRows(config.Url, issues, cols);
+                var result = await FetchAndBuildRows(wBaseUrl, issues, cols);
                 headers = result.Item1;
                 rows    = result.Item2;
             }

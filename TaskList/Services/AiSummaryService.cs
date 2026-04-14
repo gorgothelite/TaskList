@@ -85,7 +85,7 @@ namespace Test
 
         // ── AI dispatch ───────────────────────────────────────────────────────
 
-        public enum AiProvider { Claude, OpenAI, Azure, Forge }
+        public enum AiProvider { Forge, Claude, OpenAI, Azure }
 
         public Task<string> SummarizeAsync(AiProvider provider, string claudeKey, string openAiKey,
             string azureKey, string azureEndpoint, string forgeKey, string prompt)

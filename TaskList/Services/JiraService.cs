@@ -24,12 +24,14 @@ namespace Test
         private readonly string _configFile;
         private readonly string _presetsFile;
         private readonly string _templatesFile;
+        private readonly string _quickRunFile;
 
         public JiraService(string baseDir)
         {
             _configFile    = Path.Combine(baseDir, "jira_config.json");
             _presetsFile   = Path.Combine(baseDir, "jira_presets.json");
             _templatesFile = Path.Combine(baseDir, "ai_prompt_templates.json");
+            _quickRunFile  = Path.Combine(baseDir, "jira_quickrun.json");
         }
 
         // ── Config ────────────────────────────────────────────────────────────
@@ -424,6 +426,88 @@ namespace Test
             return row;
         }
 
+        // ── Quick-run config persistence ──────────────────────────────────────
+
+        public bool IsQuickRunConfigured()
+        {
+            try
+            {
+                if (!File.Exists(_quickRunFile)) return false;
+                var obj = JObject.Parse(File.ReadAllText(_quickRunFile));
+                return !string.IsNullOrWhiteSpace(obj["preset_name"]?.ToString())
+                    && !string.IsNullOrWhiteSpace(obj["save_folder"]?.ToString());
+            }
+            catch { return false; }
+        }
+
+        public JiraQuickRunConfig LoadQuickRunConfig()
+        {
+            if (!File.Exists(_quickRunFile)) return new JiraQuickRunConfig();
+            try
+            {
+                var obj = JObject.Parse(File.ReadAllText(_quickRunFile));
+                return new JiraQuickRunConfig
+                {
+                    PresetName      = obj["preset_name"]?.ToString()               ?? "",
+                    TemplateName    = obj["template_name"]?.ToString()             ?? "",
+                    SaveFolder      = obj["save_folder"]?.ToString()               ?? "",
+                    FileNamePattern = obj["file_name_pattern"]?.ToString()         ?? "jira_export_{date}.xlsx",
+                    IncludeWorklogs = obj["include_worklogs"]?.ToObject<bool>()   ?? true,
+                    IncludeComments = obj["include_comments"]?.ToObject<bool>()   ?? true,
+                    IncludeAiSummary = obj["include_ai_summary"]?.ToObject<bool>() ?? true,
+                    Columns = new JiraExportColumns
+                    {
+                        Key        = obj["col_key"]?.ToObject<bool>()         ?? true,
+                        Summary    = obj["col_summary"]?.ToObject<bool>()     ?? true,
+                        Type       = obj["col_type"]?.ToObject<bool>()        ?? true,
+                        Status     = obj["col_status"]?.ToObject<bool>()      ?? true,
+                        Priority   = obj["col_priority"]?.ToObject<bool>()    ?? true,
+                        Project    = obj["col_project"]?.ToObject<bool>()     ?? true,
+                        Assignee   = obj["col_assignee"]?.ToObject<bool>()    ?? true,
+                        DueDate    = obj["col_due_date"]?.ToObject<bool>()    ?? true,
+                        RecordType = obj["col_record_type"]?.ToObject<bool>() ?? true,
+                        Date       = obj["col_date"]?.ToObject<bool>()        ?? true,
+                        Author     = obj["col_author"]?.ToObject<bool>()      ?? true,
+                        Hours      = obj["col_hours"]?.ToObject<bool>()       ?? true,
+                        Text       = obj["col_text"]?.ToObject<bool>()        ?? true,
+                    }
+                };
+            }
+            catch { return new JiraQuickRunConfig(); }
+        }
+
+        public void SaveQuickRunConfig(JiraQuickRunConfig c)
+        {
+            try
+            {
+                var cols = c.Columns ?? new JiraExportColumns();
+                File.WriteAllText(_quickRunFile, new JObject
+                {
+                    ["preset_name"]        = c.PresetName,
+                    ["template_name"]      = c.TemplateName,
+                    ["save_folder"]        = c.SaveFolder,
+                    ["file_name_pattern"]  = c.FileNamePattern,
+                    ["include_worklogs"]   = c.IncludeWorklogs,
+                    ["include_comments"]   = c.IncludeComments,
+                    ["include_ai_summary"] = c.IncludeAiSummary,
+                    ["col_key"]            = cols.Key,
+                    ["col_summary"]        = cols.Summary,
+                    ["col_type"]           = cols.Type,
+                    ["col_status"]         = cols.Status,
+                    ["col_priority"]       = cols.Priority,
+                    ["col_project"]        = cols.Project,
+                    ["col_assignee"]       = cols.Assignee,
+                    ["col_due_date"]       = cols.DueDate,
+                    ["col_record_type"]    = cols.RecordType,
+                    ["col_date"]           = cols.Date,
+                    ["col_author"]         = cols.Author,
+                    ["col_hours"]          = cols.Hours,
+                    ["col_text"]           = cols.Text,
+                }.ToString());
+            }
+            catch { }
+        }
+
         // ── Jira → TaskItem conversion ────────────────────────────────────────
 
         public static List<TaskItem> ConvertToTasks(IEnumerable<JiraIssue> issues)
@@ -509,6 +593,19 @@ namespace Test
     {
         public string Name     { get; set; } = "";
         public string Template { get; set; } = "";
+    }
+
+    // ── Quick-run config DTO ─────────────────────────────────────────────────
+    public class JiraQuickRunConfig
+    {
+        public string           PresetName       { get; set; } = "";
+        public string           TemplateName     { get; set; } = "";
+        public string           SaveFolder       { get; set; } = "";
+        public string           FileNamePattern  { get; set; } = "jira_export_{date}.xlsx";
+        public bool             IncludeWorklogs  { get; set; } = true;
+        public bool             IncludeComments  { get; set; } = true;
+        public bool             IncludeAiSummary { get; set; } = true;
+        public JiraExportColumns Columns         { get; set; } = new JiraExportColumns();
     }
 
     // ── Jira export column selection ──────────────────────────────────────────

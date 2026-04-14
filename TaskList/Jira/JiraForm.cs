@@ -189,7 +189,7 @@ namespace Test
         // ── Quick Run ─────────────────────────────────────────────────────────
         private async void BtnQuickRun_Click(object sender, EventArgs e)
         {
-            if (!JiraQuickRunDialog.IsConfigured())
+            if (!_jiraService.IsQuickRunConfigured())
             {
                 using (var dlg = new JiraQuickRunDialog())
                     dlg.ShowDialog(this);

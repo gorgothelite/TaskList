@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Test
 {
@@ -13,11 +14,11 @@ namespace Test
     /// </summary>
     public class ExportService
     {
-        private readonly string _recipientsFile;
+        private readonly string _appSettingsFile;
 
         public ExportService(string baseDir)
         {
-            _recipientsFile = Path.Combine(baseDir, "email_recipients.json");
+            _appSettingsFile = Path.Combine(baseDir, "app_settings.json");
         }
 
         // ── Recipients persistence ────────────────────────────────────────────
@@ -26,8 +27,9 @@ namespace Test
         {
             try
             {
-                if (!File.Exists(_recipientsFile)) return new List<EmailRecipient>();
-                return JsonConvert.DeserializeObject<List<EmailRecipient>>(File.ReadAllText(_recipientsFile))
+                if (!File.Exists(_appSettingsFile)) return new List<EmailRecipient>();
+                var obj = JObject.Parse(File.ReadAllText(_appSettingsFile));
+                return obj["email_recipients"]?.ToObject<List<EmailRecipient>>()
                        ?? new List<EmailRecipient>();
             }
             catch { return new List<EmailRecipient>(); }
@@ -35,7 +37,14 @@ namespace Test
 
         public void SaveRecipients(List<EmailRecipient> recipients)
         {
-            try { File.WriteAllText(_recipientsFile, JsonConvert.SerializeObject(recipients, Formatting.Indented)); }
+            try
+            {
+                var obj = File.Exists(_appSettingsFile)
+                    ? JObject.Parse(File.ReadAllText(_appSettingsFile))
+                    : new JObject();
+                obj["email_recipients"] = JArray.FromObject(recipients);
+                File.WriteAllText(_appSettingsFile, obj.ToString(Formatting.Indented));
+            }
             catch { }
         }
 

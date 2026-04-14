@@ -21,32 +21,42 @@ namespace Test
         /// <summary>Shared HTTP client — one per app lifetime. Also used by JiraQuickRunDialog and JiraExportDialog.</summary>
         internal static readonly HttpClient Http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 
-        private readonly string _configFile;
-        private readonly string _presetsFile;
+        private readonly string _jiraFile;
         private readonly string _templatesFile;
-        private readonly string _quickRunFile;
 
         public JiraService(string baseDir)
         {
-            _configFile    = Path.Combine(baseDir, "jira_config.json");
-            _presetsFile   = Path.Combine(baseDir, "jira_presets.json");
+            _jiraFile      = Path.Combine(baseDir, "jira.json");
             _templatesFile = Path.Combine(baseDir, "ai_prompt_templates.json");
-            _quickRunFile  = Path.Combine(baseDir, "jira_quickrun.json");
+        }
+
+        // ── Shared file helper ────────────────────────────────────────────────
+
+        private JObject ReadJiraFile()
+        {
+            if (!File.Exists(_jiraFile)) return new JObject();
+            try { return JObject.Parse(File.ReadAllText(_jiraFile)); }
+            catch { return new JObject(); }
+        }
+
+        private void WriteJiraFile(JObject obj)
+        {
+            File.WriteAllText(_jiraFile, obj.ToString(Formatting.Indented));
         }
 
         // ── Config ────────────────────────────────────────────────────────────
 
         public JiraConfig LoadConfig()
         {
-            if (!File.Exists(_configFile)) return new JiraConfig();
             try
             {
-                var obj = JObject.Parse(File.ReadAllText(_configFile));
+                var conn = ReadJiraFile()["connection"] as JObject;
+                if (conn == null) return new JiraConfig();
                 return new JiraConfig
                 {
-                    Url   = obj["url"]?.ToString()      ?? "",
-                    Email = obj["username"]?.ToString()  ?? "",
-                    Token = DpapiCrypto.UnprotectFromBase64(obj["password"]?.ToString() ?? "", DataProtectionScope.CurrentUser)
+                    Url   = conn["url"]?.ToString()      ?? "",
+                    Email = conn["username"]?.ToString()  ?? "",
+                    Token = DpapiCrypto.UnprotectFromBase64(conn["password"]?.ToString() ?? "", DataProtectionScope.CurrentUser)
                 };
             }
             catch { return new JiraConfig(); }
@@ -56,12 +66,14 @@ namespace Test
         {
             try
             {
-                File.WriteAllText(_configFile, new JObject
+                var obj = ReadJiraFile();
+                obj["connection"] = new JObject
                 {
                     ["url"]      = url,
                     ["username"] = email,
                     ["password"] = DpapiCrypto.ProtectToBase64(token, DataProtectionScope.CurrentUser)
-                }.ToString());
+                };
+                WriteJiraFile(obj);
             }
             catch { }
         }
@@ -85,11 +97,11 @@ namespace Test
 
         public List<JiraPreset> LoadPresets()
         {
-            if (File.Exists(_presetsFile))
+            try
             {
-                try
+                var arr = ReadJiraFile()["presets"] as JArray;
+                if (arr != null)
                 {
-                    var arr = JArray.Parse(File.ReadAllText(_presetsFile));
                     var list = arr.Select(item => new JiraPreset
                     {
                         Name = item["name"]?.ToString() ?? "",
@@ -97,8 +109,8 @@ namespace Test
                     }).ToList();
                     if (list.Count > 0) return list;
                 }
-                catch { }
             }
+            catch { }
             return DefaultPresets();
         }
 
@@ -106,8 +118,9 @@ namespace Test
         {
             try
             {
-                var arr = new JArray(presets.Select(p => new JObject { ["name"] = p.Name, ["jql"] = p.Jql }));
-                File.WriteAllText(_presetsFile, arr.ToString());
+                var obj = ReadJiraFile();
+                obj["presets"] = new JArray(presets.Select(p => new JObject { ["name"] = p.Name, ["jql"] = p.Jql }));
+                WriteJiraFile(obj);
             }
             catch { }
         }
@@ -280,17 +293,17 @@ namespace Test
         {
             try
             {
-                if (!File.Exists(_configFile)) return new AiSettings();
-                var obj = JObject.Parse(File.ReadAllText(_configFile));
+                var ai = ReadJiraFile()["ai"] as JObject;
+                if (ai == null) return new AiSettings();
                 return new AiSettings
                 {
-                    ClaudeKey        = obj["anthropic_key"]?.ToString()        ?? "",
-                    OpenAiKey        = obj["openai_key"]?.ToString()            ?? "",
-                    AzureKey         = obj["azure_openai_key"]?.ToString()      ?? "",
-                    AzureEndpoint    = obj["azure_openai_endpoint"]?.ToString() ?? "",
-                    ForgeKey         = obj["forge_key"]?.ToString()             ?? "",
-                    ProviderIndex    = obj["ai_provider"]?.ToObject<int>()      ?? 0,
-                    SelectedTemplate = obj["selected_ai_template"]?.ToString()  ?? "",
+                    ClaudeKey        = ai["anthropic_key"]?.ToString()        ?? "",
+                    OpenAiKey        = ai["openai_key"]?.ToString()            ?? "",
+                    AzureKey         = ai["azure_openai_key"]?.ToString()      ?? "",
+                    AzureEndpoint    = ai["azure_openai_endpoint"]?.ToString() ?? "",
+                    ForgeKey         = ai["forge_key"]?.ToString()             ?? "",
+                    ProviderIndex    = ai["ai_provider"]?.ToObject<int>()      ?? 0,
+                    SelectedTemplate = ai["selected_ai_template"]?.ToString()  ?? "",
                 };
             }
             catch { return new AiSettings(); }
@@ -300,17 +313,18 @@ namespace Test
         {
             try
             {
-                var obj = File.Exists(_configFile)
-                    ? JObject.Parse(File.ReadAllText(_configFile))
-                    : new JObject();
-                obj["ai_provider"]           = s.ProviderIndex;
-                obj["anthropic_key"]         = s.ClaudeKey;
-                obj["openai_key"]            = s.OpenAiKey;
-                obj["azure_openai_key"]      = s.AzureKey;
-                obj["azure_openai_endpoint"] = s.AzureEndpoint;
-                obj["forge_key"]             = s.ForgeKey;
-                obj["selected_ai_template"]  = s.SelectedTemplate;
-                File.WriteAllText(_configFile, obj.ToString());
+                var obj = ReadJiraFile();
+                obj["ai"] = new JObject
+                {
+                    ["ai_provider"]           = s.ProviderIndex,
+                    ["anthropic_key"]         = s.ClaudeKey,
+                    ["openai_key"]            = s.OpenAiKey,
+                    ["azure_openai_key"]      = s.AzureKey,
+                    ["azure_openai_endpoint"] = s.AzureEndpoint,
+                    ["forge_key"]             = s.ForgeKey,
+                    ["selected_ai_template"]  = s.SelectedTemplate,
+                };
+                WriteJiraFile(obj);
             }
             catch { }
         }
@@ -432,44 +446,44 @@ namespace Test
         {
             try
             {
-                if (!File.Exists(_quickRunFile)) return false;
-                var obj = JObject.Parse(File.ReadAllText(_quickRunFile));
-                return !string.IsNullOrWhiteSpace(obj["preset_name"]?.ToString())
-                    && !string.IsNullOrWhiteSpace(obj["save_folder"]?.ToString());
+                var qr = ReadJiraFile()["quick_run"] as JObject;
+                if (qr == null) return false;
+                return !string.IsNullOrWhiteSpace(qr["preset_name"]?.ToString())
+                    && !string.IsNullOrWhiteSpace(qr["save_folder"]?.ToString());
             }
             catch { return false; }
         }
 
         public JiraQuickRunConfig LoadQuickRunConfig()
         {
-            if (!File.Exists(_quickRunFile)) return new JiraQuickRunConfig();
             try
             {
-                var obj = JObject.Parse(File.ReadAllText(_quickRunFile));
+                var qr = ReadJiraFile()["quick_run"] as JObject;
+                if (qr == null) return new JiraQuickRunConfig();
                 return new JiraQuickRunConfig
                 {
-                    PresetName      = obj["preset_name"]?.ToString()               ?? "",
-                    TemplateName    = obj["template_name"]?.ToString()             ?? "",
-                    SaveFolder      = obj["save_folder"]?.ToString()               ?? "",
-                    FileNamePattern = obj["file_name_pattern"]?.ToString()         ?? "jira_export_{date}.xlsx",
-                    IncludeWorklogs = obj["include_worklogs"]?.ToObject<bool>()   ?? true,
-                    IncludeComments = obj["include_comments"]?.ToObject<bool>()   ?? true,
-                    IncludeAiSummary = obj["include_ai_summary"]?.ToObject<bool>() ?? true,
+                    PresetName       = qr["preset_name"]?.ToString()               ?? "",
+                    TemplateName     = qr["template_name"]?.ToString()             ?? "",
+                    SaveFolder       = qr["save_folder"]?.ToString()               ?? "",
+                    FileNamePattern  = qr["file_name_pattern"]?.ToString()         ?? "jira_export_{date}.xlsx",
+                    IncludeWorklogs  = qr["include_worklogs"]?.ToObject<bool>()   ?? true,
+                    IncludeComments  = qr["include_comments"]?.ToObject<bool>()   ?? true,
+                    IncludeAiSummary = qr["include_ai_summary"]?.ToObject<bool>() ?? true,
                     Columns = new JiraExportColumns
                     {
-                        Key        = obj["col_key"]?.ToObject<bool>()         ?? true,
-                        Summary    = obj["col_summary"]?.ToObject<bool>()     ?? true,
-                        Type       = obj["col_type"]?.ToObject<bool>()        ?? true,
-                        Status     = obj["col_status"]?.ToObject<bool>()      ?? true,
-                        Priority   = obj["col_priority"]?.ToObject<bool>()    ?? true,
-                        Project    = obj["col_project"]?.ToObject<bool>()     ?? true,
-                        Assignee   = obj["col_assignee"]?.ToObject<bool>()    ?? true,
-                        DueDate    = obj["col_due_date"]?.ToObject<bool>()    ?? true,
-                        RecordType = obj["col_record_type"]?.ToObject<bool>() ?? true,
-                        Date       = obj["col_date"]?.ToObject<bool>()        ?? true,
-                        Author     = obj["col_author"]?.ToObject<bool>()      ?? true,
-                        Hours      = obj["col_hours"]?.ToObject<bool>()       ?? true,
-                        Text       = obj["col_text"]?.ToObject<bool>()        ?? true,
+                        Key        = qr["col_key"]?.ToObject<bool>()         ?? true,
+                        Summary    = qr["col_summary"]?.ToObject<bool>()     ?? true,
+                        Type       = qr["col_type"]?.ToObject<bool>()        ?? true,
+                        Status     = qr["col_status"]?.ToObject<bool>()      ?? true,
+                        Priority   = qr["col_priority"]?.ToObject<bool>()    ?? true,
+                        Project    = qr["col_project"]?.ToObject<bool>()     ?? true,
+                        Assignee   = qr["col_assignee"]?.ToObject<bool>()    ?? true,
+                        DueDate    = qr["col_due_date"]?.ToObject<bool>()    ?? true,
+                        RecordType = qr["col_record_type"]?.ToObject<bool>() ?? true,
+                        Date       = qr["col_date"]?.ToObject<bool>()        ?? true,
+                        Author     = qr["col_author"]?.ToObject<bool>()      ?? true,
+                        Hours      = qr["col_hours"]?.ToObject<bool>()       ?? true,
+                        Text       = qr["col_text"]?.ToObject<bool>()        ?? true,
                     }
                 };
             }
@@ -481,7 +495,8 @@ namespace Test
             try
             {
                 var cols = c.Columns ?? new JiraExportColumns();
-                File.WriteAllText(_quickRunFile, new JObject
+                var obj  = ReadJiraFile();
+                obj["quick_run"] = new JObject
                 {
                     ["preset_name"]        = c.PresetName,
                     ["template_name"]      = c.TemplateName,
@@ -503,7 +518,8 @@ namespace Test
                     ["col_author"]         = cols.Author,
                     ["col_hours"]          = cols.Hours,
                     ["col_text"]           = cols.Text,
-                }.ToString());
+                };
+                WriteJiraFile(obj);
             }
             catch { }
         }

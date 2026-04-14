@@ -11,10 +11,10 @@ namespace Test
     {
         public event Action HistoryCleared;
 
-        private List<RevisionEntry> _entries;
-        private readonly string     _backupDir;
-        private int                 _lastCount    = -1;
-        private string              _selectedRevId = null;
+        private List<RevisionEntry>   _entries;
+        private readonly TaskRepository _repo;
+        private int                   _lastCount     = -1;
+        private string                _selectedRevId = null;
 
         private static readonly (string Label, Color Col)[] LegendItems =
         {
@@ -28,10 +28,10 @@ namespace Test
         // Parameterless constructor used by the VS designer
         public HistoryDialog() : this(null, null) { }
 
-        public HistoryDialog(List<RevisionEntry> entries, string backupDir)
+        public HistoryDialog(List<RevisionEntry> entries, TaskRepository repo)
         {
-            _entries   = entries ?? new List<RevisionEntry>();
-            _backupDir = backupDir ?? string.Empty;
+            _entries = entries ?? new List<RevisionEntry>();
+            _repo    = repo;
             _resizable = true;
 
             InitializeComponent();
@@ -130,10 +130,11 @@ namespace Test
 
         private void BtnRestore_Click(object sender, EventArgs e)
         {
+            string backupDir = _repo?.BackupDir ?? string.Empty;
             using (var ofd = new OpenFileDialog
             {
                 Title            = "Select Backup to Restore",
-                InitialDirectory = Directory.Exists(_backupDir) ? _backupDir : AppDomain.CurrentDomain.BaseDirectory,
+                InitialDirectory = Directory.Exists(backupDir) ? backupDir : AppDomain.CurrentDomain.BaseDirectory,
                 Filter           = "JSON Backup (*.json)|*.json"
             })
             {
@@ -143,7 +144,7 @@ namespace Test
                         "Confirm Restore", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
                 try
                 {
-                    File.Copy(ofd.FileName, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tasks.json"), true);
+                    _repo.RestoreBackup(ofd.FileName);
                     MessageBox.Show("Backup restored.\nRestart the application to load the restored data.",
                         "Restored", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }

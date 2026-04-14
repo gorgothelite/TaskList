@@ -326,10 +326,10 @@ namespace Test
 
             // 2. Authenticate
             string cred = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{email}:{token}"));
-            JiraForm.Http.DefaultRequestHeaders.Authorization =
+            JiraService.Http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Basic", cred);
-            JiraForm.Http.DefaultRequestHeaders.Accept.Clear();
-            JiraForm.Http.DefaultRequestHeaders.Accept.Add(
+            JiraService.Http.DefaultRequestHeaders.Accept.Clear();
+            JiraService.Http.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
 
             // 3. Build JQL
@@ -348,7 +348,7 @@ namespace Test
                     ["fields"]     = new JArray("summary", "status", "priority", "issuetype",
                                                 "assignee", "project", "duedate")
                 };
-                var resp = await JiraForm.Http.PostAsync(
+                var resp = await JiraService.Http.PostAsync(
                     jiraUrl + "/rest/api/2/search",
                     new StringContent(payload.ToString(), Encoding.UTF8, "application/json"));
                 var body = await resp.Content.ReadAsStringAsync();
@@ -467,7 +467,7 @@ namespace Test
                 {
                     try
                     {
-                        var resp = await JiraForm.Http.GetAsync(
+                        var resp = await JiraService.Http.GetAsync(
                             baseUrl + $"/rest/api/2/issue/{issue.Key}/worklog");
                         if (resp.IsSuccessStatusCode)
                         {
@@ -496,7 +496,7 @@ namespace Test
                 {
                     try
                     {
-                        var resp = await JiraForm.Http.GetAsync(
+                        var resp = await JiraService.Http.GetAsync(
                             baseUrl + $"/rest/api/2/issue/{issue.Key}/comment");
                         if (resp.IsSuccessStatusCode)
                         {

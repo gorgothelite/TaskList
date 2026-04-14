@@ -94,4 +94,35 @@ namespace Test
                 ? $"{Name} <{Email}>"
                 : $"{Name} ({Position}) <{Email}>";
     }
+
+    /// <summary>
+    /// Alert lead-time presets shared between the UI (TaskDialog) and the service layer.
+    /// Keeping this in Models ensures no WinForms dependency leaks into services.
+    /// </summary>
+    public static class AlertPresets
+    {
+        public static readonly (string Label, int Minutes)[] Options =
+        {
+            ("Never",          -1),
+            ("At due time",     0),
+            ("30 min before",  30),
+            ("1 hour before",  60),
+            ("2 hours before", 120),
+            ("4 hours before", 240),
+            ("8 hours before", 480),
+            ("1 day before",   1440),
+            ("2 days before",  2880),
+            ("1 week before",  10080),
+        };
+
+        public static string GetLabel(int minutes)
+        {
+            foreach (var opt in Options)
+                if (opt.Minutes == minutes) return opt.Label;
+            if (minutes < 0)    return "Never";
+            if (minutes < 60)   return $"{minutes} min before";
+            if (minutes < 1440) return $"{minutes / 60} hr before";
+            return $"{minutes / 1440} day(s) before";
+        }
+    }
 }

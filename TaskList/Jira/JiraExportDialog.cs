@@ -1,22 +1,25 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Test
 {
     internal sealed partial class JiraExportDialog : DarkForm
     {
+        // ── Services ──────────────────────────────────────────────────────────
+        private readonly JiraService      _jiraService  =
+            new JiraService(AppDomain.CurrentDomain.BaseDirectory);
+        private readonly ExportService    _exportService =
+            new ExportService(AppDomain.CurrentDomain.BaseDirectory);
+        private readonly AiSummaryService _aiService    = new AiSummaryService();
+
         // ── Fields ────────────────────────────────────────────────────────────
         private readonly List<JiraIssue> _searchIssues;
         private readonly List<JiraIssue> _masterIssues;
@@ -28,34 +31,18 @@ namespace Test
         private double _statTotalHours;
 
         // Per-provider key memory (swapped as user changes provider)
-        private string _claudeKey       = "";
-        private string _openAiKey       = "";
-        private string _azureKey        = "";
-        private string _azureEndpoint   = "";
-        private string _forgeAiKey = "";
+        private string _claudeKey     = "";
+        private string _openAiKey     = "";
+        private string _azureKey      = "";
+        private string _azureEndpoint = "";
+        private string _forgeAiKey    = "";
 
         // Prompt templates
-        private readonly List<SummaryTemplate>  _templates  = new List<SummaryTemplate>();
-        private string _savedTemplateName = "";
+        private readonly List<SummaryTemplate> _templates         = new List<SummaryTemplate>();
+        private string                          _savedTemplateName = "";
 
-        // Email recipients (shared with ExportDialog via email_recipients.json)
+        // Email recipients
         private readonly List<EmailRecipient> _recipients = new List<EmailRecipient>();
-
-        private static readonly string ConfigFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jira_config.json");
-        private static readonly string TemplatesFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ai_prompt_templates.json");
-        private static readonly string RecipientsFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "email_recipients.json");
-
-        private const string DefaultTemplateText =
-            "You are reviewing Jira work logs and comments for a team status summary.\n\n" +
-            "{DATA}\n\n" +
-            "Please provide a concise professional summary covering:\n" +
-            "1. Key work accomplished\n" +
-            "2. Any blockers or issues raised\n" +
-            "3. Notable time investments\n\n" +
-            "Keep it suitable for a status report.";
 
         // ── Constructors ──────────────────────────────────────────────────────
         public JiraExportDialog()
@@ -93,13 +80,11 @@ namespace Test
         }
 
         // ── Provider combo ────────────────────────────────────────────────────
-        private enum AiProvider { Claude, OpenAI, Azure, Forge }
-
-        private AiProvider GetSelectedProvider() => AiProvider.Forge;
-            //_cmbProvider.SelectedIndex == 1 ? AiProvider.OpenAI :
-            //_cmbProvider.SelectedIndex == 2 ? AiProvider.Azure  :
-            //_cmbProvider.SelectedIndex == 3 ? AiProvider.Forge:
-            //                                  AiProvider.Claude;
+        private AiSummaryService.AiProvider GetSelectedProvider() => AiSummaryService.AiProvider.Forge;
+            //_cmbProvider.SelectedIndex == 1 ? AiSummaryService.AiProvider.OpenAI :
+            //_cmbProvider.SelectedIndex == 2 ? AiSummaryService.AiProvider.Azure  :
+            //_cmbProvider.SelectedIndex == 3 ? AiSummaryService.AiProvider.Forge  :
+            //                                  AiSummaryService.AiProvider.Claude;
 
         internal void CmbProvider_Changed(object sender, EventArgs e)
         {
@@ -108,302 +93,104 @@ namespace Test
 
             var provider = GetSelectedProvider();
 
-            // Update key label and populate key field from memory
             switch (provider)
             {
-                case AiProvider.OpenAI:
-                    _lblAiKey.Text   = "OPENAI API KEY";
-                    _txtAiKey.Text   = _openAiKey;
+                case AiSummaryService.AiProvider.OpenAI:
+                    _lblAiKey.Text = "OPENAI API KEY";
+                    _txtAiKey.Text = _openAiKey;
                     break;
-                case AiProvider.Azure:
-                    _lblAiKey.Text   = "AZURE OPENAI API KEY";
-                    _txtAiKey.Text   = _azureKey;
+                case AiSummaryService.AiProvider.Azure:
+                    _lblAiKey.Text         = "AZURE OPENAI API KEY";
+                    _txtAiKey.Text         = _azureKey;
                     _txtAzureEndpoint.Text = _azureEndpoint;
                     break;
-                case AiProvider.Forge:
+                case AiSummaryService.AiProvider.Forge:
                     _lblAiKey.Text = "FORGE API KEY";
                     _txtAiKey.Text = _forgeAiKey;
                     break;
-                default: // Claude
-                    _lblAiKey.Text   = "ANTHROPIC API KEY";
-                    _txtAiKey.Text   = _claudeKey;
+                default:
+                    _lblAiKey.Text = "ANTHROPIC API KEY";
+                    _txtAiKey.Text = _claudeKey;
                     break;
             }
 
-            // Show/hide Azure endpoint row
-            bool isAzure = provider == AiProvider.Azure;
-            _lblAzureEndpoint.Visible  = isAzure;
-            _txtAzureEndpoint.Visible  = isAzure;
+            bool isAzure = provider == AiSummaryService.AiProvider.Azure;
+            _lblAzureEndpoint.Visible = isAzure;
+            _txtAzureEndpoint.Visible = isAzure;
         }
 
         private void StoreCurrentKey()
         {
             switch (GetSelectedProvider())
             {
-                case AiProvider.OpenAI: _openAiKey     = _txtAiKey.Text.Trim(); break;
-                case AiProvider.Forge:  _forgeAiKey    = _txtAiKey.Text.Trim();break;
-                case AiProvider.Azure:  _azureKey      = _txtAiKey.Text.Trim();
-                                        _azureEndpoint = _txtAzureEndpoint.Text.Trim(); break;
-                default:                _claudeKey     = _txtAiKey.Text.Trim(); break;
+                case AiSummaryService.AiProvider.OpenAI: _openAiKey     = _txtAiKey.Text.Trim(); break;
+                case AiSummaryService.AiProvider.Forge:  _forgeAiKey    = _txtAiKey.Text.Trim(); break;
+                case AiSummaryService.AiProvider.Azure:  _azureKey      = _txtAiKey.Text.Trim();
+                                                         _azureEndpoint = _txtAzureEndpoint.Text.Trim(); break;
+                default:                                 _claudeKey     = _txtAiKey.Text.Trim(); break;
             }
         }
 
         // ── AI settings persistence ───────────────────────────────────────────
         private void LoadAiSettings()
         {
-            try
+            var s = _jiraService.LoadAiSettings();
+            _claudeKey         = s.ClaudeKey;
+            _openAiKey         = s.OpenAiKey;
+            _azureKey          = s.AzureKey;
+            _azureEndpoint     = s.AzureEndpoint;
+            _forgeAiKey        = s.ForgeKey;
+            _savedTemplateName = s.SelectedTemplate;
+
+            // Restore last-used provider — suppress event so StoreCurrentKey()
+            // doesn't overwrite the keys we just loaded with empty strings.
+            if (s.ProviderIndex >= 0 && s.ProviderIndex < _cmbProvider.Items.Count)
             {
-                if (!File.Exists(ConfigFile)) return;
-                var obj = JObject.Parse(File.ReadAllText(ConfigFile));
-
-                _claudeKey        = obj["anthropic_key"]?.ToString()         ?? "";
-                _openAiKey        = obj["openai_key"]?.ToString()             ?? "";
-                _azureKey         = obj["azure_openai_key"]?.ToString()       ?? "";
-                _azureEndpoint    = obj["azure_openai_endpoint"]?.ToString()  ?? "";
-
-                _forgeAiKey    = obj["forge_key"]?.ToString() ?? "";
-                _savedTemplateName = obj["selected_ai_template"]?.ToString() ?? "";
-
-                // Restore last-used provider — suppress the event so StoreCurrentKey()
-                // doesn't overwrite the keys we just loaded with empty strings.
-                int providerIdx = obj["ai_provider"]?.ToObject<int>() ?? 0;
-                if (providerIdx >= 0 && providerIdx < _cmbProvider.Items.Count)
-                {
-                    _cmbProvider.SelectedIndexChanged -= CmbProvider_Changed;
-                    _cmbProvider.SelectedIndex = providerIdx;
-                    _cmbProvider.SelectedIndexChanged += CmbProvider_Changed;
-                }
-
-                // Populate key field for currently selected provider
-                _txtAiKey.Text = GetSelectedProvider() == AiProvider.OpenAI ? _openAiKey
-                               : GetSelectedProvider() == AiProvider.Azure   ? _azureKey
-                               : GetSelectedProvider() == AiProvider.Forge ? _forgeAiKey
-                               : _claudeKey;
-                _txtAzureEndpoint.Text = _azureEndpoint;
-
-                // Show/hide Azure endpoint row to match restored provider
-                bool isAzure = GetSelectedProvider() == AiProvider.Azure;
-                _lblAzureEndpoint.Visible = isAzure;
-                _txtAzureEndpoint.Visible = isAzure;
+                _cmbProvider.SelectedIndexChanged -= CmbProvider_Changed;
+                _cmbProvider.SelectedIndex = s.ProviderIndex;
+                _cmbProvider.SelectedIndexChanged += CmbProvider_Changed;
             }
-            catch { }
+
+            _txtAiKey.Text = GetSelectedProvider() == AiSummaryService.AiProvider.OpenAI ? _openAiKey
+                           : GetSelectedProvider() == AiSummaryService.AiProvider.Azure   ? _azureKey
+                           : GetSelectedProvider() == AiSummaryService.AiProvider.Forge   ? _forgeAiKey
+                           : _claudeKey;
+            _txtAzureEndpoint.Text = _azureEndpoint;
+
+            bool isAzure = GetSelectedProvider() == AiSummaryService.AiProvider.Azure;
+            _lblAzureEndpoint.Visible = isAzure;
+            _txtAzureEndpoint.Visible = isAzure;
         }
 
         private void SaveAiSettings()
         {
             StoreCurrentKey();
-            try
+            _jiraService.SaveAiSettings(new AiSettings
             {
-                var obj = File.Exists(ConfigFile)
-                    ? JObject.Parse(File.ReadAllText(ConfigFile))
-                    : new JObject();
-
-                obj["ai_provider"]          = _cmbProvider.SelectedIndex;
-                obj["anthropic_key"]        = _claudeKey;
-                obj["openai_key"]           = _openAiKey;
-                obj["azure_openai_key"]     = _azureKey;
-                obj["azure_openai_endpoint"]= _azureEndpoint;
-                obj["forge_key"]            = _forgeAiKey;
-                obj["selected_ai_template"]  = GetSelectedTemplate()?.Name ?? "";
-
-                File.WriteAllText(ConfigFile, obj.ToString());
-            }
-            catch { }
-        }
-
-        // ── ADF → plain text ──────────────────────────────────────────────────
-        private static string AdfToText(JToken token)
-        {
-            if (token == null || token.Type == JTokenType.Null) return "";
-            if (token.Type == JTokenType.String)               return token.ToString();
-            if (token.Type != JTokenType.Object)               return "";
-
-            var obj     = (JObject)token;
-            var content = obj["content"] as JArray;
-            return content == null ? "" : ExtractAdf(content).Trim();
-        }
-
-        private static string ExtractAdf(JArray nodes)
-        {
-            if (nodes == null) return "";
-            var sb = new StringBuilder();
-            foreach (var node in nodes)
-            {
-                if (node?.Type != JTokenType.Object) continue;
-                var obj  = (JObject)node;
-                var type = obj["type"]?.ToString();
-                if (type == "text")
-                    sb.Append(obj["text"]?.ToString() ?? "");
-                else
-                {
-                    var children = obj["content"] as JArray;
-                    if (children != null) sb.Append(ExtractAdf(children));
-                }
-                if (type == "paragraph" || type == "heading" ||
-                    type == "listItem"  || type == "codeBlock")
-                    sb.Append("\n");
-            }
-            return sb.ToString();
-        }
-
-        // ── Data fetch ────────────────────────────────────────────────────────
-        private async Task<(List<string> headers, List<List<string>> rows)> FetchAndBuildRows(
-            List<JiraIssue> issues, bool includeEmpty = false)
-        {
-            var headers = new List<string>();
-            if (_chkColKey.Checked)        headers.Add("Key");
-            if (_chkColSummary.Checked)    headers.Add("Summary");
-            if (_chkColType.Checked)       headers.Add("Type");
-            if (_chkColStatus.Checked)     headers.Add("Status");
-            if (_chkColPriority.Checked)   headers.Add("Priority");
-            if (_chkColProject.Checked)    headers.Add("Project");
-            if (_chkColAssignee.Checked)   headers.Add("Assignee");
-            if (_chkColDueDate.Checked)    headers.Add("Due Date");
-            if (_chkColRecordType.Checked) headers.Add("Record Type");
-            if (_chkColDate.Checked)       headers.Add("Date");
-            if (_chkColAuthor.Checked)     headers.Add("Author");
-            if (_chkColHours.Checked)      headers.Add("Hours");
-            if (_chkColText.Checked)       headers.Add("Text");
-
-            var rows = new List<List<string>>();
-            _statWorklogCount = 0;
-            _statCommentCount = 0;
-            _statTotalHours   = 0;
-
-            for (int i = 0; i < issues.Count; i++)
-            {
-                var issue = issues[i];
-                _lblStatus.Text = $"Fetching {i + 1}/{issues.Count}: {issue.Key}\u2026";
-                Application.DoEvents();
-
-                int rowsBefore = rows.Count;
-
-                // ── Worklogs ──────────────────────────────────────────────────
-                if (_chkWorklogs.Checked)
-                {
-                    try
-                    {
-                        var resp = await JiraForm.Http.GetAsync(
-                            _baseUrl + $"/rest/api/2/issue/{issue.Key}/worklog");
-                        if (resp.IsSuccessStatusCode)
-                        {
-                            var data     = JObject.Parse(await resp.Content.ReadAsStringAsync());
-                            var worklogs = data["worklogs"] as JArray;
-                            if (worklogs != null)
-                            {
-                                foreach (var wl in worklogs)
-                                {
-                                    string date   = wl["started"]?.ToString() ?? "";
-                                    string author = (wl["author"] as JObject)?["displayName"]?.ToString() ?? "";
-                                    double secs   = wl["timeSpentSeconds"]?.ToObject<double>() ?? 0;
-                                    string hours  = (secs / 3600.0).ToString("N2");
-                                    string text   = AdfToText(wl["comment"]);
-
-                                    _statWorklogCount++;
-                                    _statTotalHours += secs / 3600.0;
-
-                                    rows.Add(BuildRow(issue, "Worklog", date, author, hours, text));
-                                }
-                            }
-                        }
-                    }
-                    catch { /* skip failed fetch */ }
-                }
-
-                // ── Comments ──────────────────────────────────────────────────
-                if (_chkComments.Checked)
-                {
-                    try
-                    {
-                        var resp = await JiraForm.Http.GetAsync(
-                            _baseUrl + $"/rest/api/2/issue/{issue.Key}/comment");
-                        if (resp.IsSuccessStatusCode)
-                        {
-                            var data     = JObject.Parse(await resp.Content.ReadAsStringAsync());
-                            var comments = data["comments"] as JArray;
-                            if (comments != null)
-                            {
-                                foreach (var cm in comments)
-                                {
-                                    string date   = cm["created"]?.ToString() ?? "";
-                                    string author = (cm["author"] as JObject)?["displayName"]?.ToString() ?? "";
-                                    string text   = AdfToText(cm["body"]);
-
-                                    _statCommentCount++;
-                                    rows.Add(BuildRow(issue, "Comment", date, author, "", text));
-                                }
-                            }
-                        }
-                    }
-                    catch { /* skip failed fetch */ }
-                }
-
-                // If this issue produced no rows and caller wants all items, add a blank row
-                if (includeEmpty && rows.Count == rowsBefore)
-                    rows.Add(BuildRow(issue, "", "", "", "", ""));
-            }
-
-            return (headers, rows);
-        }
-
-        private List<string> BuildRow(JiraIssue issue, string recordType,
-                                      string date, string author,
-                                      string hours, string text)
-        {
-            var row = new List<string>();
-            if (_chkColKey.Checked)        row.Add(issue.Key      ?? "");
-            if (_chkColSummary.Checked)    row.Add(issue.Summary  ?? "");
-            if (_chkColType.Checked)       row.Add(issue.Type     ?? "");
-            if (_chkColStatus.Checked)     row.Add(issue.Status   ?? "");
-            if (_chkColPriority.Checked)   row.Add(issue.Priority ?? "");
-            if (_chkColProject.Checked)    row.Add(issue.Project  ?? "");
-            if (_chkColAssignee.Checked)   row.Add(issue.Assignee ?? "");
-            if (_chkColDueDate.Checked)    row.Add(issue.DueDate  ?? "");
-            if (_chkColRecordType.Checked) row.Add(recordType     ?? "");
-            if (_chkColDate.Checked)       row.Add(date           ?? "");
-            if (_chkColAuthor.Checked)     row.Add(author         ?? "");
-            if (_chkColHours.Checked)      row.Add(hours          ?? "");
-            if (_chkColText.Checked)       row.Add(text           ?? "");
-            return row;
+                ProviderIndex    = _cmbProvider.SelectedIndex,
+                ClaudeKey        = _claudeKey,
+                OpenAiKey        = _openAiKey,
+                AzureKey         = _azureKey,
+                AzureEndpoint    = _azureEndpoint,
+                ForgeKey         = _forgeAiKey,
+                SelectedTemplate = GetSelectedTemplate()?.Name ?? "",
+            });
         }
 
         // ── Prompt templates ──────────────────────────────────────────────────
         private void LoadTemplates()
         {
-            if (File.Exists(TemplatesFile))
-            {
-                try
-                {
-                    var arr = JArray.Parse(File.ReadAllText(TemplatesFile));
-                    _templates.Clear();
-                    foreach (var item in arr)
-                        _templates.Add(new SummaryTemplate
-                        {
-                            Name     = item["name"]?.ToString()     ?? "",
-                            Template = item["template"]?.ToString() ?? ""
-                        });
-                }
-                catch { }
-            }
-
+            var loaded = _jiraService.LoadTemplates();
+            _templates.Clear();
+            _templates.AddRange(loaded);
             if (_templates.Count == 0)
-                _templates.Add(new SummaryTemplate { Name = "Default", Template = DefaultTemplateText });
-
+                _templates.Add(new SummaryTemplate { Name = "Default", Template = AiSummaryService.DefaultTemplateText });
             PopulateTemplatesCombo(_savedTemplateName);
         }
 
         internal void SaveTemplates()
         {
-            try
-            {
-                var arr = new JArray(_templates.Select(t => new JObject
-                {
-                    ["name"]     = t.Name,
-                    ["template"] = t.Template
-                }));
-                File.WriteAllText(TemplatesFile, arr.ToString());
-            }
-            catch { }
+            _jiraService.SaveTemplates(_templates);
         }
 
         private void PopulateTemplatesCombo(string selectName = null)
@@ -434,7 +221,6 @@ namespace Test
                 if (dlg.ShowDialog(this) == DialogResult.OK)
                     SaveTemplates();
             }
-            // Restore selection by name; fall back to first if removed
             int idx = prevName != null ? _templates.FindIndex(t => t.Name == prevName) : -1;
             PopulateTemplatesCombo(idx >= 0 ? prevName : null);
         }
@@ -442,24 +228,13 @@ namespace Test
         // ── Email recipients ──────────────────────────────────────────────────
         private void LoadRecipients()
         {
-            try
-            {
-                if (!File.Exists(RecipientsFile)) return;
-                var list = JsonConvert.DeserializeObject<List<EmailRecipient>>(
-                               File.ReadAllText(RecipientsFile));
-                if (list != null) _recipients.AddRange(list);
-            }
-            catch { }
+            _recipients.Clear();
+            _recipients.AddRange(_exportService.LoadRecipients());
         }
 
         private void SaveRecipients()
         {
-            try
-            {
-                File.WriteAllText(RecipientsFile,
-                    JsonConvert.SerializeObject(_recipients, Formatting.Indented));
-            }
-            catch { }
+            _exportService.SaveRecipients(_recipients);
         }
 
         private void BtnEditRecipients_Click(object sender, EventArgs e)
@@ -506,13 +281,13 @@ namespace Test
             {
                 StoreCurrentKey();
                 var provider = GetSelectedProvider();
-                if (provider == AiProvider.Claude && string.IsNullOrWhiteSpace(_claudeKey))
+                if (provider == AiSummaryService.AiProvider.Claude && string.IsNullOrWhiteSpace(_claudeKey))
                 { SetStatus("Enter an Anthropic API key to use Claude summarization.", true); return; }
-                if (provider == AiProvider.OpenAI && string.IsNullOrWhiteSpace(_openAiKey))
+                if (provider == AiSummaryService.AiProvider.OpenAI && string.IsNullOrWhiteSpace(_openAiKey))
                 { SetStatus("Enter an OpenAI API key to use ChatGPT summarization.", true); return; }
-                if (provider == AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureKey))
+                if (provider == AiSummaryService.AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureKey))
                 { SetStatus("Enter an Azure OpenAI API key to use Copilot summarization.", true); return; }
-                if (provider == AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureEndpoint))
+                if (provider == AiSummaryService.AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureEndpoint))
                 { SetStatus("Enter the Azure OpenAI endpoint URL.", true); return; }
             }
 
@@ -520,12 +295,13 @@ namespace Test
                 $"jira_export_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
 
             _btnSendOutlookDefault.Enabled = false;
-            _btnExport.Enabled      = false;
+            _btnExport.Enabled             = false;
             SetStatus("Fetching data\u2026", false);
 
             try
             {
-                var result  = await FetchAndBuildRows(sourceList, includeEmpty: _chkIncludeEmpty.Checked);
+                var cols    = GetCurrentColumns();
+                var result  = await FetchAndBuildRows(sourceList, cols, includeEmpty: _chkIncludeEmpty.Checked);
                 var headers = result.headers;
                 var rows    = result.rows;
 
@@ -562,17 +338,15 @@ namespace Test
                     }
 
                     outlook = Activator.CreateInstance(outlookType);
-                    mail    = outlook.CreateItem(0); // 0 = olMailItem
-
+                    mail    = outlook.CreateItem(0);
                     mail.Subject = $"Jira Export \u2014 {DateTime.Now:yyyy-MM-dd}";
 
                     foreach (var r in selectedRecipients)
                     {
                         dynamic recip = mail.Recipients.Add(r.Email);
-                        recip.Type = 1; // 1 = olTo
+                        recip.Type = 1;
                     }
 
-                    // olByValue = 1, position = 1
                     mail.Attachments.Add(tempPath, 1, 1, Path.GetFileName(tempPath));
                     mail.Display(false);
 
@@ -600,7 +374,7 @@ namespace Test
             finally
             {
                 _btnSendOutlookDefault.Enabled = true;
-                _btnExport.Enabled      = true;
+                _btnExport.Enabled             = true;
             }
         }
 
@@ -608,330 +382,207 @@ namespace Test
         private List<EmailRecipient> PickRecipients(bool iIsDefault)
         {
             if (!iIsDefault)
-            { 
-            using (var dlg = new Form())
             {
-                dlg.Text = "Select Recipients";
-                dlg.BackColor = Color.FromArgb(37, 37, 38);
-                dlg.ForeColor = Color.White;
-                dlg.Font = new System.Drawing.Font("Segoe UI", 9.5f);
-                dlg.ClientSize = new System.Drawing.Size(420, 310);
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false;
-                dlg.MinimizeBox = false;
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-
-                var lbl = new Label
+                using (var dlg = new Form())
                 {
-                    Text = "Select recipients for this email:",
-                    AutoSize = true,
-                    Location = new System.Drawing.Point(12, 12),
-                    ForeColor = Color.FromArgb(175, 175, 185)
-                };
+                    dlg.Text            = "Select Recipients";
+                    dlg.BackColor       = Color.FromArgb(37, 37, 38);
+                    dlg.ForeColor       = Color.White;
+                    dlg.Font            = new System.Drawing.Font("Segoe UI", 9.5f);
+                    dlg.ClientSize      = new System.Drawing.Size(420, 310);
+                    dlg.StartPosition   = FormStartPosition.CenterParent;
+                    dlg.MaximizeBox     = false;
+                    dlg.MinimizeBox     = false;
+                    dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
 
-                var clb = new CheckedListBox
-                {
-                    BackColor = Color.FromArgb(28, 28, 30),
-                    ForeColor = Color.White,
-                    BorderStyle = BorderStyle.None,
-                    Location = new System.Drawing.Point(12, 36),
-                    Size = new System.Drawing.Size(396, 220),
-                    CheckOnClick = true
-                };
-                foreach (var r in _recipients)
-                    clb.Items.Add(r, r.IsDefault);
+                    var lbl = new Label
+                    {
+                        Text      = "Select recipients for this email:",
+                        AutoSize  = true,
+                        Location  = new System.Drawing.Point(12, 12),
+                        ForeColor = Color.FromArgb(175, 175, 185)
+                    };
 
-                var btnSend = new Button
-                {
-                    Text = "Send",
-                    DialogResult = DialogResult.OK,
-                    BackColor = Color.FromArgb(0, 100, 180),
-                    FlatStyle = FlatStyle.Flat,
-                    ForeColor = Color.White,
-                    Location = new System.Drawing.Point(258, 270),
-                    Size = new System.Drawing.Size(70, 28)
-                };
-                btnSend.FlatAppearance.BorderSize = 0;
+                    var clb = new CheckedListBox
+                    {
+                        BackColor    = Color.FromArgb(28, 28, 30),
+                        ForeColor    = Color.White,
+                        BorderStyle  = BorderStyle.None,
+                        Location     = new System.Drawing.Point(12, 36),
+                        Size         = new System.Drawing.Size(396, 220),
+                        CheckOnClick = true
+                    };
+                    foreach (var r in _recipients)
+                        clb.Items.Add(r, r.IsDefault);
 
-                var btnCancel = new Button
-                {
-                    Text = "Cancel",
-                    DialogResult = DialogResult.Cancel,
-                    BackColor = Color.FromArgb(70, 70, 78),
-                    FlatStyle = FlatStyle.Flat,
-                    ForeColor = Color.White,
-                    Location = new System.Drawing.Point(338, 270),
-                    Size = new System.Drawing.Size(70, 28)
-                };
-                btnCancel.FlatAppearance.BorderSize = 0;
+                    var btnSend = new Button
+                    {
+                        Text         = "Send",
+                        DialogResult = DialogResult.OK,
+                        BackColor    = Color.FromArgb(0, 100, 180),
+                        FlatStyle    = FlatStyle.Flat,
+                        ForeColor    = Color.White,
+                        Location     = new System.Drawing.Point(258, 270),
+                        Size         = new System.Drawing.Size(70, 28)
+                    };
+                    btnSend.FlatAppearance.BorderSize = 0;
 
-                dlg.Controls.AddRange(new Control[] { lbl, clb, btnSend, btnCancel });
-                dlg.AcceptButton = btnSend;
-                dlg.CancelButton = btnCancel;
+                    var btnCancel = new Button
+                    {
+                        Text         = "Cancel",
+                        DialogResult = DialogResult.Cancel,
+                        BackColor    = Color.FromArgb(70, 70, 78),
+                        FlatStyle    = FlatStyle.Flat,
+                        ForeColor    = Color.White,
+                        Location     = new System.Drawing.Point(338, 270),
+                        Size         = new System.Drawing.Size(70, 28)
+                    };
+                    btnCancel.FlatAppearance.BorderSize = 0;
 
-                if (dlg.ShowDialog(this) != DialogResult.OK) return null;
+                    dlg.Controls.AddRange(new Control[] { lbl, clb, btnSend, btnCancel });
+                    dlg.AcceptButton = btnSend;
+                    dlg.CancelButton = btnCancel;
 
-                var selected = new List<EmailRecipient>();
-                foreach (var item in clb.CheckedItems)
-                    selected.Add((EmailRecipient)item);
-                return selected;
-            }
-        }
-        else
-        {
-            var selected = new List<EmailRecipient>();
-            foreach (var r in _recipients)
-            {
-                if (r.IsDefault)
-                {
-                    selected.Add(r);
+                    if (dlg.ShowDialog(this) != DialogResult.OK) return null;
+
+                    var selected = new List<EmailRecipient>();
+                    foreach (var item in clb.CheckedItems)
+                        selected.Add((EmailRecipient)item);
+                    return selected;
                 }
             }
-                return selected;
-}
+            else
+            {
+                return _recipients.Where(r => r.IsDefault).ToList();
+            }
         }
 
         // ── AI Summary ────────────────────────────────────────────────────────
-        private string BuildSummaryPrompt(List<string> headers, List<List<string>> rows, int issueCount)
-        {
-            int iKey     = headers.IndexOf("Key");
-            int iProject = headers.IndexOf("Project");
-            int iDate    = headers.IndexOf("Date");
-            int iDueDate = headers.IndexOf("DueDate");
-            int iAuthor  = headers.IndexOf("Author");
-            int iRec     = headers.IndexOf("Record Type");
-            int iHours   = headers.IndexOf("Hours");
-            int iText    = headers.IndexOf("Text");
-            int iStatus  = headers.IndexOf("Status");
-
-            var body      = new StringBuilder();
-            int charBudget = 80_000;
-
-            foreach (var row in rows)
-            {
-                string rec     = iRec     >= 0 && iRec    < row.Count ? row[iRec]     : "";
-                string project = iProject >= 0 && iRec    < row.Count ? row[iProject] : "";
-                string key     = iKey     >= 0 && iKey    < row.Count ? row[iKey]     : "";
-                string date    = iDate    >= 0 && iDate   < row.Count ? row[iDate]    : "";
-                string duedate = iDueDate >= 0 && iDueDate< row.Count ? row[iDate] : "";
-                string author  = iAuthor  >= 0 && iAuthor < row.Count ? row[iAuthor]  : "";
-                string hours   = iHours   >= 0 && iHours  < row.Count ? row[iHours]   : "";
-                string text    = iText    >= 0 && iText   < row.Count ? row[iText]    : "";
-                string status  = iStatus  >= 0 && iStatus < row.Count ? row[iStatus] : "";
-
-                if (string.IsNullOrWhiteSpace(text)) continue;
-
-                string line = rec == "Worklog"
-                    ? $"[Worklog] Key: {key} | Project: {project} | Date: {date} | Author: {author} | Hours: {hours}h | Summary: {text} | Status: {status}\n"
-                    : $"[Comment] Key: {key} | Project: {project} | Date: {date} | Author: {author} | Summary:{text} | Status: {status}\n";
-
-                if (body.Length + line.Length > charBudget)
-                {
-                    body.Append("... (additional entries truncated due to length)\n");
-                    break;
-                }
-                body.Append(line);
-            }
-
-            string data =
-                $"Statistics:\n" +
-                $"  Issues processed: {issueCount}\n" +
-                $"  Worklogs: {_statWorklogCount} ({_statTotalHours:N2} hours total)\n" +
-                $"  Comments: {_statCommentCount}\n\n" +
-                $"Entries:\n{body}";
-
-            string templateText = GetSelectedTemplate()?.Template;
-            if (string.IsNullOrWhiteSpace(templateText))
-                templateText = DefaultTemplateText;
-
-            return templateText.Contains("{DATA}")
-                ? templateText.Replace("{DATA}", data)
-                : templateText + "\n\n" + data;
-        }
-
         private async Task<string> SummarizeWithAI(List<string> headers,
                                                     List<List<string>> rows,
                                                     int issueCount)
         {
-            string prompt = BuildSummaryPrompt(headers, rows, issueCount);
-            switch (GetSelectedProvider())
-            {
-                case AiProvider.OpenAI: return await CallOpenAI(prompt);
-                case AiProvider.Azure:  return await CallAzureOpenAI(prompt);
-                case AiProvider.Forge:  return await CallForgeAI(prompt);
-                default:                return await CallClaude(prompt);
-            }
-        }
+            string templateText = GetSelectedTemplate()?.Template;
+            string prompt = _aiService.BuildSummaryPrompt(
+                headers, rows, issueCount,
+                _statWorklogCount, _statCommentCount, _statTotalHours,
+                templateText);
 
-        private async Task<string> CallClaude(string prompt)
-        {
-            if (string.IsNullOrEmpty(_claudeKey))
-                throw new Exception("Enter an Anthropic API key to use Claude summarization.");
-
-            using (var http = new HttpClient())
-            {
-                http.DefaultRequestHeaders.Add("x-api-key", _claudeKey);
-                http.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
-                http.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var body = new JObject
-                {
-                    ["model"]      = "claude-opus-4-6",
-                    ["max_tokens"] = 2048,
-                    ["messages"]   = new JArray(new JObject
-                    {
-                        ["role"]    = "user",
-                        ["content"] = prompt
-                    })
-                };
-
-                var response = await http.PostAsync(
-                    "https://api.anthropic.com/v1/messages",
-                    new StringContent(body.ToString(), Encoding.UTF8, "application/json"));
-
-                var responseText = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception(
-                        $"Claude API error {(int)response.StatusCode}: " +
-                        responseText.Substring(0, Math.Min(300, responseText.Length)));
-
-                var json = JObject.Parse(responseText);
-                return json["content"]?[0]?["text"]?.ToString() ?? "(no response returned)";
-            }
-        }
-
-        private async Task<string> CallOpenAI(string prompt)
-        {
-            if (string.IsNullOrEmpty(_openAiKey))
-                throw new Exception("Enter an OpenAI API key to use ChatGPT summarization.");
-
-            using (var http = new HttpClient())
-            {
-                http.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", _openAiKey);
-                http.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var body = new JObject
-                {
-                    ["model"]      = "gpt-4o",
-                    ["max_tokens"] = 2048,
-                    ["messages"]   = new JArray(new JObject
-                    {
-                        ["role"]    = "user",
-                        ["content"] = prompt
-                    })
-                };
-
-                var response = await http.PostAsync(
-                    "https://api.openai.com/v1/chat/completions",
-                    new StringContent(body.ToString(), Encoding.UTF8, "application/json"));
-
-                var responseText = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception(
-                        $"OpenAI API error {(int)response.StatusCode}: " +
-                        responseText.Substring(0, Math.Min(300, responseText.Length)));
-
-                var json = JObject.Parse(responseText);
-                return json["choices"]?[0]?["message"]?["content"]?.ToString() ?? "(no response returned)";
-            }
-        }
-
-        private async Task<string> CallForgeAI(string prompt)
-        {
-            if (string.IsNullOrEmpty(_forgeAiKey))
-                throw new Exception("Enter an Forge API key to use Forge summarization.");
-
-            using (var http = new HttpClient())
-            {
-                http.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", _forgeAiKey);
-                http.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var body = new JObject
-                {
-                    ["model"] = "gpt-oss-20b-Q6_K.gguf",
-                    ["max_tokens"] = 2048,
-                    ["messages"] = new JArray(new JObject
-                    {
-                        ["role"] = "user",
-                        ["content"] = prompt
-                    })
-                };
-
-                var response = await http.PostAsync(
-                    "https://forge-dev.vdl.cluster.caemilusa.us/api/chat/completions",
-                    new StringContent(body.ToString(), Encoding.UTF8, "application/json"));
-
-                var responseText = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception(
-                        $"Forge API error {(int)response.StatusCode}: " +
-                        responseText.Substring(0, Math.Min(300, responseText.Length)));
-
-                var json = JObject.Parse(responseText);
-                return json["choices"]?[0]?["message"]?["content"]?.ToString() ?? "(no response returned)";
-            }
-        }
-
-        private async Task<string> CallAzureOpenAI(string prompt)
-        {
-            if (string.IsNullOrEmpty(_azureKey))
-                throw new Exception("Enter an Azure OpenAI API key to use Copilot summarization.");
-            if (string.IsNullOrEmpty(_azureEndpoint))
-                throw new Exception("Enter the Azure OpenAI endpoint URL.");
-
-            using (var http = new HttpClient())
-            {
-                http.DefaultRequestHeaders.Add("api-key", _azureKey);
-                http.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var body = new JObject
-                {
-                    ["max_tokens"] = 2048,
-                    ["messages"]   = new JArray(new JObject
-                    {
-                        ["role"]    = "user",
-                        ["content"] = prompt
-                    })
-                };
-
-                var response = await http.PostAsync(
-                    _azureEndpoint,
-                    new StringContent(body.ToString(), Encoding.UTF8, "application/json"));
-
-                var responseText = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception(
-                        $"Azure OpenAI error {(int)response.StatusCode}: " +
-                        responseText.Substring(0, Math.Min(300, responseText.Length)));
-
-                var json = JObject.Parse(responseText);
-                return json["choices"]?[0]?["message"]?["content"]?.ToString() ?? "(no response returned)";
-            }
+            return await _aiService.SummarizeAsync(
+                GetSelectedProvider(),
+                _claudeKey, _openAiKey, _azureKey, _azureEndpoint, _forgeAiKey,
+                prompt);
         }
 
         private List<List<string>> BuildSummarySheetRows(int issueCount, string summaryText)
         {
             var rows = new List<List<string>>();
-            //rows.Add(new List<string> { "STATISTICS" });
-            //rows.Add(new List<string> { $"Issues processed: {issueCount}" });
-            //rows.Add(new List<string> { $"Worklogs found: {_statWorklogCount}" });
-            //rows.Add(new List<string> { $"Comments found: {_statCommentCount}" });
-            //rows.Add(new List<string> { $"Total hours logged: {_statTotalHours:N2}" });
-            //rows.Add(new List<string> { $"Provider: {_cmbProvider.SelectedItem}" });
-            //rows.Add(new List<string> { "" });
-            //rows.Add(new List<string> { "AI SUMMARY" });
-            //rows.Add(new List<string> { "" });
-
             foreach (var line in summaryText.Replace("\r\n", "\n").Split('\n'))
                 rows.Add(new List<string> { line.TrimEnd() });
-
             return rows;
+        }
+
+        // ── Column selection ──────────────────────────────────────────────────
+        private JiraExportColumns GetCurrentColumns() => new JiraExportColumns
+        {
+            Key        = _chkColKey.Checked,
+            Summary    = _chkColSummary.Checked,
+            Type       = _chkColType.Checked,
+            Status     = _chkColStatus.Checked,
+            Priority   = _chkColPriority.Checked,
+            Project    = _chkColProject.Checked,
+            Assignee   = _chkColAssignee.Checked,
+            DueDate    = _chkColDueDate.Checked,
+            RecordType = _chkColRecordType.Checked,
+            Date       = _chkColDate.Checked,
+            Author     = _chkColAuthor.Checked,
+            Hours      = _chkColHours.Checked,
+            Text       = _chkColText.Checked,
+        };
+
+        // ── Data fetch ────────────────────────────────────────────────────────
+        private async Task<(List<string> headers, List<List<string>> rows)> FetchAndBuildRows(
+            List<JiraIssue> issues, JiraExportColumns cols, bool includeEmpty = false)
+        {
+            var headers = JiraService.BuildExportHeaders(cols);
+            var rows    = new List<List<string>>();
+            _statWorklogCount = 0;
+            _statCommentCount = 0;
+            _statTotalHours   = 0;
+
+            for (int i = 0; i < issues.Count; i++)
+            {
+                var issue = issues[i];
+                _lblStatus.Text = $"Fetching {i + 1}/{issues.Count}: {issue.Key}\u2026";
+                Application.DoEvents();
+
+                int rowsBefore = rows.Count;
+
+                // ── Worklogs ──────────────────────────────────────────────────
+                if (_chkWorklogs.Checked)
+                {
+                    try
+                    {
+                        var resp = await JiraService.Http.GetAsync(
+                            _baseUrl + $"/rest/api/2/issue/{issue.Key}/worklog");
+                        if (resp.IsSuccessStatusCode)
+                        {
+                            var data     = JObject.Parse(await resp.Content.ReadAsStringAsync());
+                            var worklogs = data["worklogs"] as JArray;
+                            if (worklogs != null)
+                            {
+                                foreach (var wl in worklogs)
+                                {
+                                    string date   = wl["started"]?.ToString() ?? "";
+                                    string author = (wl["author"] as JObject)?["displayName"]?.ToString() ?? "";
+                                    double secs   = wl["timeSpentSeconds"]?.ToObject<double>() ?? 0;
+                                    string hours  = (secs / 3600.0).ToString("N2");
+                                    string text   = JiraService.AdfToText(wl["comment"]);
+
+                                    _statWorklogCount++;
+                                    _statTotalHours += secs / 3600.0;
+
+                                    rows.Add(JiraService.BuildExportRow(issue, "Worklog", date, author, hours, text, cols));
+                                }
+                            }
+                        }
+                    }
+                    catch { /* skip failed fetch */ }
+                }
+
+                // ── Comments ──────────────────────────────────────────────────
+                if (_chkComments.Checked)
+                {
+                    try
+                    {
+                        var resp = await JiraService.Http.GetAsync(
+                            _baseUrl + $"/rest/api/2/issue/{issue.Key}/comment");
+                        if (resp.IsSuccessStatusCode)
+                        {
+                            var data     = JObject.Parse(await resp.Content.ReadAsStringAsync());
+                            var comments = data["comments"] as JArray;
+                            if (comments != null)
+                            {
+                                foreach (var cm in comments)
+                                {
+                                    string date   = cm["created"]?.ToString() ?? "";
+                                    string author = (cm["author"] as JObject)?["displayName"]?.ToString() ?? "";
+                                    string text   = JiraService.AdfToText(cm["body"]);
+
+                                    _statCommentCount++;
+                                    rows.Add(JiraService.BuildExportRow(issue, "Comment", date, author, "", text, cols));
+                                }
+                            }
+                        }
+                    }
+                    catch { /* skip failed fetch */ }
+                }
+
+                if (includeEmpty && rows.Count == rowsBefore)
+                    rows.Add(JiraService.BuildExportRow(issue, "", "", "", "", "", cols));
+            }
+
+            return (headers, rows);
         }
 
         // ── Preview ───────────────────────────────────────────────────────────
@@ -951,11 +602,11 @@ namespace Test
 
             try
             {
-                var result  = await FetchAndBuildRows(sourceList, includeEmpty: true);
+                var cols    = GetCurrentColumns();
+                var result  = await FetchAndBuildRows(sourceList, cols, includeEmpty: true);
                 var headers = result.headers;
                 var rows    = result.rows;
 
-                // Build columns — give Text and Summary extra width
                 foreach (var h in headers)
                 {
                     var col = new System.Windows.Forms.DataGridViewTextBoxColumn
@@ -998,16 +649,16 @@ namespace Test
             {
                 StoreCurrentKey();
                 var provider = GetSelectedProvider();
-                if (provider == AiProvider.Claude && string.IsNullOrWhiteSpace(_claudeKey))
+                if (provider == AiSummaryService.AiProvider.Claude && string.IsNullOrWhiteSpace(_claudeKey))
                 { SetStatus("Enter an Anthropic API key to use Claude summarization.", true); return; }
-                if (provider == AiProvider.OpenAI && string.IsNullOrWhiteSpace(_openAiKey))
+                if (provider == AiSummaryService.AiProvider.OpenAI && string.IsNullOrWhiteSpace(_openAiKey))
                 { SetStatus("Enter an OpenAI API key to use ChatGPT summarization.", true); return; }
-                if (provider == AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureKey))
+                if (provider == AiSummaryService.AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureKey))
                 { SetStatus("Enter an Azure OpenAI API key to use Copilot summarization.", true); return; }
-                if (provider == AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureEndpoint))
+                if (provider == AiSummaryService.AiProvider.Azure  && string.IsNullOrWhiteSpace(_azureEndpoint))
                 { SetStatus("Enter the Azure OpenAI endpoint URL.", true); return; }
-                if (provider == AiProvider.Forge && string.IsNullOrWhiteSpace(_forgeAiKey))
-                { SetStatus("Enter an Forge OpenAI API key to use Forge summarization.", true); return; }
+                if (provider == AiSummaryService.AiProvider.Forge  && string.IsNullOrWhiteSpace(_forgeAiKey))
+                { SetStatus("Enter a Forge API key to use Forge summarization.", true); return; }
             }
 
             string savePath;
@@ -1029,7 +680,8 @@ namespace Test
 
             try
             {
-                var result  = await FetchAndBuildRows(sourceList, includeEmpty: _chkIncludeEmpty.Checked);
+                var cols    = GetCurrentColumns();
+                var result  = await FetchAndBuildRows(sourceList, cols, includeEmpty: _chkIncludeEmpty.Checked);
                 var headers = result.headers;
                 var rows    = result.rows;
 
@@ -1066,7 +718,7 @@ namespace Test
             {
                 SetStatus($"Export failed: {ex.Message}", true);
                 MessageBox.Show($"Export failed:\n{ex.Message}", "Export Error",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1087,12 +739,5 @@ namespace Test
         {
             SaveAiSettings();
         }
-    }
-
-    // ── AI prompt template ────────────────────────────────────────────────────
-    internal class SummaryTemplate
-    {
-        public string Name     { get; set; } = "";
-        public string Template { get; set; } = "";
     }
 }

@@ -139,6 +139,16 @@
     <Compile Include="Classes\Models.cs" />
     <Compile Include="Classes\XlsxWriter.cs" />
 
+    <!-- Services -->
+    <Compile Include="Services\AlertService.cs" />
+    <Compile Include="Services\AiSummaryService.cs" />
+    <Compile Include="Services\ExportService.cs" />
+    <Compile Include="Services\ImageService.cs" />
+    <Compile Include="Services\JiraService.cs" />
+    <Compile Include="Services\SettingsService.cs" />
+    <Compile Include="Services\TaskRepository.cs" />
+    <Compile Include="Services\TaskService.cs" />
+
     <!-- Jira -->
     <Compile Include="Jira\JiraForm.cs">
       <SubType>Form</SubType>

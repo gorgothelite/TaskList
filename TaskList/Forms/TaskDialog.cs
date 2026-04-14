@@ -8,19 +8,6 @@ namespace Test
     {
         public TaskItem Result { get; private set; }
 
-        internal static readonly (string Label, int Minutes)[] AlertOptions =
-        {
-            ("Never",          -1),
-            ("At due time",     0),
-            ("30 min before",  30),
-            ("1 hour before",  60),
-            ("2 hours before", 120),
-            ("4 hours before", 240),
-            ("8 hours before", 480),
-            ("1 day before",   1440),
-            ("2 days before",  2880),
-            ("1 week before",  10080),
-        };
 
         private const int CollapsedHeight = 420;
         private const int ExpandedHeight  = 578;   // 420 + pnlJira.Height(150) + gap(8)
@@ -57,12 +44,12 @@ namespace Test
             }
             catch { }
 
-            foreach (var opt in AlertOptions)
+            foreach (var opt in AlertPresets.Options)
                 _cmbAlert.Items.Add(opt.Label);
 
-            for (int i = 0; i < AlertOptions.Length; i++)
+            for (int i = 0; i < AlertPresets.Options.Length; i++)
             {
-                if (AlertOptions[i].Minutes == Result.AlertLeadMinutes)
+                if (AlertPresets.Options[i].Minutes == Result.AlertLeadMinutes)
                 { _cmbAlert.SelectedIndex = i; break; }
             }
             if (_cmbAlert.SelectedIndex < 0) _cmbAlert.SelectedIndex = 0;
@@ -92,7 +79,7 @@ namespace Test
             Result.Priority         = (TaskPriority)_cmbPriority.SelectedIndex;
             Result.DueDate          = _dtpDate.Value.Date + _dtpTime.Value.TimeOfDay;
             Result.Notes            = _rtbNotes.Text.Trim();
-            Result.AlertLeadMinutes = AlertOptions[_cmbAlert.SelectedIndex].Minutes;
+            Result.AlertLeadMinutes = AlertPresets.Options[_cmbAlert.SelectedIndex].Minutes;
             Result.DueDateEnabled   = cbDueDateEnabled.Checked;
 
             Result.JiraImportable  = cbJiraImportable.Checked;

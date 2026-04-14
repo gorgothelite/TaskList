@@ -5,15 +5,18 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 
 namespace Test
 {
     public partial class MainForm : DarkForm
     {
+        // ── Services ─────────────────────────────────────────────────────────
+        private TaskRepository _repo;
+        private TaskService    _taskService;
+        private SettingsService _settingsService;
+        private ImageService    _imageService;
+
         // ── State ────────────────────────────────────────────────────────────
-        private List<TaskItem>             _tasks   = new List<TaskItem>();
-        private List<RevisionEntry>        _history = new List<RevisionEntry>();
         private TaskItem                   _sel;
         private System.Windows.Forms.Timer _alertTimer;
         private bool                       _alertActive;
@@ -38,15 +41,7 @@ namespace Test
         private bool _sortAscending = true;
 
         // ── File paths ───────────────────────────────────────────────────────
-        private static readonly string BaseDir      = AppDomain.CurrentDomain.BaseDirectory;
-        private static readonly string DataFile     = Path.Combine(BaseDir, "tasks.json");
-        private static readonly string HistFile     = Path.Combine(BaseDir, "tasks_history.json");
-        private static readonly string SettingsFile = Path.Combine(BaseDir, "tasks_settings.json");
-        private static readonly string BackupDir    = Path.Combine(BaseDir, "backups");
-        private static readonly string ImagesDir    = Path.Combine(BaseDir, "task_images");
-        private const int MaxBackups = 20;
-
-        private static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp" };
+        private static readonly string BaseDir = AppDomain.CurrentDomain.BaseDirectory;
 
         // ── Visual maps ──────────────────────────────────────────────────────
         private static readonly Color[]  PriCol  = { Color.FromArgb(88,196,88), Color.FromArgb(214,188,50), Color.FromArgb(232,116,40), Color.FromArgb(222,52,52) };
@@ -64,6 +59,13 @@ namespace Test
             //    this.Icon = _iconFromPng;
             //}
 
+            _repo            = new TaskRepository(BaseDir);
+            _taskService     = new TaskService(_repo);
+            _settingsService = new SettingsService(BaseDir);
+            _imageService    = new ImageService(BaseDir, _taskService);
+            _taskService.SaveFailed    += ex => MessageBox.Show($"Could not save tasks:\n{ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            _taskService.RevisionAdded += _ => { if (_historyWindow != null && !_historyWindow.IsDisposed) _historyWindow.Refresh(); };
+
             _cmbStatusF.SelectedIndex   = 0;
             _cmbPriorityF.SelectedIndex = 0;
             _lv.Columns.Add("",          22);
@@ -75,8 +77,7 @@ namespace Test
             LoadSettings();
             UpdateThemeButton();
             WireListView();
-            LoadHistory();
-            LoadTasks();
+            _taskService.Load();
             RefreshList();
 
             _alertTimer = new System.Windows.Forms.Timer { Interval = 60_000 };
@@ -262,7 +263,7 @@ namespace Test
             _lblPriority.Text = PriName[(int)t.Priority]; _lblPriority.ForeColor = PriCol[(int)t.Priority];
             if (t.DueDateEnabled)
             {
-                _lblDue.Text = t.DueDate.ToString("f") + "\n" + AlertLeadLabel(t.AlertLeadMinutes);
+                _lblDue.Text = t.DueDate.ToString("f") + "\n" + AlertPresets.GetLabel(t.AlertLeadMinutes);
             }
             else
             {
@@ -288,15 +289,15 @@ namespace Test
             if (isSubtask)
             {
                 lblSubCaption.Text = "PARENT TASK";
-                var parent = _tasks.FirstOrDefault(x => x.Id == t.ParentId);
+                var parent = _taskService.Tasks.FirstOrDefault(x => x.Id == t.ParentId);
                 _lblSubInfo.Text = parent != null ? parent.Name : "(deleted)";
                 _btnAddSubtask.Visible = false;
             }
             else
             {
                 lblSubCaption.Text = "SUBTASKS";
-                int total = _tasks.Count(x => x.ParentId == t.Id);
-                int done  = _tasks.Count(x => x.ParentId == t.Id && x.IsDone);
+                int total = _taskService.Tasks.Count(x => x.ParentId == t.Id);
+                int done  = _taskService.Tasks.Count(x => x.ParentId == t.Id && x.IsDone);
                 _lblSubInfo.Text = total == 0 ? "None" : $"{done}/{total} done";
                 _btnAddSubtask.Visible  = true;
                 _btnAddSubtask.Enabled  = true;
@@ -309,7 +310,7 @@ namespace Test
         // ── List ─────────────────────────────────────────────────────────────
         private void RefreshList(bool updateDetails = true)
         {
-            _parentIds = new HashSet<string>(_tasks
+            _parentIds = new HashSet<string>(_taskService.Tasks
                 .Where(t => t.ParentId != null)
                 .Select(t => t.ParentId));
 
@@ -339,7 +340,7 @@ namespace Test
 
         private IEnumerable<TaskItem> GetFiltered()
         {
-            var q = _tasks.AsEnumerable();
+            var q = _taskService.Tasks.AsEnumerable();
             int si = _cmbStatusF.SelectedIndex, pi = _cmbPriorityF.SelectedIndex;
             if (si == 1) q = q.Where(t => !t.IsDone && !t.IsOnHold);
             else if (si == 2) q = q.Where(t =>  t.IsDone);
@@ -445,11 +446,9 @@ namespace Test
             using (var dlg = new TaskDialog())
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
-                _tasks.Add(dlg.Result);
-                BeginActiveSession(dlg.Result);
                 _sel = dlg.Result;
-                AddRevision(new RevisionEntry { Action = RevisionAction.TaskAdded, TaskId = dlg.Result.Id, TaskName = dlg.Result.Name, Summary = $"Task \"{dlg.Result.Name}\" added (Priority: {dlg.Result.Priority}, Due: {dlg.Result.DueDate:g})" });
-                SaveAll(); RefreshList();
+                _taskService.AddTask(dlg.Result);
+                RefreshList();
             }
         }
 
@@ -460,39 +459,29 @@ namespace Test
             using (var dlg = new TaskDialog(_sel))
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
-                var changes = DiffTask(before, _sel);
-                AddRevision(new RevisionEntry { Action = RevisionAction.TaskEdited, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" edited ({changes.Count} field(s) changed)", Changes = changes });
-                SaveAll(); RefreshList();
+                _taskService.CommitEdit(before, _sel);
+                RefreshList();
             }
         }
 
         private void ToggleDone()
         {
             if (_sel == null) return;
-            bool was = _sel.IsDone;
-            _sel.IsDone = !was;
-            if (_sel.IsDone) EndActiveSession(_sel);
-            else             BeginActiveSession(_sel);
-            AddRevision(new RevisionEntry { Action = RevisionAction.StatusChanged, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" marked {(_sel.IsDone ? "Done" : "Active")}", Changes = new List<FieldChange> { new FieldChange { Field = "IsDone", OldValue = was.ToString(), NewValue = _sel.IsDone.ToString() } } });
-            SaveAll(); RefreshList();
+            _taskService.SetDone(_sel, !_sel.IsDone);
+            RefreshList();
         }
 
         private void DeleteTask()
         {
             if (_sel == null) return;
-            var children = _tasks.Where(t => t.ParentId == _sel.Id).ToList();
+            var children = _taskService.Tasks.Where(t => t.ParentId == _sel.Id).ToList();
             string msg = children.Count > 0
                 ? $"Delete \"{_sel.Name}\" and its {children.Count} subtask(s)?"
                 : $"Delete \"{_sel.Name}\"?";
             if (MessageBox.Show(msg, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
-            AddRevision(new RevisionEntry { Action = RevisionAction.TaskDeleted, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" deleted" });
-            foreach (var child in children)
-            {
-                AddRevision(new RevisionEntry { Action = RevisionAction.TaskDeleted, TaskId = child.Id, TaskName = child.Name, Summary = $"Subtask \"{child.Name}\" deleted (parent deleted)" });
-                _tasks.Remove(child);
-            }
-            _tasks.Remove(_sel); _sel = null;
-            SaveAll(); RefreshList();
+            _taskService.DeleteTask(_sel);
+            _sel = null;
+            RefreshList();
         }
 
         private void BtnAddSubtask_Click(object sender, EventArgs e)
@@ -502,23 +491,16 @@ namespace Test
             using (var dlg = new TaskDialog())
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
-                dlg.Result.ParentId = parentTask.Id;
-                _tasks.Add(dlg.Result);
-                BeginActiveSession(dlg.Result);
-                AddRevision(new RevisionEntry { Action = RevisionAction.TaskAdded, TaskId = dlg.Result.Id, TaskName = dlg.Result.Name, Summary = $"Subtask \"{dlg.Result.Name}\" added to \"{parentTask.Name}\" (Priority: {dlg.Result.Priority}, Due: {dlg.Result.DueDate:g})" });
-                SaveAll(); RefreshList();
+                _taskService.AddSubtask(dlg.Result, parentTask);
+                RefreshList();
             }
         }
 
         private void ToggleHold()
         {
             if (_sel == null) return;
-            bool wasOnHold = _sel.IsOnHold;
-            _sel.IsOnHold = !wasOnHold;
-            if (_sel.IsOnHold) EndActiveSession(_sel);
-            else               BeginActiveSession(_sel);
-            AddRevision(new RevisionEntry { Action = RevisionAction.StatusChanged, TaskId = _sel.Id, TaskName = _sel.Name, Summary = $"Task \"{_sel.Name}\" {(_sel.IsOnHold ? "put on hold" : "removed from hold")}", Changes = new List<FieldChange> { new FieldChange { Field = "IsOnHold", OldValue = wasOnHold.ToString(), NewValue = _sel.IsOnHold.ToString() } } });
-            SaveAll(); RefreshList();
+            _taskService.SetHold(_sel, !_sel.IsOnHold);
+            RefreshList();
         }
 
         // ── Button event handlers (wired in Designer) ─────────────────────────
@@ -530,7 +512,7 @@ namespace Test
 
         private void BtnExport_Click(object sender, EventArgs e)
         {
-            using (var dlg = new ExportDialog(_tasks))
+            using (var dlg = new ExportDialog(_taskService.Tasks))
                 dlg.ShowDialog(this);
         }
 
@@ -567,25 +549,9 @@ namespace Test
 
         private void OnJiraTasksImported(System.Collections.Generic.List<TaskItem> incoming)
         {
-            int added = 0;
-            foreach (var t in incoming)
-            {
-                // Skip if a task with the same name already exists
-                if (_tasks.Exists(x => x.Name == t.Name)) continue;
-                _tasks.Add(t);
-                BeginActiveSession(t);
-                AddRevision(new RevisionEntry
-                {
-                    Action   = RevisionAction.TaskAdded,
-                    TaskId   = t.Id,
-                    TaskName = t.Name,
-                    Summary  = $"Imported from Jira: \"{t.Name}\""
-                });
-                added++;
-            }
+            int added = _taskService.ImportFromJira(incoming);
             if (added > 0)
             {
-                SaveAll();
                 RefreshList();
                 MessageBox.Show($"{added} task(s) imported from Jira.", "Import Complete",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -608,19 +574,6 @@ namespace Test
         }
 
         // ── Work-session helpers ─────────────────────────────────────────────
-        private static void BeginActiveSession(TaskItem t)
-        {
-            if (t.IsDone || t.IsOnHold) return;
-            if (t.WorkLog.Any(s => s.End == null)) return;   // already open
-            t.WorkLog.Add(new WorkSession { Start = DateTime.Now });
-        }
-
-        private static void EndActiveSession(TaskItem t)
-        {
-            var open = t.WorkLog.LastOrDefault(s => s.End == null);
-            if (open != null) open.End = DateTime.Now;
-        }
-
         private void TimeSpentTimer_Tick(object sender, EventArgs e)
         {
             // No longer mutates data — just keeps the detail panel display current
@@ -633,24 +586,9 @@ namespace Test
         {
             _notesSaveTimer.Stop();
             if (_sel == null) return;
-
             string newNotes = _txtNotes.Text;
-            if (newNotes == _sel.Notes) return;   // nothing actually changed
-
-            string oldNotes = _sel.Notes;
-            _sel.Notes = newNotes;
-            AddRevision(new RevisionEntry
-            {
-                Action   = RevisionAction.TaskEdited,
-                TaskId   = _sel.Id,
-                TaskName = _sel.Name,
-                Summary  = $"Notes updated for \"{_sel.Name}\"",
-                Changes  = new System.Collections.Generic.List<FieldChange>
-                {
-                    new FieldChange { Field = "Notes", OldValue = oldNotes, NewValue = newNotes }
-                }
-            });
-            SaveAll();
+            if (newNotes == _sel.Notes) return;
+            _taskService.UpdateNotes(_sel, newNotes);
         }
         private void BtnHistory_Click(object sender, EventArgs e)
         {
@@ -659,8 +597,8 @@ namespace Test
                 _historyWindow.BringToFront();
                 return;
             }
-            _historyWindow = new HistoryDialog(_history, BackupDir);
-            _historyWindow.HistoryCleared += () => SaveHistory();
+            _historyWindow = new HistoryDialog(_taskService.History, _repo);
+            _historyWindow.HistoryCleared += () => _taskService.SaveHistory();
             _historyWindow.FormClosed += (s2, ev) => _historyWindow = null;
             _historyWindow.Show(this);
         }
@@ -734,61 +672,19 @@ namespace Test
         private void CheckAlerts(object sender, EventArgs e)
         {
             if (_alertActive || _mutedNotifications) return;
-            var due = _tasks.Where(t => !t.IsDone && !t.IsOnHold && !t.AlertIgnored && t.AlertLeadMinutes >= 0 && (!t.HasSnooze || DateTime.Now >= t.SnoozedUntil) && t.DueDate <= DateTime.Now.AddMinutes(t.AlertLeadMinutes))
-                            .OrderByDescending(t => (int)t.Priority).ThenBy(t => t.DueDate).FirstOrDefault();
+            var due = AlertService.GetNextAlert(_taskService.Tasks);
             if (due == null) return;
             _alertActive = true;
             using (var dlg = new AlertDialog(due))
             {
                 dlg.ShowDialog(this);
-                switch (dlg.Choice)
-                {
-                    case SnoozeChoice.Dismiss:      due.HasSnooze=true; due.SnoozedUntil=DateTime.Now.AddHours(1);  AddRevision(new RevisionEntry { Action=RevisionAction.AlertSnoozed, TaskId=due.Id, TaskName=due.Name, Summary=$"Alert for \"{due.Name}\" dismissed" }); break;
-                    case SnoozeChoice.IgnoreAlways: due.AlertIgnored=true;                                          AddRevision(new RevisionEntry { Action=RevisionAction.AlertIgnored,  TaskId=due.Id, TaskName=due.Name, Summary=$"Alerts for \"{due.Name}\" disabled" }); break;
-                    case SnoozeChoice.Snooze1Hour:  due.HasSnooze=true; due.SnoozedUntil=DateTime.Now.AddHours(1);  AddRevision(new RevisionEntry { Action=RevisionAction.AlertSnoozed, TaskId=due.Id, TaskName=due.Name, Summary=$"Alert for \"{due.Name}\" snoozed 1 h" }); break;
-                    case SnoozeChoice.Snooze4Hours: due.HasSnooze=true; due.SnoozedUntil=DateTime.Now.AddHours(4);  AddRevision(new RevisionEntry { Action=RevisionAction.AlertSnoozed, TaskId=due.Id, TaskName=due.Name, Summary=$"Alert for \"{due.Name}\" snoozed 4 h" }); break;
-                    case SnoozeChoice.Snooze1Day:   due.HasSnooze=true; due.SnoozedUntil=DateTime.Now.AddDays(1);   AddRevision(new RevisionEntry { Action=RevisionAction.AlertSnoozed, TaskId=due.Id, TaskName=due.Name, Summary=$"Alert for \"{due.Name}\" snoozed 1 day" }); break;
-                }
-                SaveAll();
+                _taskService.ApplySnooze(due, dlg.Choice);
             }
             _alertActive = false;
         }
 
-        // ── Revision helpers ──────────────────────────────────────────────────
-        private void AddRevision(RevisionEntry rev)
-        {
-            _history.Add(rev);
-            // Push to the history window immediately if it's open
-            if (_historyWindow != null && !_historyWindow.IsDisposed)
-                _historyWindow.Refresh();
-        }
-
-        private static string AlertLeadLabel(int minutes)
-        {
-            foreach (var opt in TaskDialog.AlertOptions)
-                if (opt.Minutes == minutes) return opt.Label;
-            if (minutes < 0) return "Never";
-            if (minutes < 60) return $"{minutes} min before";
-            if (minutes < 1440) return $"{minutes / 60} hr before";
-            return $"{minutes / 1440} day(s) before";
-        }
-
-        private static List<FieldChange> DiffTask(TaskItem before, TaskItem after)
-        {
-            var list = new List<FieldChange>();
-            void Chk(string f, string o, string n) { if (o != n) list.Add(new FieldChange { Field=f, OldValue=o, NewValue=n }); }
-            Chk("Name",     before.Name,                        after.Name);
-            Chk("Priority", before.Priority.ToString(),         after.Priority.ToString());
-            Chk("DueDate",  before.DueDate.ToString("g"),       after.DueDate.ToString("g"));
-            Chk("Notes",    before.Notes,                       after.Notes);
-            Chk("Alert",    AlertLeadLabel(before.AlertLeadMinutes), AlertLeadLabel(after.AlertLeadMinutes));
-            return list;
-        }
 
         // ── Images ────────────────────────────────────────────────────────────
-        private static string GetTaskImageDir(TaskItem t) =>
-            Path.Combine(ImagesDir, t.Id);
-
         private void RefreshImageThumbs(TaskItem t)
         {
             foreach (Control c in _pnlImagesThumbs.Controls)
@@ -802,7 +698,7 @@ namespace Test
             }
 
             lblImagesCaption.Text = $"IMAGES ({t.ImagePaths.Count})";
-            string taskDir = GetTaskImageDir(t);
+            string taskDir = _imageService.GetTaskImageDir(t);
             int x = 4;
             foreach (string filename in t.ImagePaths.ToList())
             {
@@ -850,17 +746,14 @@ namespace Test
             var removeItem = new ToolStripMenuItem("Remove");
             viewItem.Click += (s, e) =>
             {
-                string path = Path.Combine(GetTaskImageDir(_sel), filename);
+                string path = Path.Combine(_imageService.GetTaskImageDir(_sel), filename);
                 if (File.Exists(path)) System.Diagnostics.Process.Start(path);
             };
             removeItem.Click += (s, e) =>
             {
                 if (MessageBox.Show($"Remove \"{filename}\" from this task?\nThe file will be deleted.",
                         "Confirm Remove", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
-                string path = Path.Combine(GetTaskImageDir(_sel), filename);
-                _sel.ImagePaths.Remove(filename);
-                try { if (File.Exists(path)) File.Delete(path); } catch { }
-                SaveAll();
+                _imageService.RemoveImage(_sel, filename);
                 RefreshImageThumbs(_sel);
             };
             menu.Items.Add(viewItem);
@@ -886,29 +779,8 @@ namespace Test
         private void AddImages(string[] paths)
         {
             if (_sel == null || paths.Length == 0) return;
-            string taskDir = GetTaskImageDir(_sel);
-            Directory.CreateDirectory(taskDir);
-            bool any = false;
-            foreach (string src in paths)
-            {
-                if (!ImageExtensions.Contains(Path.GetExtension(src).ToLowerInvariant())) continue;
-                string name = Path.GetFileName(src);
-                string dest = Path.Combine(taskDir, name);
-                if (File.Exists(dest))
-                {
-                    string stem = Path.GetFileNameWithoutExtension(name);
-                    string ext  = Path.GetExtension(name);
-                    int    n    = 1;
-                    do { dest = Path.Combine(taskDir, $"{stem}_{n++}{ext}"); } while (File.Exists(dest));
-                    name = Path.GetFileName(dest);
-                }
-                try { File.Copy(src, dest); } catch { continue; }
-                _sel.ImagePaths.Add(name);
-                any = true;
-            }
-            if (!any) return;
-            SaveAll();
-            RefreshImageThumbs(_sel);
+            if (_imageService.CopyImages(_sel, paths))
+                RefreshImageThumbs(_sel);
         }
 
         private void PasteImages()
@@ -918,20 +790,14 @@ namespace Test
             {
                 var img = Clipboard.GetImage();
                 if (img == null) return;
-                string taskDir  = GetTaskImageDir(_sel);
-                Directory.CreateDirectory(taskDir);
-                string filename = $"paste_{DateTime.Now:yyyyMMdd_HHmmss_fff}.png";
-                string dest     = Path.Combine(taskDir, filename);
-                try { img.Save(dest, System.Drawing.Imaging.ImageFormat.Png); } catch { img.Dispose(); return; }
+                bool added = _imageService.SaveClipboardImage(_sel, img);
                 img.Dispose();
-                _sel.ImagePaths.Add(filename);
-                SaveAll();
-                RefreshImageThumbs(_sel);
+                if (added) RefreshImageThumbs(_sel);
             }
             else if (Clipboard.ContainsFileDropList())
             {
                 var files = Clipboard.GetFileDropList().Cast<string>()
-                    .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                    .Where(f => ImageService.Extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
                     .ToArray();
                 AddImages(files);
             }
@@ -941,7 +807,7 @@ namespace Test
         {
             if (_sel == null || !e.Data.GetDataPresent(DataFormats.FileDrop)) { e.Effect = DragDropEffects.None; return; }
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            e.Effect = files.Any(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+            e.Effect = files.Any(f => ImageService.Extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
                 ? DragDropEffects.Copy : DragDropEffects.None;
         }
 
@@ -949,7 +815,7 @@ namespace Test
         {
             if (_sel == null || !e.Data.GetDataPresent(DataFormats.FileDrop)) return;
             var files = ((string[])e.Data.GetData(DataFormats.FileDrop))
-                .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                .Where(f => ImageService.Extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
                 .ToArray();
             AddImages(files);
         }
@@ -961,82 +827,22 @@ namespace Test
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        // ── Persistence ───────────────────────────────────────────────────────
-        private void SaveAll()
-        {
-            string name = WriteTasks();
-            if (name != null && _history.Count > 0) _history[_history.Count-1].BackupFile = name;
-            SaveHistory();
-        }
-
-        private string WriteTasks()
-        {
-            try
-            {
-                string json = JsonConvert.SerializeObject(_tasks, Formatting.Indented);
-                File.WriteAllText(DataFile, json);
-                Directory.CreateDirectory(BackupDir);
-                string name = $"tasks_{DateTime.Now:yyyyMMdd_HHmmss_fff}.json";
-                File.WriteAllText(Path.Combine(BackupDir, name), json);
-                PruneBackups();
-                return name;
-            }
-            catch (Exception ex) { MessageBox.Show($"Could not save tasks:\n{ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning); return null; }
-        }
-
-        private void PruneBackups()
-        {
-            try { foreach (var f in Directory.GetFiles(BackupDir,"tasks_*.json").OrderByDescending(f=>f).Skip(MaxBackups)) File.Delete(f); } catch { }
-        }
-
-        private void SaveHistory()
-        {
-            try { File.WriteAllText(HistFile, JsonConvert.SerializeObject(_history, Formatting.Indented)); } catch { }
-        }
-
-        private void LoadTasks()
-        {
-            if (!File.Exists(DataFile)) return;
-            try
-            {
-                _tasks = JsonConvert.DeserializeObject<List<TaskItem>>(File.ReadAllText(DataFile)) ?? new List<TaskItem>();
-                // For active tasks that have no open session (new tasks or migration from old data),
-                // begin one now so time accumulates from this session forward.
-                foreach (var t in _tasks.Where(t => !t.IsDone && !t.IsOnHold))
-                    BeginActiveSession(t);
-                AddRevision(new RevisionEntry { Action=RevisionAction.DataLoaded, TaskName="(startup)", Summary=$"{_tasks.Count} task(s) loaded at {DateTime.Now:g}" });
-            }
-            catch { _tasks = new List<TaskItem>(); }
-        }
-
-        private void LoadHistory()
-        {
-            if (!File.Exists(HistFile)) return;
-            try { _history = JsonConvert.DeserializeObject<List<RevisionEntry>>(File.ReadAllText(HistFile)) ?? new List<RevisionEntry>(); } catch { _history = new List<RevisionEntry>(); }
-        }
-
         private void LoadSettings()
         {
-            if (!File.Exists(SettingsFile)) return;
-            try
-            {
-                var obj = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(SettingsFile));
-                _sortColumn    = obj.Value<int?>("SortColumn")    ?? -1;
-                _sortAscending = obj.Value<bool?>("SortAscending") ?? true;
-                ThemeManager.LoadTheme(obj.Value<bool?>("DarkTheme") ?? true);
-            }
-            catch { }
+            var s      = _settingsService.Load();
+            _sortColumn    = s.SortColumn;
+            _sortAscending = s.SortAscending;
+            ThemeManager.LoadTheme(s.DarkTheme);
         }
 
         private void SaveSettings()
         {
-            try
+            _settingsService.Save(new AppSettings
             {
-                File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(
-                    new { SortColumn = _sortColumn, SortAscending = _sortAscending, DarkTheme = ThemeManager.IsDark },
-                    Formatting.Indented));
-            }
-            catch { }
+                SortColumn    = _sortColumn,
+                SortAscending = _sortAscending,
+                DarkTheme     = ThemeManager.IsDark
+            });
         }
 
         private void _lv_DoubleClick(object sender, EventArgs e)

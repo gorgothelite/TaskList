@@ -90,11 +90,6 @@ namespace JiraPortable
                 fields["labels"] = request.Labels;
             }
 
-            //if (request.Components != null && request.Components.Count > 0)
-            //{
-            //    fields["components"] = request.Components.Select(c => new { name = c }).ToArray();
-            //}
-
             if (!string.IsNullOrWhiteSpace(request.Assignee))
             {
                 fields["assignee"] = _isCloud ? (object)new { accountId = request.Assignee }

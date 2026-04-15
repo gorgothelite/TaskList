@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using TaskList.Classes;
 
 namespace Test
 {
@@ -231,12 +232,13 @@ namespace Test
         // ── Details ──────────────────────────────────────────────────────────
         private void ShowDetails(TaskItem t)
         {
-            SendMessage(pnlDetail.Handle, WM_SETREDRAW, false, 0);
+
+            pnlDetail.InvokeIfRequired(() => SendMessage(pnlDetail.Handle, WM_SETREDRAW, false, 0));
             try { ShowDetailsCore(t); }
             finally
             {
-                SendMessage(pnlDetail.Handle, WM_SETREDRAW, true, 0);
-                pnlDetail.Invalidate(true);
+                pnlDetail.InvokeIfRequired(() => SendMessage(pnlDetail.Handle, WM_SETREDRAW, true, 0));
+                pnlDetail.InvokeIfRequired(() => pnlDetail.Invalidate(true));
             }
         }
 
@@ -284,14 +286,15 @@ namespace Test
             _btnHold.BackColor = t.IsOnHold ? Color.FromArgb(50,80,40) : Color.FromArgb(120,80,0);
 
             // Subtask section
-            pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = true;
+            pnlDivider2.InvokeIfRequired(() => pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = true);
+            //pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = true;
             bool isSubtask = t.ParentId != null;
             if (isSubtask)
             {
                 lblSubCaption.Text = "PARENT TASK";
                 var parent = _taskService.Tasks.FirstOrDefault(x => x.Id == t.ParentId);
-                _lblSubInfo.Text = parent != null ? parent.Name : "(deleted)";
-                _btnAddSubtask.Visible = false;
+                _lblSubInfo.InvokeIfRequired(() => _lblSubInfo.Text = parent != null ? parent.Name : "(deleted)");                
+                _btnAddSubtask.InvokeIfRequired(() => _btnAddSubtask.Visible = false);
             }
             else
             {
@@ -299,8 +302,8 @@ namespace Test
                 int total = _taskService.Tasks.Count(x => x.ParentId == t.Id);
                 int done  = _taskService.Tasks.Count(x => x.ParentId == t.Id && x.IsDone);
                 _lblSubInfo.Text = total == 0 ? "None" : $"{done}/{total} done";
-                _btnAddSubtask.Visible  = true;
-                _btnAddSubtask.Enabled  = true;
+                _btnAddSubtask.InvokeIfRequired(() => _btnAddSubtask.Visible = true);
+                _btnAddSubtask.InvokeIfRequired(() => _btnAddSubtask.Enabled = true);
             }
 
             RefreshImageThumbs(t);
@@ -308,12 +311,14 @@ namespace Test
             // Jira section — push button when importable + no key yet; key label once assigned
             bool hasKey       = !string.IsNullOrWhiteSpace(t.JiraKey);
             bool canPush      = t.JiraImportable && !hasKey;
-            _btnPushToJira.Visible    = canPush;
-            pnlDivider4.Visible       = hasKey;
-            lblJiraKeyCaption.Visible  = hasKey;
-            _lblJiraKey.Visible        = hasKey;
+            _btnPushToJira.InvokeIfRequired(() => _btnPushToJira.Visible        = canPush);            
+            pnlDivider4.InvokeIfRequired(() =>pnlDivider4.Visible               = hasKey);
+            lblJiraKeyCaption.InvokeIfRequired(() =>lblJiraKeyCaption.Visible   = hasKey);
+            _lblJiraKey.InvokeIfRequired(() =>_lblJiraKey.Visible               = hasKey);
+
             if (hasKey)
-                _lblJiraKey.Text = t.JiraKey;
+                _lblJiraKey.InvokeIfRequired(() => _lblJiraKey.Text = t.JiraKey);
+
 
             _loadingDetails = false;
         }

@@ -19,6 +19,7 @@ namespace Test
         private System.Windows.Forms.Button   btnHistory;
         private System.Windows.Forms.Button   btnExport;
         private System.Windows.Forms.Button   btnJira;
+        private System.Windows.Forms.Button   btnPushAllToJira;
         private System.Windows.Forms.Button   btnTheme;
 
         // ── List view ────────────────────────────────────────────────────────
@@ -49,6 +50,10 @@ namespace Test
         private System.Windows.Forms.Label   lblImagesCaption;
         private System.Windows.Forms.Button  _btnAddImage;
         private System.Windows.Forms.Panel   _pnlImagesThumbs;
+        private System.Windows.Forms.Panel   pnlDivider4;
+        private System.Windows.Forms.Label   lblJiraKeyCaption;
+        private System.Windows.Forms.Label   _lblJiraKey;
+        private System.Windows.Forms.Button  _btnPushToJira;
 
         protected override void Dispose(bool disposing)
         {
@@ -70,6 +75,7 @@ namespace Test
             this.btnHistory = new System.Windows.Forms.Button();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnJira = new System.Windows.Forms.Button();
+            this.btnPushAllToJira = new System.Windows.Forms.Button();
             this.btnTheme = new System.Windows.Forms.Button();
             this.pnlLeft = new System.Windows.Forms.Panel();
             this._lv = new System.Windows.Forms.ListView();
@@ -100,6 +106,10 @@ namespace Test
             this.lblImagesCaption = new System.Windows.Forms.Label();
             this._btnAddImage = new System.Windows.Forms.Button();
             this._pnlImagesThumbs = new System.Windows.Forms.Panel();
+            this.pnlDivider4 = new System.Windows.Forms.Panel();
+            this.lblJiraKeyCaption = new System.Windows.Forms.Label();
+            this._lblJiraKey = new System.Windows.Forms.Label();
+            this._btnPushToJira = new System.Windows.Forms.Button();
             this.pnlToolbar.SuspendLayout();
             this.pnlLeft.SuspendLayout();
             this.pnlDetail.SuspendLayout();
@@ -125,6 +135,7 @@ namespace Test
             this.pnlToolbar.Controls.Add(this.btnHistory);
             this.pnlToolbar.Controls.Add(this.btnExport);
             this.pnlToolbar.Controls.Add(this.btnJira);
+            this.pnlToolbar.Controls.Add(this.btnPushAllToJira);
             this.pnlToolbar.Controls.Add(this.btnTheme);
             this.pnlToolbar.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlToolbar.Location = new System.Drawing.Point(0, 32);
@@ -248,6 +259,20 @@ namespace Test
             this.btnJira.UseVisualStyleBackColor = false;
             this.btnJira.Click += new System.EventHandler(this.BtnJira_Click);
             //
+            // btnPushAllToJira
+            //
+            this.btnPushAllToJira.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(90)))));
+            this.btnPushAllToJira.FlatAppearance.BorderSize = 0;
+            this.btnPushAllToJira.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnPushAllToJira.ForeColor = System.Drawing.Color.White;
+            this.btnPushAllToJira.Location = new System.Drawing.Point(588, 11);
+            this.btnPushAllToJira.Name = "btnPushAllToJira";
+            this.btnPushAllToJira.Size = new System.Drawing.Size(100, 28);
+            this.btnPushAllToJira.TabIndex = 9;
+            this.btnPushAllToJira.Text = "Push All →Jira";
+            this.btnPushAllToJira.UseVisualStyleBackColor = false;
+            this.btnPushAllToJira.Click += new System.EventHandler(this.BtnPushAllToJira_Click);
+            //
             // btnTheme
             //
             this.btnTheme.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(70)))), ((int)(((byte)(70)))), ((int)(((byte)(78)))));
@@ -321,10 +346,14 @@ namespace Test
             this.pnlDetail.Controls.Add(this.lblImagesCaption);
             this.pnlDetail.Controls.Add(this._btnAddImage);
             this.pnlDetail.Controls.Add(this._pnlImagesThumbs);
+            this.pnlDetail.Controls.Add(this._btnPushToJira);
+            this.pnlDetail.Controls.Add(this.pnlDivider4);
+            this.pnlDetail.Controls.Add(this.lblJiraKeyCaption);
+            this.pnlDetail.Controls.Add(this._lblJiraKey);
             this.pnlDetail.Dock = System.Windows.Forms.DockStyle.Right;
             this.pnlDetail.Location = new System.Drawing.Point(760, 82);
             this.pnlDetail.Name = "pnlDetail";
-            this.pnlDetail.Size = new System.Drawing.Size(320, 714);
+            this.pnlDetail.Size = new System.Drawing.Size(320, 810);
             this.pnlDetail.TabIndex = 2;
             this.pnlDetail.DragDrop += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragDrop);
             this.pnlDetail.DragEnter += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragEnter);
@@ -641,13 +670,61 @@ namespace Test
             this._pnlImagesThumbs.TabIndex = 23;
             this._pnlImagesThumbs.DragDrop += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragDrop);
             this._pnlImagesThumbs.DragEnter += new System.Windows.Forms.DragEventHandler(this.PnlDetail_DragEnter);
-            // 
+            //
+            // _btnPushToJira
+            //
+            this._btnPushToJira.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(50)))), ((int)(((byte)(110)))));
+            this._btnPushToJira.FlatAppearance.BorderSize = 0;
+            this._btnPushToJira.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnPushToJira.ForeColor = System.Drawing.Color.White;
+            this._btnPushToJira.Location = new System.Drawing.Point(18, 716);
+            this._btnPushToJira.Name = "_btnPushToJira";
+            this._btnPushToJira.Size = new System.Drawing.Size(275, 28);
+            this._btnPushToJira.TabIndex = 26;
+            this._btnPushToJira.Text = "Push to Jira";
+            this._btnPushToJira.UseVisualStyleBackColor = false;
+            this._btnPushToJira.Visible = false;
+            this._btnPushToJira.Click += new System.EventHandler(this.BtnPushToJira_Click);
+            //
+            // pnlDivider4
+            //
+            this.pnlDivider4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(68)))));
+            this.pnlDivider4.Location = new System.Drawing.Point(18, 754);
+            this.pnlDivider4.Name = "pnlDivider4";
+            this.pnlDivider4.Size = new System.Drawing.Size(275, 1);
+            this.pnlDivider4.TabIndex = 26;
+            this.pnlDivider4.Visible = false;
+            //
+            // lblJiraKeyCaption
+            //
+            this.lblJiraKeyCaption.AutoSize = true;
+            this.lblJiraKeyCaption.BackColor = System.Drawing.Color.Transparent;
+            this.lblJiraKeyCaption.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.lblJiraKeyCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(140)))));
+            this.lblJiraKeyCaption.Location = new System.Drawing.Point(18, 764);
+            this.lblJiraKeyCaption.Name = "lblJiraKeyCaption";
+            this.lblJiraKeyCaption.Size = new System.Drawing.Size(60, 12);
+            this.lblJiraKeyCaption.TabIndex = 27;
+            this.lblJiraKeyCaption.Text = "JIRA ISSUE";
+            this.lblJiraKeyCaption.Visible = false;
+            //
+            // _lblJiraKey
+            //
+            this._lblJiraKey.BackColor = System.Drawing.Color.Transparent;
+            this._lblJiraKey.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this._lblJiraKey.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(160)))), ((int)(((byte)(255)))));
+            this._lblJiraKey.Location = new System.Drawing.Point(18, 780);
+            this._lblJiraKey.Name = "_lblJiraKey";
+            this._lblJiraKey.Size = new System.Drawing.Size(275, 22);
+            this._lblJiraKey.TabIndex = 28;
+            this._lblJiraKey.Visible = false;
+            //
             // MainForm
-            // 
+            //
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(30)))));
-            this.ClientSize = new System.Drawing.Size(1080, 796);
+            this.ClientSize = new System.Drawing.Size(1080, 892);
             this.Controls.Add(this.pnlLeft);
             this.Controls.Add(this.pnlDetail);
             this.Controls.Add(this.pnlToolbar);

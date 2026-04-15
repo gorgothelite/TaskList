@@ -68,13 +68,17 @@ namespace JiraPortable
             // Cloud requires accountId for assignee; Server/DC uses name.
             var fields = new Dictionary<string, object>
             {
-                ["project"] = new { key = request.ProjectKey },
-                ["summary"] = request.Summary,
-                ["description"] = request.Description ?? string.Empty,
+                ["project"]   = new { key = request.ProjectKey },
+                ["summary"]   = request.Summary,
                 ["issuetype"] = new { name = request.IssueTypeName ?? "Story" },
                 ["customfield_22503"] = request.IssueStoryPoints,
-                ["customfield_10006"] = "IOSTESTING-1",
             };
+
+            if (!string.IsNullOrWhiteSpace(request.Description))
+                fields["description"] = request.Description;
+
+            if (!string.IsNullOrWhiteSpace(request.Feature))
+                fields["customfield_10006"] = request.Feature;
 
             if (!string.IsNullOrWhiteSpace(request.PriorityName))
             {
@@ -93,9 +97,14 @@ namespace JiraPortable
 
             if (!string.IsNullOrWhiteSpace(request.Assignee))
             {
-                // Cloud uses "accountId"; Server/DC uses "name"
                 fields["assignee"] = _isCloud ? (object)new { accountId = request.Assignee }
                                               : new { name = request.Assignee };
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Reporter))
+            {
+                fields["reporter"] = _isCloud ? (object)new { accountId = request.Reporter }
+                                              : new { name = request.Reporter };
             }
 
             // Epic Link is a custom field and varies per instance.
@@ -230,12 +239,22 @@ namespace JiraPortable
         /// <summary>Optional: "Story" by default; could be "Bug", "Task", etc.</summary>
         public string IssueTypeName { get; set; } = "Story";
 
+        /// <summary>customfield_10006 value (Feature / Epic link key, e.g. "PROJ-1")</summary>
+        public string Feature { get; set; }
+
         /// <summary>
         /// Assignee identifier:
         /// - Jira Cloud: accountId (string GUID-like)
         /// - Jira Server/DC: username
         /// </summary>
         public string Assignee { get; set; }
+
+        /// <summary>
+        /// Reporter identifier:
+        /// - Jira Cloud: accountId (string GUID-like)
+        /// - Jira Server/DC: username
+        /// </summary>
+        public string Reporter { get; set; }
 
         /// <summary>Optional: Priority name ("Highest","High","Medium","Low")</summary>
         public string PriorityName { get; set; }

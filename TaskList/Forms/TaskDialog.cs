@@ -10,9 +10,9 @@ namespace Test
 
 
         private const int CollapsedHeight = 420;
-        private const int ExpandedHeight  = 578;   // 420 + pnlJira.Height(150) + gap(8)
+        private const int ExpandedHeight  = 612;   // pnlJira at Y=378, height 192 → bottom 570, buttons +4, +28+10
         private const int BtnYCollapsed   = 382;
-        private const int BtnYExpanded    = 540;   // 378 + 150 + 12
+        private const int BtnYExpanded    = 574;
 
         // ── Constructors ──────────────────────────────────────────────────────
         public TaskDialog() : this(null) { }
@@ -57,10 +57,11 @@ namespace Test
             // Jira fields
             cbJiraImportable.Checked  = Result.JiraImportable;
             _txtStoryPoints.Text      = Result.JiraStoryPoints?.ToString() ?? "";
-            _txtProject.Text          = Result.JiraProject  ?? "";
-            _txtFeature.Text          = Result.JiraFeature  ?? "";
-            _txtAssignee.Text         = Result.JiraAssignee ?? "";
-            _txtReporter.Text         = Result.JiraReporter ?? "";
+            _txtProject.Text          = Result.JiraProject    ?? "";
+            _txtFeature.Text          = Result.JiraFeature    ?? "";
+            _txtAssignee.Text         = Result.JiraAssignee   ?? "";
+            _txtReporter.Text         = Result.JiraReporter   ?? "";
+            _txtIssueType.Text        = string.IsNullOrWhiteSpace(Result.JiraIssueType) ? "Story" : Result.JiraIssueType;
 
             if (Result.JiraImportable)
                 ExpandJiraPanel();
@@ -88,6 +89,7 @@ namespace Test
             Result.JiraFeature     = _txtFeature.Text.Trim();
             Result.JiraAssignee    = _txtAssignee.Text.Trim();
             Result.JiraReporter    = _txtReporter.Text.Trim();
+            Result.JiraIssueType   = string.IsNullOrWhiteSpace(_txtIssueType.Text) ? "Story" : _txtIssueType.Text.Trim();
 
             DialogResult = DialogResult.OK;
         }

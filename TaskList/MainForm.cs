@@ -50,7 +50,6 @@ namespace Test
         // ── Constructor ──────────────────────────────────────────────────────
         public MainForm()
         {
-            AddStory();
             _resizable = true;
             InitializeComponent();
 
@@ -95,46 +94,7 @@ namespace Test
             Shown += (s, e) => CheckAlerts(null, null);
             InitTray();
         }
-        // Add this at the top if it's missing:
-
-// Example: Button click handler in MainForm.cs
-private async void AddStory()
-    {
-        try
-        {
-            using (var jira = new JiraPortable.JiraClient(
-                baseUrl: "",
-                usernameOrEmail: "",
-                apiTokenOrPassword: "",
-                isCloud: false))
-            {
-                var req = new JiraPortable.JiraStoryCreateRequest
-                {
-                    ProjectKey = "IOSTESTING",
-                    Summary = "User can export reports to CSV",
-                    Description = "As a user, I want to export reports to CSV so that I can share them.",
-                    Assignee = "correa", // Cloud: accountId
-                    PriorityName = "Medium",
-                    Labels = { "reporting", "export" }
-                };
-
-                // If you have Story Points custom field
-                // req.AdditionalFields["customfield_10026"] = 5;
-
-                var result = await jira.CreateStoryAsync(req);
-                MessageBox.Show($"Created: {result.key} (id {result.id})", "Jira", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-        catch (JiraPortable.JiraApiException ex)
-        {
-            MessageBox.Show($"Jira error: {ex}\nDetails: {ex.Details}", "Jira Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Unexpected error: {ex}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-    // ── System tray ───────────────────────────────────────────────────────
+        // ── System tray ───────────────────────────────────────────────────────
     [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool DestroyIcon(IntPtr handle);
 
@@ -291,6 +251,7 @@ private async void AddStory()
                 _lblName.Text = _lblPriority.Text = _lblDue.Text = _lblStatus.Text = "";
                 _txtNotes.Text = "";
                 pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = _btnAddSubtask.Visible = false;
+                pnlDivider4.Visible = lblJiraKeyCaption.Visible = _lblJiraKey.Visible = _btnPushToJira.Visible = false;
                 RefreshImageThumbs(null);
                 _loadingDetails = false;
                 return;
@@ -343,6 +304,17 @@ private async void AddStory()
             }
 
             RefreshImageThumbs(t);
+
+            // Jira section — push button when importable + no key yet; key label once assigned
+            bool hasKey       = !string.IsNullOrWhiteSpace(t.JiraKey);
+            bool canPush      = t.JiraImportable && !hasKey;
+            _btnPushToJira.Visible    = canPush;
+            pnlDivider4.Visible       = hasKey;
+            lblJiraKeyCaption.Visible  = hasKey;
+            _lblJiraKey.Visible        = hasKey;
+            if (hasKey)
+                _lblJiraKey.Text = t.JiraKey;
+
             _loadingDetails = false;
         }
 
@@ -488,6 +460,80 @@ private async void AddStory()
                 _sel = dlg.Result;
                 _taskService.AddTask(dlg.Result);
                 RefreshList();
+            }
+        }
+
+        private async void BtnPushToJira_Click(object sender, EventArgs e)
+        {
+            if (_sel == null || !_sel.JiraImportable) return;
+            _btnPushToJira.Enabled = false;
+            await PushTaskToJiraAsync(_sel);
+            _btnPushToJira.Enabled = true;
+        }
+
+        private async void BtnPushAllToJira_Click(object sender, EventArgs e)
+        {
+            var pending = _taskService.Tasks
+                .Where(t => t.JiraImportable && string.IsNullOrWhiteSpace(t.JiraKey))
+                .ToList();
+
+            if (pending.Count == 0)
+            {
+                MessageBox.Show("No pending Jira-importable tasks to push.", "Push All to Jira",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            btnPushAllToJira.Enabled = false;
+            int pushed = 0, failed = 0;
+            var errors = new System.Text.StringBuilder();
+
+            foreach (var task in pending)
+            {
+                try
+                {
+                    var svc = new JiraService(BaseDir);
+                    var key = await svc.CreateIssueForTaskAsync(task).ConfigureAwait(false);
+                    task.JiraKey = key;
+                    pushed++;
+                }
+                catch (Exception ex)
+                {
+                    failed++;
+                    errors.AppendLine($"• {task.Name}: {ex.Message}");
+                }
+            }
+
+            if (pushed > 0)
+            {
+                _taskService.SaveAll();
+                ShowDetails(_sel);
+            }
+
+            btnPushAllToJira.Enabled = true;
+
+            string msg = failed == 0
+                ? $"{pushed} task(s) pushed to Jira."
+                : $"{pushed} pushed, {failed} failed:\n{errors}";
+            MessageBox.Show(msg, "Push All to Jira", MessageBoxButtons.OK,
+                failed > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
+        }
+
+        private async System.Threading.Tasks.Task PushTaskToJiraAsync(TaskItem task)
+        {
+            try
+            {
+                var svc = new JiraService(BaseDir);
+                var key = await svc.CreateIssueForTaskAsync(task).ConfigureAwait(false);
+                task.JiraKey = key;
+                _taskService.SaveAll();
+                ShowDetails(_sel);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Task saved locally but Jira creation failed:\n{ex.Message}",
+                    "Jira Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

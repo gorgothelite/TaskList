@@ -524,6 +524,37 @@ namespace Test
             catch { }
         }
 
+        // ── Create issue in Jira from a TaskItem ──────────────────────────────
+
+        /// <summary>
+        /// Creates a Jira issue from the Jira fields stored on a TaskItem.
+        /// Returns the new issue key (e.g. "PROJ-42") on success.
+        /// Throws if the config is missing or the API call fails.
+        /// </summary>
+        public async System.Threading.Tasks.Task<string> CreateIssueForTaskAsync(TaskItem task)
+        {
+            var cfg = LoadConfig();
+            if (string.IsNullOrWhiteSpace(cfg.Url) || string.IsNullOrWhiteSpace(cfg.Email) || string.IsNullOrWhiteSpace(cfg.Token))
+                throw new InvalidOperationException("Jira connection is not configured. Open the Jira window and enter your URL, username, and API token.");
+
+            using (var client = new JiraPortable.JiraClient(cfg.Url, cfg.Email, cfg.Token, isCloud: false))
+            {
+                var req = new JiraPortable.JiraStoryCreateRequest
+                {
+                    ProjectKey       = task.JiraProject,
+                    Summary          = task.Name,
+                    Description      = task.Notes,
+                    IssueTypeName    = string.IsNullOrWhiteSpace(task.JiraIssueType) ? "Story" : task.JiraIssueType,
+                    IssueStoryPoints = task.JiraStoryPoints ?? 0,
+                    Feature          = task.JiraFeature,
+                    Assignee         = task.JiraAssignee,
+                    Reporter         = task.JiraReporter,
+                };
+                var result = await client.CreateStoryAsync(req).ConfigureAwait(false);
+                return result.key;
+            }
+        }
+
         // ── Jira → TaskItem conversion ────────────────────────────────────────
 
         public static List<TaskItem> ConvertToTasks(IEnumerable<JiraIssue> issues)

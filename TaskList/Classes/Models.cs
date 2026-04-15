@@ -42,6 +42,8 @@ namespace Test
         public string JiraFeature     { get; set; } = "";
         public string JiraAssignee    { get; set; } = "";
         public string JiraReporter    { get; set; } = "";
+        public string JiraIssueType   { get; set; } = "Story";
+        public string JiraKey         { get; set; } = null;
 
         /// <summary>
         /// Sum of all completed work sessions plus any currently-open session.

@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -524,7 +526,7 @@ namespace Test
             catch { }
         }
 
-        // ── Create issue in Jira from a TaskItem ──────────────────────────────
+        // ── Create / update issues in Jira from a TaskItem ───────────────────
 
         /// <summary>
         /// Creates a Jira issue from the Jira fields stored on a TaskItem.
@@ -537,9 +539,9 @@ namespace Test
             if (string.IsNullOrWhiteSpace(cfg.Url) || string.IsNullOrWhiteSpace(cfg.Email) || string.IsNullOrWhiteSpace(cfg.Token))
                 throw new InvalidOperationException("Jira connection is not configured. Open the Jira window and enter your URL, username, and API token.");
 
-            using (var client = new JiraPortable.JiraClient(cfg.Url, cfg.Email, cfg.Token, isCloud: false))
+            using (var client = new JiraClient(cfg.Url, cfg.Email, cfg.Token, isCloud: false))
             {
-                var req = new JiraPortable.JiraStoryCreateRequest
+                var req = new JiraStoryCreateRequest
                 {
                     ProjectKey       = task.JiraProject,
                     Summary          = task.Name,
@@ -552,6 +554,34 @@ namespace Test
                 };
                 var result = await client.CreateStoryAsync(req).ConfigureAwait(false);
                 return result.key;
+            }
+        }
+
+        /// <summary>
+        /// Updates an existing Jira issue using the Jira fields stored on a TaskItem.
+        /// Throws if the config is missing, the task has no JiraKey, or the API call fails.
+        /// </summary>
+        public async System.Threading.Tasks.Task UpdateIssueForTaskAsync(TaskItem task)
+        {
+            if (string.IsNullOrWhiteSpace(task.JiraKey))
+                throw new InvalidOperationException("This task has no Jira key — push it to Jira first.");
+
+            var cfg = LoadConfig();
+            if (string.IsNullOrWhiteSpace(cfg.Url) || string.IsNullOrWhiteSpace(cfg.Email) || string.IsNullOrWhiteSpace(cfg.Token))
+                throw new InvalidOperationException("Jira connection is not configured. Open the Jira window and enter your URL, username, and API token.");
+
+            using (var client = new JiraClient(cfg.Url, cfg.Email, cfg.Token, isCloud: false))
+            {
+                var req = new JiraStoryUpdateRequest
+                {
+                    Summary          = task.Name,
+                    Description      = task.Notes,
+                    IssueStoryPoints = task.JiraStoryPoints ?? 0,
+                    Feature          = task.JiraFeature,
+                    Assignee         = task.JiraAssignee,
+                    Reporter         = task.JiraReporter,
+                };
+                await client.UpdateStoryAsync(task.JiraKey, req).ConfigureAwait(false);
             }
         }
 
@@ -671,5 +701,261 @@ namespace Test
         public bool Author     { get; set; } = true;
         public bool Hours      { get; set; } = true;
         public bool Text       { get; set; } = true;
+    }
+
+    // ── Jira REST client ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Minimal Jira REST client for creating issues (stories).
+    /// Supports Jira Cloud (email + API token) and Jira Server/DC (username + password).
+    /// </summary>
+    public sealed class JiraClient : IDisposable
+    {
+        private readonly HttpClient _http;
+        private readonly string _baseUrl;
+        private readonly bool _isCloud;
+        private bool _disposed;
+
+        public JiraClient(string baseUrl, string usernameOrEmail, string apiTokenOrPassword, bool isCloud)
+        {
+            if (string.IsNullOrWhiteSpace(baseUrl)) throw new ArgumentNullException(nameof(baseUrl));
+            if (string.IsNullOrWhiteSpace(usernameOrEmail)) throw new ArgumentNullException(nameof(usernameOrEmail));
+            if (string.IsNullOrWhiteSpace(apiTokenOrPassword)) throw new ArgumentNullException(nameof(apiTokenOrPassword));
+
+            _baseUrl = baseUrl.TrimEnd('/');
+            _isCloud = isCloud;
+
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
+            _http = new HttpClient();
+            var basic = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{usernameOrEmail}:{apiTokenOrPassword}"));
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", basic);
+            _http.DefaultRequestHeaders.Add("Accept", "application/json");
+        }
+
+        /// <summary>Creates a Story issue in Jira. Returns Issue ID + Key on success (e.g., KEY-123).</summary>
+        public async Task<JiraIssueCreateResult> CreateStoryAsync(JiraStoryCreateRequest request, CancellationToken ct = default)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.ProjectKey)) throw new ArgumentException("ProjectKey is required.", nameof(request));
+            if (string.IsNullOrWhiteSpace(request.Summary)) throw new ArgumentException("Summary is required.", nameof(request));
+
+            var fields = new Dictionary<string, object>
+            {
+                ["project"]           = new { key = request.ProjectKey },
+                ["summary"]           = request.Summary,
+                ["issuetype"]         = new { name = request.IssueTypeName ?? "Story" },
+                ["customfield_22503"] = request.IssueStoryPoints,
+            };
+
+            if (!string.IsNullOrWhiteSpace(request.Description))
+                fields["description"] = request.Description;
+
+            if (!string.IsNullOrWhiteSpace(request.Feature))
+                fields["customfield_10006"] = request.Feature;
+
+            if (!string.IsNullOrWhiteSpace(request.PriorityName))
+                fields["priority"] = new { name = request.PriorityName };
+
+            if (request.Labels != null && request.Labels.Count > 0)
+                fields["labels"] = request.Labels;
+
+            if (!string.IsNullOrWhiteSpace(request.Assignee))
+                fields["assignee"] = _isCloud ? (object)new { accountId = request.Assignee } : new { name = request.Assignee };
+
+            if (!string.IsNullOrWhiteSpace(request.Reporter))
+                fields["reporter"] = _isCloud ? (object)new { accountId = request.Reporter } : new { name = request.Reporter };
+
+            if (!string.IsNullOrWhiteSpace(request.EpicLinkCustomFieldId) && !string.IsNullOrWhiteSpace(request.EpicIssueKey))
+                fields[request.EpicLinkCustomFieldId] = request.EpicIssueKey;
+
+            if (request.AdditionalFields != null)
+            {
+                foreach (var kvp in request.AdditionalFields)
+                {
+                    if (!fields.ContainsKey(kvp.Key))
+                        fields[kvp.Key] = kvp.Value;
+                }
+            }
+
+            var json = JsonConvert.SerializeObject(new { fields });
+            var url  = $"{_baseUrl}/rest/api/2/issue";
+            using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+            using (var resp = await _http.PostAsync(url, content, ct).ConfigureAwait(false))
+            {
+                var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (!resp.IsSuccessStatusCode)
+                    throw new JiraApiException(
+                        $"Jira returned {(int)resp.StatusCode} {resp.ReasonPhrase}",
+                        (int)resp.StatusCode,
+                        ParseJiraErrorDetails(body));
+
+                return JsonConvert.DeserializeObject<JiraIssueCreateResult>(body) ?? new JiraIssueCreateResult();
+            }
+        }
+
+        /// <summary>
+        /// Updates an existing issue in Jira via PUT /rest/api/2/issue/{key}.
+        /// Only non-null/non-empty fields in <paramref name="request"/> are sent.
+        /// </summary>
+        public async Task UpdateStoryAsync(string issueKey, JiraStoryUpdateRequest request, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(issueKey)) throw new ArgumentNullException(nameof(issueKey));
+            if (request == null) throw new ArgumentNullException(nameof(request));
+
+            var fields = new Dictionary<string, object>();
+
+            if (!string.IsNullOrWhiteSpace(request.Summary))
+                fields["summary"] = request.Summary;
+
+            if (request.Description != null)
+                fields["description"] = request.Description;
+
+            fields["customfield_22503"] = request.IssueStoryPoints;
+
+            if (!string.IsNullOrWhiteSpace(request.Feature))
+                fields["customfield_10006"] = request.Feature;
+
+            if (!string.IsNullOrWhiteSpace(request.Assignee))
+                fields["assignee"] = _isCloud ? (object)new { accountId = request.Assignee } : new { name = request.Assignee };
+
+            if (!string.IsNullOrWhiteSpace(request.Reporter))
+                fields["reporter"] = _isCloud ? (object)new { accountId = request.Reporter } : new { name = request.Reporter };
+
+            var json = JsonConvert.SerializeObject(new { fields });
+            var url  = $"{_baseUrl}/rest/api/2/issue/{Uri.EscapeDataString(issueKey)}";
+            using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+            using (var resp = await _http.SendAsync(new HttpRequestMessage(new HttpMethod("PUT"), url) { Content = content }, ct).ConfigureAwait(false))
+            {
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new JiraApiException(
+                        $"Jira update returned {(int)resp.StatusCode} {resp.ReasonPhrase}",
+                        (int)resp.StatusCode,
+                        ParseJiraErrorDetails(body));
+                }
+            }
+        }
+
+        public async Task<Dictionary<string, string>> GetCreateFieldMapAsync(string projectKey, string issueTypeName, CancellationToken ct = default)
+        {
+            var url = $"{_baseUrl}/rest/api/2/issue/createmeta?projectKeys={Uri.EscapeDataString(projectKey)}&issuetypeNames={Uri.EscapeDataString(issueTypeName)}&expand=projects.issuetypes.fields";
+            using (var resp = await _http.GetAsync(url, ct).ConfigureAwait(false))
+            {
+                var body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (!resp.IsSuccessStatusCode)
+                    throw new JiraApiException($"CreateMeta failed {(int)resp.StatusCode} {resp.ReasonPhrase}", (int)resp.StatusCode, body);
+
+                var meta      = JsonConvert.DeserializeObject<dynamic>(body);
+                var fieldsMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                if (meta.projects != null && meta.projects.Count > 0)
+                {
+                    foreach (var it in meta.projects[0].issuetypes)
+                    {
+                        string itName = (string)it.name;
+                        if (!string.Equals(itName, issueTypeName, StringComparison.OrdinalIgnoreCase)) continue;
+
+                        foreach (var field in it.fields)
+                        {
+                            string key  = field.Name;
+                            string name = (string)field.Value.name;
+                            if (!fieldsMap.ContainsKey(name))
+                                fieldsMap[name] = key;
+                        }
+                        break;
+                    }
+                }
+                return fieldsMap;
+            }
+        }
+
+        private static string ParseJiraErrorDetails(string responseBody)
+        {
+            if (string.IsNullOrWhiteSpace(responseBody)) return "No error body";
+            try
+            {
+                var obj = JsonConvert.DeserializeObject<JiraErrorResponse>(responseBody);
+                if (obj == null) return responseBody;
+                var lines = new List<string>();
+                if (obj.errorMessages != null && obj.errorMessages.Count > 0)
+                    lines.AddRange(obj.errorMessages);
+                if (obj.errors != null && obj.errors.Count > 0)
+                    lines.AddRange(obj.errors.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+                return lines.Count > 0 ? string.Join("; ", lines) : responseBody;
+            }
+            catch { return responseBody; }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _http?.Dispose();
+        }
+    }
+
+    // ── Issue creation request / response ─────────────────────────────────────
+
+    public sealed class JiraStoryCreateRequest
+    {
+        public string ProjectKey    { get; set; }
+        public string Summary       { get; set; }
+        public string Description   { get; set; }
+        public string IssueTypeName { get; set; } = "Story";
+        /// <summary>customfield_10006 value (Feature / Epic link key)</summary>
+        public string Feature       { get; set; }
+        /// <summary>Cloud: accountId; Server/DC: username</summary>
+        public string Assignee      { get; set; }
+        /// <summary>Cloud: accountId; Server/DC: username</summary>
+        public string Reporter      { get; set; }
+        public string PriorityName  { get; set; }
+        public List<string> Labels      { get; set; } = new List<string>();
+        public List<string> Components  { get; set; } = new List<string>();
+        public int    IssueStoryPoints  { get; set; } = 0;
+        public string EpicLinkCustomFieldId { get; set; }
+        public string EpicIssueKey          { get; set; }
+        public Dictionary<string, object> AdditionalFields { get; set; } = new Dictionary<string, object>();
+    }
+
+    public sealed class JiraStoryUpdateRequest
+    {
+        public string Summary         { get; set; }
+        public string Description     { get; set; }
+        public int    IssueStoryPoints { get; set; } = 0;
+        /// <summary>customfield_10006 value (Feature / Epic link key)</summary>
+        public string Feature         { get; set; }
+        /// <summary>Cloud: accountId; Server/DC: username</summary>
+        public string Assignee        { get; set; }
+        /// <summary>Cloud: accountId; Server/DC: username</summary>
+        public string Reporter        { get; set; }
+    }
+
+    public sealed class JiraIssueCreateResult
+    {
+        public string id   { get; set; }
+        public string key  { get; set; }
+        public string self { get; set; }
+    }
+
+    internal sealed class JiraErrorResponse
+    {
+        public List<string>               errorMessages { get; set; } = new List<string>();
+        public Dictionary<string, string> errors        { get; set; } = new Dictionary<string, string>();
+    }
+
+    public sealed class JiraApiException : Exception
+    {
+        public int    StatusCode { get; }
+        public string Details    { get; }
+
+        public JiraApiException(string message, int statusCode, string details) : base(message)
+        {
+            StatusCode = statusCode;
+            Details    = details;
+        }
+
+        public override string ToString() => $"{Message} (HTTP {StatusCode}) - {Details}";
     }
 }

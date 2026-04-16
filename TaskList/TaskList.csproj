@@ -56,7 +56,6 @@
   <ItemGroup>
     <!-- Root -->
     <Compile Include="Classes\Extensions.cs" />
-    <Compile Include="Classes\JiraClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

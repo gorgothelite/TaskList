@@ -54,6 +54,7 @@ namespace Test
         private System.Windows.Forms.Label   lblJiraKeyCaption;
         private System.Windows.Forms.Label   _lblJiraKey;
         private System.Windows.Forms.Button  _btnPushToJira;
+        private System.Windows.Forms.Button  _btnUpdateJira;
 
         protected override void Dispose(bool disposing)
         {
@@ -107,6 +108,7 @@ namespace Test
             this._btnAddImage = new System.Windows.Forms.Button();
             this._pnlImagesThumbs = new System.Windows.Forms.Panel();
             this._btnPushToJira = new System.Windows.Forms.Button();
+            this._btnUpdateJira = new System.Windows.Forms.Button();
             this.pnlDivider4 = new System.Windows.Forms.Panel();
             this.lblJiraKeyCaption = new System.Windows.Forms.Label();
             this._lblJiraKey = new System.Windows.Forms.Label();
@@ -347,6 +349,7 @@ namespace Test
             this.pnlDetail.Controls.Add(this._btnAddImage);
             this.pnlDetail.Controls.Add(this._pnlImagesThumbs);
             this.pnlDetail.Controls.Add(this._btnPushToJira);
+            this.pnlDetail.Controls.Add(this._btnUpdateJira);
             this.pnlDetail.Controls.Add(this.pnlDivider4);
             this.pnlDetail.Controls.Add(this.lblJiraKeyCaption);
             this.pnlDetail.Controls.Add(this._lblJiraKey);
@@ -685,7 +688,22 @@ namespace Test
             this._btnPushToJira.UseVisualStyleBackColor = false;
             this._btnPushToJira.Visible = false;
             this._btnPushToJira.Click += new System.EventHandler(this.BtnPushToJira_Click);
-            // 
+            //
+            // _btnUpdateJira
+            //
+            this._btnUpdateJira.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(80)))), ((int)(((byte)(60)))));
+            this._btnUpdateJira.FlatAppearance.BorderSize = 0;
+            this._btnUpdateJira.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnUpdateJira.ForeColor = System.Drawing.Color.White;
+            this._btnUpdateJira.Location = new System.Drawing.Point(18, 716);
+            this._btnUpdateJira.Name = "_btnUpdateJira";
+            this._btnUpdateJira.Size = new System.Drawing.Size(275, 28);
+            this._btnUpdateJira.TabIndex = 29;
+            this._btnUpdateJira.Text = "Update Jira Story";
+            this._btnUpdateJira.UseVisualStyleBackColor = false;
+            this._btnUpdateJira.Visible = false;
+            this._btnUpdateJira.Click += new System.EventHandler(this.BtnUpdateJira_Click);
+            //
             // pnlDivider4
             // 
             this.pnlDivider4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(68)))));

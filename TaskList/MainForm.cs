@@ -308,13 +308,14 @@ namespace Test
 
             RefreshImageThumbs(t);
 
-            // Jira section — push button when importable + no key yet; key label once assigned
-            bool hasKey       = !string.IsNullOrWhiteSpace(t.JiraKey);
-            bool canPush      = t.JiraImportable && !hasKey;
-            _btnPushToJira.InvokeIfRequired(() => _btnPushToJira.Visible        = canPush);            
-            pnlDivider4.InvokeIfRequired(() =>pnlDivider4.Visible               = hasKey);
-            lblJiraKeyCaption.InvokeIfRequired(() =>lblJiraKeyCaption.Visible   = hasKey);
-            _lblJiraKey.InvokeIfRequired(() =>_lblJiraKey.Visible               = hasKey);
+            // Jira section — push button when importable + no key yet; update button + key label once assigned
+            bool hasKey  = !string.IsNullOrWhiteSpace(t.JiraKey);
+            bool canPush = t.JiraImportable && !hasKey;
+            _btnPushToJira.InvokeIfRequired(() => _btnPushToJira.Visible   = canPush);
+            _btnUpdateJira.InvokeIfRequired(() => _btnUpdateJira.Visible   = hasKey);
+            pnlDivider4.InvokeIfRequired(() => pnlDivider4.Visible         = hasKey);
+            lblJiraKeyCaption.InvokeIfRequired(() => lblJiraKeyCaption.Visible = hasKey);
+            _lblJiraKey.InvokeIfRequired(() => _lblJiraKey.Visible         = hasKey);
 
             if (hasKey)
                 _lblJiraKey.InvokeIfRequired(() => _lblJiraKey.Text = t.JiraKey);
@@ -476,6 +477,14 @@ namespace Test
             _btnPushToJira.Enabled = true;
         }
 
+        private async void BtnUpdateJira_Click(object sender, EventArgs e)
+        {
+            if (_sel == null || string.IsNullOrWhiteSpace(_sel.JiraKey)) return;
+            _btnUpdateJira.Enabled = false;
+            await UpdateTaskInJiraAsync(_sel);
+            _btnUpdateJira.Enabled = true;
+        }
+
         private async void BtnPushAllToJira_Click(object sender, EventArgs e)
         {
             var pending = _taskService.Tasks
@@ -538,6 +547,22 @@ namespace Test
             {
                 MessageBox.Show(
                     $"Task saved locally but Jira creation failed:\n{ex.Message}",
+                    "Jira Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private async System.Threading.Tasks.Task UpdateTaskInJiraAsync(TaskItem task)
+        {
+            try
+            {
+                var svc = new JiraService(BaseDir);
+                await svc.UpdateIssueForTaskAsync(task).ConfigureAwait(false);
+                MessageBox.Show($"Jira story {task.JiraKey} updated.", "Jira", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Jira update failed:\n{ex.Message}",
                     "Jira Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }

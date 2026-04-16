@@ -585,6 +585,45 @@ namespace Test
             }
         }
 
+        /// <summary>
+        /// Creates a Jira sub-task under <paramref name="parentJiraKey"/> for the given local subtask.
+        /// Falls back to <paramref name="parentTask"/>'s JiraProject if the subtask has none set.
+        /// Returns the new issue key on success.
+        /// </summary>
+        public async System.Threading.Tasks.Task<string> CreateSubtaskForTaskAsync(TaskItem subtask, TaskItem parentTask, string parentJiraKey)
+        {
+            if (string.IsNullOrWhiteSpace(parentJiraKey))
+                throw new InvalidOperationException("Parent task has no Jira key.");
+
+            var cfg = LoadConfig();
+            if (string.IsNullOrWhiteSpace(cfg.Url) || string.IsNullOrWhiteSpace(cfg.Email) || string.IsNullOrWhiteSpace(cfg.Token))
+                throw new InvalidOperationException("Jira connection is not configured. Open the Jira window and enter your URL, username, and API token.");
+
+            string projectKey = !string.IsNullOrWhiteSpace(subtask.JiraProject)
+                ? subtask.JiraProject
+                : parentTask?.JiraProject ?? "";
+
+            if (string.IsNullOrWhiteSpace(projectKey))
+                throw new InvalidOperationException("No Jira project key found. Set a project on the parent task or the subtask.");
+
+            using (var client = new JiraClient(cfg.Url, cfg.Email, cfg.Token, isCloud: false))
+            {
+                var req = new JiraStoryCreateRequest
+                {
+                    ProjectKey       = projectKey,
+                    Summary          = subtask.Name,
+                    Description      = subtask.Notes,
+                    IssueTypeName    = "Sub-task",
+                    ParentKey        = parentJiraKey,
+                    IssueStoryPoints = subtask.JiraStoryPoints ?? 0,
+                    Assignee         = subtask.JiraAssignee,
+                    Reporter         = subtask.JiraReporter,
+                };
+                var result = await client.CreateStoryAsync(req).ConfigureAwait(false);
+                return result.key;
+            }
+        }
+
         // ── Jira → TaskItem conversion ────────────────────────────────────────
 
         public static List<TaskItem> ConvertToTasks(IEnumerable<JiraIssue> issues)
@@ -769,6 +808,9 @@ namespace Test
             if (!string.IsNullOrWhiteSpace(request.EpicLinkCustomFieldId) && !string.IsNullOrWhiteSpace(request.EpicIssueKey))
                 fields[request.EpicLinkCustomFieldId] = request.EpicIssueKey;
 
+            if (!string.IsNullOrWhiteSpace(request.ParentKey))
+                fields["parent"] = new { key = request.ParentKey };
+
             if (request.AdditionalFields != null)
             {
                 foreach (var kvp in request.AdditionalFields)
@@ -916,6 +958,8 @@ namespace Test
         public int    IssueStoryPoints  { get; set; } = 0;
         public string EpicLinkCustomFieldId { get; set; }
         public string EpicIssueKey          { get; set; }
+        /// <summary>If set, creates this issue as a Jira sub-task under the given parent issue key.</summary>
+        public string ParentKey             { get; set; }
         public Dictionary<string, object> AdditionalFields { get; set; } = new Dictionary<string, object>();
     }
 

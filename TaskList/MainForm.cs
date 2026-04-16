@@ -19,6 +19,7 @@ namespace Test
 
         // ── State ────────────────────────────────────────────────────────────
         private TaskItem                   _sel;
+        private TaskItem                   _selParent; // non-null when _sel is a subtask
         private System.Windows.Forms.Timer _alertTimer;
         private bool                       _alertActive;
         private HistoryDialog              _historyWindow;
@@ -253,7 +254,8 @@ namespace Test
                 _lblName.Text = _lblPriority.Text = _lblDue.Text = _lblStatus.Text = "";
                 _txtNotes.Text = "";
                 pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = _btnAddSubtask.Visible = false;
-                pnlDivider4.Visible = lblJiraKeyCaption.Visible = _lblJiraKey.Visible = _btnPushToJira.Visible = false;
+                pnlDivider4.Visible = lblJiraKeyCaption.Visible = _lblJiraKey.Visible = _btnPushToJira.Visible = _btnUpdateJira.Visible = false;
+                _selParent = null;
                 RefreshImageThumbs(null);
                 _loadingDetails = false;
                 return;
@@ -287,13 +289,12 @@ namespace Test
 
             // Subtask section
             pnlDivider2.InvokeIfRequired(() => pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = true);
-            //pnlDivider2.Visible = lblSubCaption.Visible = _lblSubInfo.Visible = true;
             bool isSubtask = t.ParentId != null;
+            _selParent = isSubtask ? _taskService.Tasks.FirstOrDefault(x => x.Id == t.ParentId) : null;
             if (isSubtask)
             {
                 lblSubCaption.Text = "PARENT TASK";
-                var parent = _taskService.Tasks.FirstOrDefault(x => x.Id == t.ParentId);
-                _lblSubInfo.InvokeIfRequired(() => _lblSubInfo.Text = parent != null ? parent.Name : "(deleted)");                
+                _lblSubInfo.InvokeIfRequired(() => _lblSubInfo.Text = _selParent != null ? _selParent.Name : "(deleted)");
                 _btnAddSubtask.InvokeIfRequired(() => _btnAddSubtask.Visible = false);
             }
             else
@@ -308,14 +309,21 @@ namespace Test
 
             RefreshImageThumbs(t);
 
-            // Jira section — push button when importable + no key yet; update button + key label once assigned
-            bool hasKey  = !string.IsNullOrWhiteSpace(t.JiraKey);
-            bool canPush = t.JiraImportable && !hasKey;
-            _btnPushToJira.InvokeIfRequired(() => _btnPushToJira.Visible   = canPush);
-            _btnUpdateJira.InvokeIfRequired(() => _btnUpdateJira.Visible   = hasKey);
-            pnlDivider4.InvokeIfRequired(() => pnlDivider4.Visible         = hasKey);
-            lblJiraKeyCaption.InvokeIfRequired(() => lblJiraKeyCaption.Visible = hasKey);
-            _lblJiraKey.InvokeIfRequired(() => _lblJiraKey.Visible         = hasKey);
+            // Jira section
+            bool hasKey         = !string.IsNullOrWhiteSpace(t.JiraKey);
+            bool parentHasKey   = isSubtask && !string.IsNullOrWhiteSpace(_selParent?.JiraKey);
+            bool canPush        = t.JiraImportable && !isSubtask && !hasKey;
+            bool canPushSubtask = isSubtask && parentHasKey && !hasKey;
+
+            _btnPushToJira.InvokeIfRequired(() =>
+            {
+                _btnPushToJira.Visible = canPush || canPushSubtask;
+                _btnPushToJira.Text    = canPushSubtask ? "Push to Jira as Sub-task" : "Push to Jira";
+            });
+            _btnUpdateJira.InvokeIfRequired(() => _btnUpdateJira.Visible = hasKey);
+            pnlDivider4.InvokeIfRequired(() => pnlDivider4.Visible               = hasKey);
+            lblJiraKeyCaption.InvokeIfRequired(() => lblJiraKeyCaption.Visible    = hasKey);
+            _lblJiraKey.InvokeIfRequired(() => _lblJiraKey.Visible                = hasKey);
 
             if (hasKey)
                 _lblJiraKey.InvokeIfRequired(() => _lblJiraKey.Text = t.JiraKey);
@@ -471,9 +479,12 @@ namespace Test
 
         private async void BtnPushToJira_Click(object sender, EventArgs e)
         {
-            if (_sel == null || !_sel.JiraImportable) return;
+            if (_sel == null) return;
             _btnPushToJira.Enabled = false;
-            await PushTaskToJiraAsync(_sel);
+            if (_sel.ParentId != null && _selParent != null)
+                await PushSubtaskToJiraAsync(_sel, _selParent);
+            else if (_sel.JiraImportable)
+                await PushTaskToJiraAsync(_sel);
             _btnPushToJira.Enabled = true;
         }
 
@@ -551,6 +562,24 @@ namespace Test
             }
         }
 
+        private async System.Threading.Tasks.Task PushSubtaskToJiraAsync(TaskItem subtask, TaskItem parent)
+        {
+            try
+            {
+                var svc = new JiraService(BaseDir);
+                var key = await svc.CreateSubtaskForTaskAsync(subtask, parent, parent.JiraKey).ConfigureAwait(false);
+                subtask.JiraKey = key;
+                _taskService.SaveAll();
+                ShowDetails(_sel);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Subtask saved locally but Jira creation failed:\n{ex.Message}",
+                    "Jira Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
         private async System.Threading.Tasks.Task UpdateTaskInJiraAsync(TaskItem task)
         {
             try
@@ -606,7 +635,16 @@ namespace Test
             using (var dlg = new TaskDialog())
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
-                _taskService.AddSubtask(dlg.Result, parentTask);
+                var subtask = dlg.Result;
+                // Copy Jira fields from parent; subtasks cannot have a Feature
+                subtask.JiraImportable  = parentTask.JiraImportable;
+                subtask.JiraProject     = parentTask.JiraProject;
+                subtask.JiraIssueType   = parentTask.JiraIssueType;
+                subtask.JiraAssignee    = parentTask.JiraAssignee;
+                subtask.JiraReporter    = parentTask.JiraReporter;
+                subtask.JiraStoryPoints = parentTask.JiraStoryPoints;
+                // JiraKey and JiraFeature intentionally not copied
+                _taskService.AddSubtask(subtask, parentTask);
                 RefreshList();
             }
         }

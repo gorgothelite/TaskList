@@ -17,7 +17,7 @@ namespace Test
         // ── Constructors ──────────────────────────────────────────────────────
         public TaskDialog() : this(null) { }
 
-        public TaskDialog(TaskItem existing)
+        public TaskDialog(TaskItem existing, bool isSubtask = false)
         {
             Result = existing ?? new TaskItem();
             InitializeComponent();
@@ -27,6 +27,13 @@ namespace Test
                 System.ComponentModel.LicenseUsageMode.Designtime) return;
 
             Populate();
+
+            if (isSubtask)
+            {
+                _txtFeature.Enabled   = false;
+                _txtFeature.Text      = "";
+                _lblFeatureCaption.Enabled = false;
+            }
         }
 
         // ── Populate / Save ───────────────────────────────────────────────────

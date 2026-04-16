@@ -632,18 +632,24 @@ namespace Test
         {
             if (_sel == null || _sel.ParentId != null) return;
             var parentTask = _sel;
-            using (var dlg = new TaskDialog())
+
+            // Pre-populate Jira fields from the parent so they appear in the dialog.
+            // Subtasks cannot have a Feature, so JiraFeature and JiraKey are left blank.
+            var template = new TaskItem
+            {
+                JiraImportable  = parentTask.JiraImportable,
+                JiraProject     = parentTask.JiraProject,
+                JiraIssueType   = parentTask.JiraIssueType,
+                JiraAssignee    = parentTask.JiraAssignee,
+                JiraReporter    = parentTask.JiraReporter,
+                JiraStoryPoints = parentTask.JiraStoryPoints,
+            };
+
+            using (var dlg = new TaskDialog(template, isSubtask: true))
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
                 var subtask = dlg.Result;
-                // Copy Jira fields from parent; subtasks cannot have a Feature
-                subtask.JiraImportable  = parentTask.JiraImportable;
-                subtask.JiraProject     = parentTask.JiraProject;
-                subtask.JiraIssueType   = parentTask.JiraIssueType;
-                subtask.JiraAssignee    = parentTask.JiraAssignee;
-                subtask.JiraReporter    = parentTask.JiraReporter;
-                subtask.JiraStoryPoints = parentTask.JiraStoryPoints;
-                // JiraKey and JiraFeature intentionally not copied
+                subtask.JiraFeature = ""; // ensure Feature is never set on a subtask
                 _taskService.AddSubtask(subtask, parentTask);
                 RefreshList();
             }

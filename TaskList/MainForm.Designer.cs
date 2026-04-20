@@ -68,6 +68,7 @@ namespace Test
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.pnlTitleBar = new System.Windows.Forms.Panel();
             this.pnlToolbar = new System.Windows.Forms.Panel();
+            this.btnOpenRunFolder = new System.Windows.Forms.Button();
             this.btnAdd = new System.Windows.Forms.Button();
             this.lblStatusFilter = new System.Windows.Forms.Label();
             this._cmbStatusF = new Test.DarkComboBox();
@@ -129,6 +130,7 @@ namespace Test
             // pnlToolbar
             // 
             this.pnlToolbar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(44)))), ((int)(((byte)(44)))), ((int)(((byte)(46)))));
+            this.pnlToolbar.Controls.Add(this.btnOpenRunFolder);
             this.pnlToolbar.Controls.Add(this.btnAdd);
             this.pnlToolbar.Controls.Add(this.lblStatusFilter);
             this.pnlToolbar.Controls.Add(this._cmbStatusF);
@@ -144,6 +146,21 @@ namespace Test
             this.pnlToolbar.Name = "pnlToolbar";
             this.pnlToolbar.Size = new System.Drawing.Size(1080, 50);
             this.pnlToolbar.TabIndex = 0;
+            // 
+            // btnOpenRunFolder
+            // 
+            this.btnOpenRunFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnOpenRunFolder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(90)))));
+            this.btnOpenRunFolder.FlatAppearance.BorderSize = 0;
+            this.btnOpenRunFolder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnOpenRunFolder.ForeColor = System.Drawing.Color.White;
+            this.btnOpenRunFolder.Location = new System.Drawing.Point(952, 11);
+            this.btnOpenRunFolder.Name = "btnOpenRunFolder";
+            this.btnOpenRunFolder.Size = new System.Drawing.Size(118, 28);
+            this.btnOpenRunFolder.TabIndex = 10;
+            this.btnOpenRunFolder.Text = "Open Folder";
+            this.btnOpenRunFolder.UseVisualStyleBackColor = false;
+            this.btnOpenRunFolder.Click += new System.EventHandler(this.btnOpenRunFolder_Click);
             // 
             // btnAdd
             // 
@@ -229,6 +246,7 @@ namespace Test
             this.btnHistory.TabIndex = 5;
             this.btnHistory.Text = "History";
             this.btnHistory.UseVisualStyleBackColor = false;
+            this.btnHistory.Visible = false;
             this.btnHistory.Click += new System.EventHandler(this.BtnHistory_Click);
             // 
             // btnExport
@@ -273,6 +291,7 @@ namespace Test
             this.btnPushAllToJira.TabIndex = 9;
             this.btnPushAllToJira.Text = "Push All →Jira";
             this.btnPushAllToJira.UseVisualStyleBackColor = false;
+            this.btnPushAllToJira.Visible = false;
             this.btnPushAllToJira.Click += new System.EventHandler(this.BtnPushAllToJira_Click);
             // 
             // btnTheme
@@ -688,9 +707,9 @@ namespace Test
             this._btnPushToJira.UseVisualStyleBackColor = false;
             this._btnPushToJira.Visible = false;
             this._btnPushToJira.Click += new System.EventHandler(this.BtnPushToJira_Click);
-            //
+            // 
             // _btnUpdateJira
-            //
+            // 
             this._btnUpdateJira.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(80)))), ((int)(((byte)(60)))));
             this._btnUpdateJira.FlatAppearance.BorderSize = 0;
             this._btnUpdateJira.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -703,7 +722,7 @@ namespace Test
             this._btnUpdateJira.UseVisualStyleBackColor = false;
             this._btnUpdateJira.Visible = false;
             this._btnUpdateJira.Click += new System.EventHandler(this.BtnUpdateJira_Click);
-            //
+            // 
             // pnlDivider4
             // 
             this.pnlDivider4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(68)))));
@@ -736,6 +755,8 @@ namespace Test
             this._lblJiraKey.Size = new System.Drawing.Size(275, 22);
             this._lblJiraKey.TabIndex = 28;
             this._lblJiraKey.Visible = false;
+            this._lblJiraKey.Click += new System.EventHandler(this._lblJiraKey_Click);
+            this._lblJiraKey.MouseHover += new System.EventHandler(this._lblJiraKey_MouseHover);
             // 
             // MainForm
             // 
@@ -764,5 +785,6 @@ namespace Test
 
         private System.Windows.Forms.Label lblTotalTimeSpent;
         private System.Windows.Forms.Label lblTotalTimeSpentDisplay;
+        private System.Windows.Forms.Button btnOpenRunFolder;
     }
 }

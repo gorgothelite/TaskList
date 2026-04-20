@@ -551,6 +551,7 @@ namespace Test
                     Feature          = task.JiraFeature,
                     Assignee         = task.JiraAssignee,
                     Reporter         = task.JiraReporter,
+                    DueDate          = task.DueDate,
                 };
                 var result = await client.CreateStoryAsync(req).ConfigureAwait(false);
                 return result.key;
@@ -580,6 +581,7 @@ namespace Test
                     Feature          = task.JiraFeature,
                     Assignee         = task.JiraAssignee,
                     Reporter         = task.JiraReporter,
+                    DueDate          = task.DueDate,
                 };
                 await client.UpdateStoryAsync(task.JiraKey, req).ConfigureAwait(false);
             }
@@ -618,6 +620,7 @@ namespace Test
                     IssueStoryPoints = subtask.JiraStoryPoints ?? 0,
                     Assignee         = subtask.JiraAssignee,
                     Reporter         = subtask.JiraReporter,
+                    DueDate          = subtask.DueDate,
                 };
                 var result = await client.CreateStoryAsync(req).ConfigureAwait(false);
                 return result.key;
@@ -784,7 +787,10 @@ namespace Test
                 ["project"]           = new { key = request.ProjectKey },
                 ["summary"]           = request.Summary,
                 ["issuetype"]         = new { name = request.IssueTypeName ?? "Story" },
-                ["customfield_22503"] = request.IssueStoryPoints,
+                //["customfield_22503"] = request.IssueStoryPoints,
+                ["customfield_10002"] = request.IssueStoryPoints,
+                ["duedate"]           = request.DueDate.ToString("yyyy-MM-ddTHH:mm:ss.fff+0000"),
+
             };
 
             if (!string.IsNullOrWhiteSpace(request.Description))
@@ -961,6 +967,7 @@ namespace Test
         /// <summary>If set, creates this issue as a Jira sub-task under the given parent issue key.</summary>
         public string ParentKey             { get; set; }
         public Dictionary<string, object> AdditionalFields { get; set; } = new Dictionary<string, object>();
+        public DateTime DueDate { get; set; }
     }
 
     public sealed class JiraStoryUpdateRequest
@@ -974,6 +981,7 @@ namespace Test
         public string Assignee        { get; set; }
         /// <summary>Cloud: accountId; Server/DC: username</summary>
         public string Reporter        { get; set; }
+        public DateTime DueDate         { get; set; }
     }
 
     public sealed class JiraIssueCreateResult

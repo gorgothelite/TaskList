@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using TaskList.Classes;
 
@@ -44,6 +46,7 @@ namespace Test
 
         // ── File paths ───────────────────────────────────────────────────────
         private static readonly string BaseDir = AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string BaseURL = null;
 
         // ── Visual maps ──────────────────────────────────────────────────────
         private static readonly Color[]  PriCol  = { Color.FromArgb(88,196,88), Color.FromArgb(214,188,50), Color.FromArgb(232,116,40), Color.FromArgb(222,52,52) };
@@ -54,12 +57,6 @@ namespace Test
         {
             _resizable = true;
             InitializeComponent();
-
-            //using (var bmp = (Bitmap)Image.FromFile("Resources\\automation.png"))
-            //{
-            //    _iconFromPng = Icon.FromHandle(bmp.GetHicon());
-            //    this.Icon = _iconFromPng;
-            //}
 
             _repo            = new TaskRepository(BaseDir);
             _taskService     = new TaskService(_repo);
@@ -1008,5 +1005,23 @@ namespace Test
         {
             EditTask();
         }
+
+        private void _lblJiraKey_Click(object sender, EventArgs e)
+        {
+            JiraConfig w = new JiraService(BaseDir).LoadConfig();
+            Process.Start($@"{w.Url}browse\{_lblJiraKey.Text}");
+        }
+
+        private void _lblJiraKey_MouseHover(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnOpenRunFolder_Click(object sender, EventArgs e)
+        {
+            string wDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            Process.Start(wDirectory);
+        }
+
     }
 }

@@ -48,6 +48,9 @@ namespace Test
             {
                 _dtpDate.Value = Result.DueDate.Date;
                 _dtpTime.Value = Result.DueDate;
+                _dtpDate.Enabled = cbDueDateEnabled.Checked;
+                _dtpTime.Enabled = cbDueDateEnabled.Checked;
+                _cmbAlert.Enabled = cbDueDateEnabled.Checked;
             }
             catch { }
 
@@ -105,7 +108,13 @@ namespace Test
         private void CbJiraImportable_CheckedChanged(object sender, EventArgs e)
         {
             if (cbJiraImportable.Checked)
+            {
+                cbDueDateEnabled.Checked = true;
+                _dtpDate.Enabled = true;
+                _dtpTime.Enabled = true;
+                _cmbAlert.Enabled = true;
                 ExpandJiraPanel();
+            }
             else
                 CollapseJiraPanel();
         }
@@ -129,11 +138,18 @@ namespace Test
         // ── Due date toggle ───────────────────────────────────────────────────
         private void cbDueDateEnabled_CheckedChanged(object sender, EventArgs e)
         {
-            _cmbAlert.Enabled = cbDueDateEnabled.Checked;
-            _dtpDate.Enabled  = cbDueDateEnabled.Checked;
-            _dtpTime.Enabled  = cbDueDateEnabled.Checked;
-            if (!cbDueDateEnabled.Checked && _cmbAlert.Items.Count > 0)
-                _cmbAlert.SelectedIndex = 0;
+            if (cbJiraImportable.Checked)
+            {
+                cbDueDateEnabled.Checked = true;
+            }
+            else
+            {
+                _cmbAlert.Enabled = cbDueDateEnabled.Checked;
+                _dtpDate.Enabled = cbDueDateEnabled.Checked;
+                _dtpTime.Enabled = cbDueDateEnabled.Checked;
+                if (!cbDueDateEnabled.Checked && _cmbAlert.Items.Count > 0)
+                    _cmbAlert.SelectedIndex = 0;
+            }
         }
     }
 }

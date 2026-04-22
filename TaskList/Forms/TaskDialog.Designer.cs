@@ -165,8 +165,6 @@ namespace Test
             // cbDueDateEnabled
             // 
             this.cbDueDateEnabled.AutoSize = true;
-            this.cbDueDateEnabled.Checked = true;
-            this.cbDueDateEnabled.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbDueDateEnabled.Location = new System.Drawing.Point(112, 160);
             this.cbDueDateEnabled.Name = "cbDueDateEnabled";
             this.cbDueDateEnabled.Size = new System.Drawing.Size(132, 21);
@@ -321,9 +319,9 @@ namespace Test
             this._txtFeature.Name = "_txtFeature";
             this._txtFeature.Size = new System.Drawing.Size(286, 24);
             this._txtFeature.TabIndex = 6;
-            //
+            // 
             // _lblAssigneeCaption
-            //
+            // 
             this._lblAssigneeCaption.AutoSize = true;
             this._lblAssigneeCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             this._lblAssigneeCaption.Location = new System.Drawing.Point(15, 102);
@@ -331,9 +329,9 @@ namespace Test
             this._lblAssigneeCaption.Size = new System.Drawing.Size(60, 17);
             this._lblAssigneeCaption.TabIndex = 7;
             this._lblAssigneeCaption.Text = "Assignee";
-            //
+            // 
             // _txtAssignee
-            //
+            // 
             this._txtAssignee.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._txtAssignee.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this._txtAssignee.ForeColor = System.Drawing.Color.White;
@@ -341,9 +339,9 @@ namespace Test
             this._txtAssignee.Name = "_txtAssignee";
             this._txtAssignee.Size = new System.Drawing.Size(286, 24);
             this._txtAssignee.TabIndex = 8;
-            //
+            // 
             // _lblReporterCaption
-            //
+            // 
             this._lblReporterCaption.AutoSize = true;
             this._lblReporterCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             this._lblReporterCaption.Location = new System.Drawing.Point(15, 132);
@@ -351,9 +349,9 @@ namespace Test
             this._lblReporterCaption.Size = new System.Drawing.Size(60, 17);
             this._lblReporterCaption.TabIndex = 9;
             this._lblReporterCaption.Text = "Reporter";
-            //
+            // 
             // _txtReporter
-            //
+            // 
             this._txtReporter.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._txtReporter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this._txtReporter.ForeColor = System.Drawing.Color.White;
@@ -361,19 +359,19 @@ namespace Test
             this._txtReporter.Name = "_txtReporter";
             this._txtReporter.Size = new System.Drawing.Size(286, 24);
             this._txtReporter.TabIndex = 10;
-            //
+            // 
             // _lblIssueTypeCaption
-            //
+            // 
             this._lblIssueTypeCaption.AutoSize = true;
             this._lblIssueTypeCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(175)))), ((int)(((byte)(175)))), ((int)(((byte)(185)))));
             this._lblIssueTypeCaption.Location = new System.Drawing.Point(15, 162);
             this._lblIssueTypeCaption.Name = "_lblIssueTypeCaption";
-            this._lblIssueTypeCaption.Size = new System.Drawing.Size(70, 17);
+            this._lblIssueTypeCaption.Size = new System.Drawing.Size(68, 17);
             this._lblIssueTypeCaption.TabIndex = 11;
             this._lblIssueTypeCaption.Text = "Issue Type";
-            //
+            // 
             // _txtIssueType
-            //
+            // 
             this._txtIssueType.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(60)))));
             this._txtIssueType.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this._txtIssueType.ForeColor = System.Drawing.Color.White;

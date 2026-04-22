@@ -23,7 +23,7 @@ namespace Test
         public DateTime     DueDate      { get; set; } = DateTime.Now.AddDays(1);
         public DateTime     StartDate    { get; set; } = DateTime.Now;
         public DateTime     EndDate      { get; set; } = DateTime.Now.AddDays(1);
-        public bool         DueDateEnabled { get; set; } = true;
+        public bool         DueDateEnabled { get; set; } = false;
         public double       TotalTime    { get; set; } = 0;   // legacy — no longer mutated
         public List<WorkSession> WorkLog { get; set; } = new List<WorkSession>();
         public bool         IsDone       { get; set; } = false;
